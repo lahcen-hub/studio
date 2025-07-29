@@ -193,7 +193,7 @@ export default function CargoValuatorPage() {
                         <p className="text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
                     </div>
                      <div className="bg-secondary/50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground">Caisses virtuelles Dichi</p>
+                        <p className="text-sm text-muted-foreground font-bold">الديشي</p>
                         <p className="text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
                     </div>
                 </div>
