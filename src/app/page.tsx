@@ -189,8 +189,8 @@ export default function CargoValuatorPage() {
                         <p className="text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
                     </div>
                      <div className="bg-secondary/50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground">Poids Net Total</p>
-                        <p className="text-xl font-bold">{calculations.totalNetProductWeight.toFixed(2)} kg</p>
+                        <p className="text-sm text-muted-foreground">Caisses virtuelles Mlih</p>
+                        <p className="text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
                     </div>
                      <div className="bg-secondary/50 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Poids Net / Caisse</p>
