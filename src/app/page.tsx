@@ -35,7 +35,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor={id} className="flex items-center gap-2 text-sm font-medium">
+      <Label htmlFor={id} className="flex items-center gap-2 text-sm font-bold">
         {icon}
         {label}
       </Label>
@@ -123,7 +123,7 @@ export default function CargoValuatorPage() {
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
-                <InputField
+                 <InputField
                   id="grossWeight"
                   label="Poids total brut"
                   value={grossWeight}
@@ -132,7 +132,15 @@ export default function CargoValuatorPage() {
                   icon={<Truck className="w-4 h-4 text-primary" />}
                   step={10}
                 />
-                <div className="grid grid-cols-2 gap-4">
+                 <InputField
+                  id="fullCrateWeight"
+                  label="Poids caisse pleine"
+                  value={fullCrateWeight}
+                  setValue={setFullCrateWeight}
+                  unit="kg"
+                  icon={<Scale className="w-4 h-4 text-primary" />}
+                />
+                 <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihCrates"
                     label="Caisses المليح"
@@ -150,10 +158,10 @@ export default function CargoValuatorPage() {
                     icon={<Package className="w-4 h-4 text-primary" />}
                   />
                 </div>
-                 <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihPrice"
-                    label="Prix caisse المليح"
+                    label="Prix المليح"
                     value={mlihPrice}
                     setValue={setMlihPrice}
                     unit="DH"
@@ -162,7 +170,7 @@ export default function CargoValuatorPage() {
                   />
                   <InputField
                     id="dichiPrice"
-                    label="Prix caisse الديشي"
+                    label="Prix الديشي"
                     value={dichiPrice}
                     setValue={setDichiPrice}
                     unit="DH"
@@ -170,14 +178,6 @@ export default function CargoValuatorPage() {
                     step={5}
                   />
                 </div>
-                 <InputField
-                  id="fullCrateWeight"
-                  label="Poids caisse pleine"
-                  value={fullCrateWeight}
-                  setValue={setFullCrateWeight}
-                  unit="kg"
-                  icon={<Scale className="w-4 h-4 text-primary" />}
-                />
               </CardContent>
             </Card>
           </div>
