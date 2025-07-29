@@ -82,6 +82,7 @@ export default function CargoValuatorPage() {
     const totalPriceDichi = virtualCratesDichi * dichiPrice;
 
     const grandTotalPrice = totalPriceMlih + totalPriceDichi;
+    const grandTotalPriceSAR = grandTotalPrice * 0.38;
     
     return {
       totalCrates,
@@ -95,12 +96,18 @@ export default function CargoValuatorPage() {
       totalVirtualCrates: virtualCratesMlih + virtualCratesDichi,
       totalPriceMlih,
       totalPriceDichi,
-      grandTotalPrice
+      grandTotalPrice,
+      grandTotalPriceSAR
     };
   }, [mlihCrates, dichiCrates, grossWeight, emptyCrateWeight, fullCrateWeight, mlihPrice, dichiPrice]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('fr-MA', { style: 'currency', currency: 'MAD' }).format(value);
+  const formatCurrency = (value: number, currency = 'MAD') => {
+    const options = { style: 'currency', currency };
+    let locale = 'fr-MA';
+    if (currency === 'SAR') {
+        locale = 'ar-SA';
+    }
+    return new Intl.NumberFormat(locale, options).format(value);
   }
 
   return (
@@ -123,23 +130,25 @@ export default function CargoValuatorPage() {
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
-                 <InputField
-                  id="grossWeight"
-                  label="Poids total brut"
-                  value={grossWeight}
-                  setValue={setGrossWeight}
-                  unit="kg"
-                  icon={<Truck className="w-4 h-4 text-primary" />}
-                  step={10}
-                />
-                 <InputField
-                  id="fullCrateWeight"
-                  label="Poids caisse pleine"
-                  value={fullCrateWeight}
-                  setValue={setFullCrateWeight}
-                  unit="kg"
-                  icon={<Scale className="w-4 h-4 text-primary" />}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="grossWeight"
+                    label="Poids total brut"
+                    value={grossWeight}
+                    setValue={setGrossWeight}
+                    unit="kg"
+                    icon={<Truck className="w-4 h-4 text-primary" />}
+                    step={10}
+                  />
+                  <InputField
+                    id="fullCrateWeight"
+                    label="Poids caisse pleine"
+                    value={fullCrateWeight}
+                    setValue={setFullCrateWeight}
+                    unit="kg"
+                    icon={<Scale className="w-4 h-4 text-primary" />}
+                  />
+                </div>
                  <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihCrates"
@@ -232,10 +241,14 @@ export default function CargoValuatorPage() {
                     </Table>
                 </div>
               </CardContent>
-              <CardFooter className="mt-auto">
+              <CardFooter className="mt-auto flex flex-col gap-2">
                 <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
                     <span className="text-xl font-bold">Prix Total Général</span>
                     <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
+                </div>
+                <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
+                    <span className="text-xl font-bold">Prix Total (Riyal)</span>
+                    <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceSAR, 'SAR')}</span>
                 </div>
               </CardFooter>
             </Card>
