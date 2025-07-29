@@ -17,9 +17,10 @@ interface InputFieldProps {
   unit: string;
   icon: ReactNode;
   step?: number;
+  isBold?: boolean;
 }
 
-const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1 }) => {
+const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (val === '') {
@@ -35,7 +36,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor={id} className="flex items-center gap-2 text-sm font-bold">
+      <Label htmlFor={id} className={`flex items-center gap-2 text-sm ${isBold ? 'font-bold' : ''}`}>
         {icon}
         {label}
       </Label>
@@ -102,19 +103,15 @@ export default function CargoValuatorPage() {
   }, [mlihCrates, dichiCrates, grossWeight, emptyCrateWeight, fullCrateWeight, mlihPrice, dichiPrice]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
-    const options = { style: 'currency', currency, currencyDisplay: 'code' };
+    const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
     let locale = 'fr-MA';
     
     if (currency === 'Riyal') {
-        // Custom formatting for Moroccan Riyal as it's not a standard ISO currency
         const numberPart = new Intl.NumberFormat('fr-MA').format(value);
         return `${numberPart} Riyal`;
     }
 
-    if (currency === 'SAR') {
-        locale = 'ar-SA';
-    }
-    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
+    return new Intl.NumberFormat(locale, options).format(value);
   }
 
   return (
@@ -137,7 +134,7 @@ export default function CargoValuatorPage() {
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
-                <div className="grid grid-cols-2 gap-4">
+                 <div className="grid grid-cols-2 gap-4">
                    <InputField
                     id="grossWeight"
                     label="Poids total brut"
@@ -146,6 +143,7 @@ export default function CargoValuatorPage() {
                     unit="kg"
                     icon={<Truck className="w-4 h-4 text-primary" />}
                     step={10}
+                    isBold
                   />
                   <InputField
                     id="fullCrateWeight"
@@ -154,6 +152,7 @@ export default function CargoValuatorPage() {
                     setValue={setFullCrateWeight}
                     unit="kg"
                     icon={<Scale className="w-4 h-4 text-primary" />}
+                    isBold
                   />
                 </div>
                  <div className="grid grid-cols-2 gap-4">
@@ -164,6 +163,7 @@ export default function CargoValuatorPage() {
                     setValue={setMlihCrates}
                     unit="caisses"
                     icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
                   />
                   <InputField
                     id="dichiCrates"
@@ -172,6 +172,7 @@ export default function CargoValuatorPage() {
                     setValue={setDichiCrates}
                     unit="caisses"
                     icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -183,6 +184,7 @@ export default function CargoValuatorPage() {
                     unit="DH"
                     icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
                     step={5}
+                    isBold
                   />
                   <InputField
                     id="dichiPrice"
@@ -192,6 +194,7 @@ export default function CargoValuatorPage() {
                     unit="DH"
                     icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
                     step={5}
+                    isBold
                   />
                 </div>
               </CardContent>

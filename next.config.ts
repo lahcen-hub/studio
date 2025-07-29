@@ -21,10 +21,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSerwist({
-  ...nextConfig,
-  serwist: {
-    swSrc: 'src/app/sw.ts',
-    swDest: 'public/sw.js',
-  },
+const withSerwistConfig = withSerwist({
+  swSrc: 'src/app/sw.ts',
+  swDest: 'public/sw.js',
 });
+
+export default withSerwistConfig(nextConfig);
