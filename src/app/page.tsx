@@ -124,22 +124,6 @@ export default function CargoValuatorPage() {
               </CardHeader>
               <CardContent className="grid gap-6">
                 <InputField
-                  id="mlihCrates"
-                  label="Caisses المليح"
-                  value={mlihCrates}
-                  setValue={setMlihCrates}
-                  unit="caisses"
-                  icon={<Package className="w-4 h-4 text-primary" />}
-                />
-                <InputField
-                  id="dichiCrates"
-                  label="Caisses الديشي"
-                  value={dichiCrates}
-                  setValue={setDichiCrates}
-                  unit="caisses"
-                  icon={<Package className="w-4 h-4 text-primary" />}
-                />
-                <InputField
                   id="grossWeight"
                   label="Poids total brut"
                   value={grossWeight}
@@ -148,6 +132,44 @@ export default function CargoValuatorPage() {
                   icon={<Truck className="w-4 h-4 text-primary" />}
                   step={10}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihCrates"
+                    label="Caisses المليح"
+                    value={mlihCrates}
+                    setValue={setMlihCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                  />
+                  <InputField
+                    id="dichiCrates"
+                    label="Caisses الديشي"
+                    value={dichiCrates}
+                    setValue={setDichiCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                  />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihPrice"
+                    label="Prix caisse المليح"
+                    value={mlihPrice}
+                    setValue={setMlihPrice}
+                    unit="DH"
+                    icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
+                    step={5}
+                  />
+                  <InputField
+                    id="dichiPrice"
+                    label="Prix caisse الديشي"
+                    value={dichiPrice}
+                    setValue={setDichiPrice}
+                    unit="DH"
+                    icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
+                    step={5}
+                  />
+                </div>
                  <InputField
                   id="fullCrateWeight"
                   label="Poids caisse pleine"
@@ -155,24 +177,6 @@ export default function CargoValuatorPage() {
                   setValue={setFullCrateWeight}
                   unit="kg"
                   icon={<Scale className="w-4 h-4 text-primary" />}
-                />
-                <InputField
-                  id="mlihPrice"
-                  label="Prix caisse المليح"
-                  value={mlihPrice}
-                  setValue={setMlihPrice}
-                  unit="DH"
-                  icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
-                  step={5}
-                />
-                 <InputField
-                  id="dichiPrice"
-                  label="Prix caisse الديشي"
-                  value={dichiPrice}
-                  setValue={setDichiPrice}
-                  unit="DH"
-                  icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
-                  step={5}
                 />
               </CardContent>
             </Card>
