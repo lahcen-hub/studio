@@ -82,7 +82,7 @@ export default function CargoValuatorPage() {
     const totalPriceDichi = virtualCratesDichi * dichiPrice;
 
     const grandTotalPrice = totalPriceMlih + totalPriceDichi;
-    const grandTotalPriceSAR = grandTotalPrice * 0.38;
+    const grandTotalPriceRiyal = grandTotalPrice * 20;
     
     return {
       totalCrates,
@@ -97,17 +97,24 @@ export default function CargoValuatorPage() {
       totalPriceMlih,
       totalPriceDichi,
       grandTotalPrice,
-      grandTotalPriceSAR
+      grandTotalPriceRiyal
     };
   }, [mlihCrates, dichiCrates, grossWeight, emptyCrateWeight, fullCrateWeight, mlihPrice, dichiPrice]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
-    const options = { style: 'currency', currency };
+    const options = { style: 'currency', currency, currencyDisplay: 'code' };
     let locale = 'fr-MA';
+    
+    if (currency === 'Riyal') {
+        // Custom formatting for Moroccan Riyal as it's not a standard ISO currency
+        const numberPart = new Intl.NumberFormat('fr-MA').format(value);
+        return `${numberPart} Riyal`;
+    }
+
     if (currency === 'SAR') {
         locale = 'ar-SA';
     }
-    return new Intl.NumberFormat(locale, options).format(value);
+    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
   }
 
   return (
@@ -126,12 +133,12 @@ export default function CargoValuatorPage() {
           <div className="md:col-span-2">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl">Données de la Cargaison</CardTitle>
+                <CardTitle className="text-2xl font-bold">Données de la Cargaison</CardTitle>
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <InputField
+                   <InputField
                     id="grossWeight"
                     label="Poids total brut"
                     value={grossWeight}
@@ -152,7 +159,7 @@ export default function CargoValuatorPage() {
                  <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihCrates"
-                    label="Caisses المليح"
+                    label="مليح"
                     value={mlihCrates}
                     setValue={setMlihCrates}
                     unit="caisses"
@@ -160,7 +167,7 @@ export default function CargoValuatorPage() {
                   />
                   <InputField
                     id="dichiCrates"
-                    label="Caisses الديشي"
+                    label="ديشي"
                     value={dichiCrates}
                     setValue={setDichiCrates}
                     unit="caisses"
@@ -248,7 +255,7 @@ export default function CargoValuatorPage() {
                 </div>
                 <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
                     <span className="text-xl font-bold">Prix Total (Riyal)</span>
-                    <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceSAR, 'SAR')}</span>
+                    <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                 </div>
               </CardFooter>
             </Card>
