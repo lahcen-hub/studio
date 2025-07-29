@@ -60,7 +60,7 @@ export default function CargoValuatorPage() {
   const [mlihCrates, setMlihCrates] = useState(72);
   const [dichiCrates, setDichiCrates] = useState(48);
   const [grossWeight, setGrossWeight] = useState(3280);
-  const [emptyCrateWeight, setEmptyCrateWeight] = useState(3);
+  const emptyCrateWeight = 3;
   const [fullCrateWeight, setFullCrateWeight] = useState(27);
   const [mlihPrice, setMlihPrice] = useState(85);
   const [dichiPrice, setDichiPrice] = useState(70);
@@ -145,14 +145,6 @@ export default function CargoValuatorPage() {
                   unit="kg"
                   icon={<Truck className="w-4 h-4 text-primary" />}
                   step={10}
-                />
-                <InputField
-                  id="emptyCrateWeight"
-                  label="Poids carton vide"
-                  value={emptyCrateWeight}
-                  setValue={setEmptyCrateWeight}
-                  unit="kg"
-                  icon={<Boxes className="w-4 h-4 text-primary" />}
                 />
                  <InputField
                   id="fullCrateWeight"
