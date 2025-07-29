@@ -27,3 +27,5 @@ const withSerwistConfig = withSerwist({
 });
 
 export default withSerwistConfig(nextConfig);
+
+    
