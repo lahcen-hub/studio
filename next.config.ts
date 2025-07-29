@@ -1,5 +1,4 @@
 import type {NextConfig} from 'next';
-import {withSerwist} from '@serwist/next';
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -21,11 +20,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withSerwistConfig = withSerwist({
-  swSrc: 'src/app/sw.ts',
-  swDest: 'public/sw.js',
-});
-
-export default withSerwistConfig(nextConfig);
-
-    
+export default nextConfig;

@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster"
 export const metadata: Metadata = {
   title: 'CargoValuator',
   description: 'Calculates total price for two product types based on cargo data.',
-  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
