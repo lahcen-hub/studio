@@ -91,6 +91,7 @@ export default function CargoValuatorPage() {
       netWeightDichi,
       virtualCratesMlih,
       virtualCratesDichi,
+      totalVirtualCrates: virtualCratesMlih + virtualCratesDichi,
       totalPriceMlih,
       totalPriceDichi,
       grandTotalPrice
@@ -184,8 +185,8 @@ export default function CargoValuatorPage() {
               <CardContent className="flex-grow">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
                     <div className="bg-secondary/50 p-4 rounded-lg">
-                        <p className="text-sm text-muted-foreground">Poids Caisses Vides</p>
-                        <p className="text-xl font-bold">{calculations.totalEmptyCratesWeight.toFixed(2)} kg</p>
+                        <p className="text-sm text-muted-foreground">Caisses virtuelles</p>
+                        <p className="text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
                     </div>
                      <div className="bg-secondary/50 p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">Poids Net Total</p>
