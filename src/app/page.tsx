@@ -239,7 +239,7 @@ export default function CargoValuatorPage() {
                                 <TableCell className="text-center">{calculations.netWeightDichi.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
-                                <TableCell className="font-medium flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
+                                <TableCell className="font-semibold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
                                 <TableCell className="text-center">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
                                 <TableCell className="text-center">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                             </TableRow>
@@ -269,3 +269,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
