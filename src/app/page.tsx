@@ -118,8 +118,9 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline text-foreground">
-            CargoValuator
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
+            <Truck className="w-12 h-12 text-primary" />
+            Cargo
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
             Calculez le prix de votre cargaison de manière simple et rapide.
@@ -268,5 +269,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
