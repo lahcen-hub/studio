@@ -1,13 +1,15 @@
 
 "use client";
 
-import { useState, useMemo, type ChangeEvent, type FC, type ReactNode } from 'react';
+import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 interface InputFieldProps {
   id: string;
@@ -57,6 +59,15 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
   );
 };
 
+interface HistoryEntry {
+  id: number;
+  date: string;
+  results: {
+    grandTotalPrice: number;
+    grandTotalPriceRiyal: number;
+  };
+}
+
 
 export default function CargoValuatorPage() {
   const [mlihCrates, setMlihCrates] = useState(72);
@@ -66,6 +77,26 @@ export default function CargoValuatorPage() {
   const [fullCrateWeight, setFullCrateWeight] = useState(27);
   const [mlihPrice, setMlihPrice] = useState(85);
   const [dichiPrice, setDichiPrice] = useState(70);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem('cargoHistory');
+      if (savedHistory) {
+        setHistory(JSON.parse(savedHistory));
+      }
+    } catch (error) {
+      console.error("Failed to load history from localStorage", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cargoHistory', JSON.stringify(history));
+    } catch (error) {
+      console.error("Failed to save history to localStorage", error);
+    }
+  }, [history]);
 
   const calculations = useMemo(() => {
     const totalCrates = mlihCrates + dichiCrates;
@@ -113,6 +144,22 @@ export default function CargoValuatorPage() {
 
     return new Intl.NumberFormat(locale, options).format(value);
   }
+  
+  const handleSave = () => {
+    const newEntry: HistoryEntry = {
+      id: Date.now(),
+      date: new Date().toLocaleString('fr-FR'),
+      results: {
+        grandTotalPrice: calculations.grandTotalPrice,
+        grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
+      },
+    };
+    setHistory([newEntry, ...history]);
+  };
+  
+  const clearHistory = () => {
+    setHistory([]);
+  };
 
   return (
     <main className="min-h-screen p-4 sm:p-6 md:p-8">
@@ -128,13 +175,33 @@ export default function CargoValuatorPage() {
         </header>
 
         <div className="grid md:grid-cols-5 gap-8">
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-8">
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="text-2xl font-bold">Données de la Cargaison</CardTitle>
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
+                 <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihCrates"
+                    label="مليح"
+                    value={mlihCrates}
+                    setValue={setMlihCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                  <InputField
+                    id="dichiCrates"
+                    label="ديشي"
+                    value={dichiCrates}
+                    setValue={setDichiCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                </div>
                  <div className="grid grid-cols-2 gap-4">
                    <InputField
                     id="grossWeight"
@@ -153,26 +220,6 @@ export default function CargoValuatorPage() {
                     setValue={setFullCrateWeight}
                     unit="kg"
                     icon={<Scale className="w-4 h-4 text-primary" />}
-                    isBold
-                  />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
-                  <InputField
-                    id="mlihCrates"
-                    label="مليح"
-                    value={mlihCrates}
-                    setValue={setMlihCrates}
-                    unit="caisses"
-                    icon={<Package className="w-4 h-4 text-primary" />}
-                    isBold
-                  />
-                  <InputField
-                    id="dichiCrates"
-                    label="ديشي"
-                    value={dichiCrates}
-                    setValue={setDichiCrates}
-                    unit="caisses"
-                    icon={<Package className="w-4 h-4 text-primary" />}
                     isBold
                   />
                 </div>
@@ -199,7 +246,58 @@ export default function CargoValuatorPage() {
                   />
                 </div>
               </CardContent>
+              <CardFooter>
+                 <Button onClick={handleSave} className="w-full">
+                  <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
+                </Button>
+              </CardFooter>
             </Card>
+
+             <Card className="shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-1.5">
+                  <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                    <History className="w-6 h-6" />
+                    Historique
+                  </CardTitle>
+                  <CardDescription>
+                    Vos calculs enregistrés.
+                  </CardDescription>
+                </div>
+                 {history.length > 0 && (
+                   <Button variant="destructive" size="sm" onClick={clearHistory}>
+                     <Trash2 className="mr-2 h-4 w-4" /> Vider
+                   </Button>
+                 )}
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-60">
+                 {history.length > 0 ? (
+                    <div className="space-y-4">
+                      {history.map((item) => (
+                        <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
+                           <div className="flex justify-between items-center">
+                              <p className="text-sm text-muted-foreground">{item.date}</p>
+                           </div>
+                           <Separator className="my-2" />
+                           <div className="flex justify-between items-center">
+                              <p className="font-semibold">Prix Total:</p>
+                              <p className="font-bold">{formatCurrency(item.results.grandTotalPrice)}</p>
+                           </div>
+                           <div className="flex justify-between items-center text-sm">
+                             <p className="font-semibold">Prix Total (Riyal):</p>
+                             <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center">Aucun calcul enregistré.</p>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
           </div>
           <div className="md:col-span-3">
              <Card className="shadow-lg h-full flex flex-col">
@@ -239,9 +337,9 @@ export default function CargoValuatorPage() {
                                 <TableCell className="text-center">{calculations.netWeightDichi.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow>
-                                <TableCell className="font-semibold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
-                                <TableCell className="text-center">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
-                                <TableCell className="text-center">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
+                                <TableCell className="font-bold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
+                                <TableCell className="text-center font-bold">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
+                                <TableCell className="text-center font-bold">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                             </TableRow>
                              <TableRow className="bg-primary/10">
                                 <TableCell className="font-semibold flex items-center gap-2"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
@@ -269,5 +367,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
