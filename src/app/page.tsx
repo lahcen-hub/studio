@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -202,6 +202,43 @@ export default function CargoValuatorPage() {
   
   const clearHistory = () => {
     setHistory([]);
+  };
+
+  const downloadHistory = () => {
+    if (history.length === 0) {
+      alert("L'historique est vide.");
+      return;
+    }
+  
+    const headers = [
+      "Date",
+      "Nom du client",
+      "Prix Total (Riyal)",
+      "مجموع الصندوق",
+      "الصندوق الباقي",
+      "Reste d'argent (MAD)"
+    ];
+  
+    const rows = history.map(item => [
+      item.date,
+      `"${item.clientName.replace(/"/g, '""')}"`, // Handle quotes in client name
+      item.results.grandTotalPriceRiyal.toFixed(2),
+      item.totalCrates,
+      item.remainingCrates,
+      item.remainingMoney.toFixed(2)
+    ]);
+  
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+  
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const formattedDate = new Date().toISOString().slice(0, 10);
+    link.setAttribute("download", `historique_cargo_${formattedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -410,9 +447,14 @@ export default function CargoValuatorPage() {
                   </CardDescription>
                 </div>
                  {history.length > 0 && (
-                   <Button variant="destructive" size="sm" onClick={clearHistory}>
-                     <Trash2 className="mr-2 h-4 w-4" /> Vider
-                   </Button>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={downloadHistory}>
+                      <Download className="mr-2 h-4 w-4" /> Télécharger
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={clearHistory}>
+                      <Trash2 className="mr-2 h-4 w-4" /> Vider
+                    </Button>
+                  </div>
                  )}
               </CardHeader>
               <CardContent>
@@ -424,7 +466,7 @@ export default function CargoValuatorPage() {
                            <div className="flex justify-between items-start">
                               <div>
                                 <p className="text-sm text-muted-foreground">{item.date}</p>
-                                <p className="font-bold text-sm flex items-center gap-1 mt-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                                <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                               </div>
                               <div className="flex items-center gap-1">
                                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
@@ -516,3 +558,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
