@@ -355,7 +355,7 @@ export default function CargoValuatorPage() {
                           <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="remainingCrates" className="text-right">Reste des caisses</Label>
+                          <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
                           <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -416,7 +416,7 @@ export default function CargoValuatorPage() {
                            <Separator className="my-2" />
                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                 <div className="flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Reste caisses:</span>
+                                    <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
                                     <span className="font-bold">{item.remainingCrates}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
@@ -439,5 +439,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
