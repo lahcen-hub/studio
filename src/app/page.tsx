@@ -191,6 +191,10 @@ export default function CargoValuatorPage() {
   const openEditDialog = (entry: HistoryEntry) => {
     setEditingEntry({ ...entry });
   };
+
+  const handleDelete = (id: number) => {
+    setHistory(history.filter(entry => entry.id !== id));
+  };
   
   const handleCalculate = () => {
     setShowResults(true);
@@ -422,9 +426,14 @@ export default function CargoValuatorPage() {
                                 <p className="text-sm text-muted-foreground">{item.date}</p>
                                 <p className="font-bold text-sm flex items-center gap-1 mt-1"><User className="w-3 h-3"/>{item.clientName}</p>
                               </div>
-                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
-                                 <Pencil className="h-4 w-4" />
-                               </Button>
+                              <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(item.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                            </div>
                            <Separator className="my-2" />
                            <div className="flex justify-between items-center text-sm">
