@@ -264,64 +264,6 @@ export default function CargoValuatorPage() {
                 </div>
               </CardContent>
             </Card>
-
-             <Card className="shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div className="space-y-1.5">
-                  <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                    <History className="w-6 h-6" />
-                    Historique
-                  </CardTitle>
-                  <CardDescription>
-                    Vos calculs enregistrés.
-                  </CardDescription>
-                </div>
-                 {history.length > 0 && (
-                   <Button variant="destructive" size="sm" onClick={clearHistory}>
-                     <Trash2 className="mr-2 h-4 w-4" /> Vider
-                   </Button>
-                 )}
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[420px]">
-                 {history.length > 0 ? (
-                    <div className="space-y-4">
-                      {history.map((item) => (
-                        <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
-                           <div className="flex justify-between items-center">
-                              <p className="text-sm text-muted-foreground">{item.date}</p>
-                              <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
-                           </div>
-                           <Separator className="my-2" />
-                           <div className="flex justify-between items-center">
-                              <p className="font-semibold">Prix Total:</p>
-                              <p className="font-bold">{formatCurrency(item.results.grandTotalPrice)}</p>
-                           </div>
-                           <div className="flex justify-between items-center text-sm">
-                             <p className="font-semibold">Prix Total (Riyal):</p>
-                             <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
-                           </div>
-                           <Separator className="my-2" />
-                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Reste caisses:</span>
-                                    <span className="font-bold">{item.remainingCrates}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
-                                    <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
-                                </div>
-                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
-                  )}
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
           </div>
           <div className="md:col-span-3">
              <Card className="shadow-lg h-full flex flex-col">
@@ -422,10 +364,67 @@ export default function CargoValuatorPage() {
             </Card>
           </div>
         </div>
+
+        <div className="mt-8">
+            <Card className="shadow-lg">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div className="space-y-1.5">
+                  <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                    <History className="w-6 h-6" />
+                    Historique
+                  </CardTitle>
+                  <CardDescription>
+                    Vos calculs enregistrés.
+                  </CardDescription>
+                </div>
+                 {history.length > 0 && (
+                   <Button variant="destructive" size="sm" onClick={clearHistory}>
+                     <Trash2 className="mr-2 h-4 w-4" /> Vider
+                   </Button>
+                 )}
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[420px]">
+                 {history.length > 0 ? (
+                    <div className="space-y-4">
+                      {history.map((item) => (
+                        <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
+                           <div className="flex justify-between items-center">
+                              <p className="text-sm text-muted-foreground">{item.date}</p>
+                              <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                           </div>
+                           <Separator className="my-2" />
+                           <div className="flex justify-between items-center">
+                              <p className="font-semibold">Prix Total:</p>
+                              <p className="font-bold">{formatCurrency(item.results.grandTotalPrice)}</p>
+                           </div>
+                           <div className="flex justify-between items-center text-sm">
+                             <p className="font-semibold">Prix Total (Riyal):</p>
+                             <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
+                           </div>
+                           <Separator className="my-2" />
+                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Reste caisses:</span>
+                                    <span className="font-bold">{item.remainingCrates}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                    <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                </div>
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+        </div>
+
       </div>
     </main>
   );
 }
-
-
-    
