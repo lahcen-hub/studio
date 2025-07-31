@@ -246,11 +246,6 @@ export default function CargoValuatorPage() {
                   />
                 </div>
               </CardContent>
-              <CardFooter>
-                 <Button onClick={handleSave} className="w-full">
-                  <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
-                </Button>
-              </CardFooter>
             </Card>
 
              <Card className="shadow-lg">
@@ -350,7 +345,7 @@ export default function CargoValuatorPage() {
                     </Table>
                 </div>
               </CardContent>
-              <CardFooter className="mt-auto flex flex-col gap-2">
+              <CardFooter className="mt-auto flex flex-col gap-4">
                 <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
                     <span className="text-xl font-bold">Prix Total Général</span>
                     <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
@@ -359,6 +354,9 @@ export default function CargoValuatorPage() {
                     <span className="text-xl font-bold">Prix Total (Riyal)</span>
                     <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                 </div>
+                <Button onClick={handleSave} className="w-full">
+                  <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
+                </Button>
               </CardFooter>
             </Card>
           </div>
