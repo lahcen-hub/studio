@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2 } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 
 interface InputFieldProps {
   id: string;
@@ -66,6 +67,9 @@ interface HistoryEntry {
     grandTotalPrice: number;
     grandTotalPriceRiyal: number;
   };
+  clientName: string;
+  remainingCrates: number;
+  remainingMoney: number;
 }
 
 
@@ -78,6 +82,11 @@ export default function CargoValuatorPage() {
   const [mlihPrice, setMlihPrice] = useState(85);
   const [dichiPrice, setDichiPrice] = useState(70);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  
+  const [clientName, setClientName] = useState('');
+  const [remainingCrates, setRemainingCrates] = useState(0);
+  const [remainingMoney, setRemainingMoney] = useState(0);
+  const [isDialogOpen, setDialogOpen] = useState(false);
   
   useEffect(() => {
     try {
@@ -153,8 +162,16 @@ export default function CargoValuatorPage() {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
       },
+      clientName: clientName,
+      remainingCrates: remainingCrates,
+      remainingMoney: remainingMoney
     };
     setHistory([newEntry, ...history]);
+    // Reset form and close dialog
+    setClientName('');
+    setRemainingCrates(0);
+    setRemainingMoney(0);
+    setDialogOpen(false);
   };
   
   const clearHistory = () => {
@@ -266,13 +283,14 @@ export default function CargoValuatorPage() {
                  )}
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-60">
+                <ScrollArea className="h-[420px]">
                  {history.length > 0 ? (
                     <div className="space-y-4">
                       {history.map((item) => (
                         <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
                            <div className="flex justify-between items-center">
                               <p className="text-sm text-muted-foreground">{item.date}</p>
+                              <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                            </div>
                            <Separator className="my-2" />
                            <div className="flex justify-between items-center">
@@ -283,11 +301,22 @@ export default function CargoValuatorPage() {
                              <p className="font-semibold">Prix Total (Riyal):</p>
                              <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
                            </div>
+                           <Separator className="my-2" />
+                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Reste caisses:</span>
+                                    <span className="font-bold">{item.remainingCrates}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                    <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                </div>
+                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-center">Aucun calcul enregistré.</p>
+                    <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
                   )}
                 </ScrollArea>
               </CardContent>
@@ -354,9 +383,41 @@ export default function CargoValuatorPage() {
                     <span className="text-xl font-bold">Prix Total (Riyal)</span>
                     <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                 </div>
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full">
+                      <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Enregistrer les détails</DialogTitle>
+                      <DialogDescription>
+                        Ajoutez des informations supplémentaires pour ce calcul.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="clientName" className="text-right">Nom du client</Label>
+                        <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="remainingCrates" className="text-right">Reste des caisses</Label>
+                        <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
+                        <Input id="remainingMoney" type="number" value={remainingMoney} onChange={(e) => setRemainingMoney(Number(e.target.value))} className="col-span-3" />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                         <Button variant="outline">Annuler</Button>
+                      </DialogClose>
+                      <Button onClick={handleSave}>Enregistrer</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </CardFooter>
             </Card>
           </div>
@@ -365,3 +426,6 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+
+    
