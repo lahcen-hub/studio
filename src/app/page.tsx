@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -86,8 +86,10 @@ export default function CargoValuatorPage() {
   const [clientName, setClientName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState(0);
   const [remainingMoney, setRemainingMoney] = useState(0);
-  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
+
+  const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
   
   useEffect(() => {
     try {
@@ -172,9 +174,22 @@ export default function CargoValuatorPage() {
     setClientName('');
     setRemainingCrates(0);
     setRemainingMoney(0);
-    setDialogOpen(false);
+    setSaveDialogOpen(false);
   };
 
+  const handleUpdate = () => {
+    if (!editingEntry) return;
+
+    setHistory(history.map(entry => 
+        entry.id === editingEntry.id ? { ...entry, clientName: editingEntry.clientName, remainingCrates: editingEntry.remainingCrates, remainingMoney: editingEntry.remainingMoney } : entry
+    ));
+    setEditingEntry(null);
+  };
+
+  const openEditDialog = (entry: HistoryEntry) => {
+    setEditingEntry({ ...entry });
+  };
+  
   const handleCalculate = () => {
     setShowResults(true);
   };
@@ -336,7 +351,7 @@ export default function CargoValuatorPage() {
                       <span className="text-xl font-bold">Prix Total (Riyal)</span>
                       <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                   </div>
-                  <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+                  <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                     <DialogTrigger asChild>
                       <Button className="w-full">
                         <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
@@ -400,15 +415,16 @@ export default function CargoValuatorPage() {
                     <div className="space-y-4">
                       {history.map((item) => (
                         <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
-                           <div className="flex justify-between items-center">
-                              <p className="text-sm text-muted-foreground">{item.date}</p>
-                              <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                           <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-sm text-muted-foreground">{item.date}</p>
+                                <p className="font-bold text-sm flex items-center gap-1 mt-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                              </div>
+                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
+                                 <Pencil className="h-4 w-4" />
+                               </Button>
                            </div>
                            <Separator className="my-2" />
-                           <div className="flex justify-between items-center">
-                              <p className="font-semibold">Prix Total:</p>
-                              <p className="font-bold">{formatCurrency(item.results.grandTotalPrice)}</p>
-                           </div>
                            <div className="flex justify-between items-center text-sm">
                              <p className="font-semibold">Prix Total (Riyal):</p>
                              <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
@@ -435,6 +451,52 @@ export default function CargoValuatorPage() {
             </Card>
           </div>
         </div>
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editingEntry} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Modifier l'entrée de l'historique</DialogTitle>
+                    <DialogDescription>
+                        Mettez à jour les informations pour cette entrée.
+                    </DialogDescription>
+                </DialogHeader>
+                {editingEntry && (
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editClientName" className="text-right">Nom du client</Label>
+                            <Input 
+                                id="editClientName" 
+                                value={editingEntry.clientName} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editRemainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                            <Input 
+                                id="editRemainingCrates" 
+                                type="number" 
+                                value={editingEntry.remainingCrates} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: Number(e.target.value) })}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>
+                            <Input 
+                                id="editRemainingMoney" 
+                                type="number" 
+                                value={editingEntry.remainingMoney} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
+                                className="col-span-3" />
+                        </div>
+                    </div>
+                )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditingEntry(null)}>Annuler</Button>
+                    <Button onClick={handleUpdate}>Sauvegarder</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       </div>
     </main>
   );
