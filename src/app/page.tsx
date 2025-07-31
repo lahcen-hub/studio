@@ -421,7 +421,7 @@ export default function CargoValuatorPage() {
                               <div>
                                 <p className="text-sm text-muted-foreground">{item.date}</p>
                                 <p className="font-bold text-sm flex items-center gap-1 mt-1"><User className="w-3 h-3"/>{item.clientName}</p>
-                                <p className="text-sm flex items-center gap-1 mt-1"><Package className="w-3 h-3"/>Total caisses: {item.totalCrates}</p>
+                                <p className="font-bold text-sm flex items-center gap-1 mt-1"><Package className="w-3 h-3"/>مجموع الصندوق: {item.totalCrates}</p>
                               </div>
                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
                                  <Pencil className="h-4 w-4" />
@@ -504,3 +504,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
