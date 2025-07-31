@@ -264,7 +264,7 @@ export default function CargoValuatorPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                 <Button className="w-full" variant="outline">
+                 <Button className="w-full">
                   <Calculator className="mr-2 h-4 w-4" /> Calculer
                  </Button>
               </CardFooter>
