@@ -421,7 +421,6 @@ export default function CargoValuatorPage() {
                               <div>
                                 <p className="text-sm text-muted-foreground">{item.date}</p>
                                 <p className="font-bold text-sm flex items-center gap-1 mt-1"><User className="w-3 h-3"/>{item.clientName}</p>
-                                <p className="font-bold text-sm flex items-center gap-1 mt-1"><Package className="w-3 h-3"/>مجموع الصندوق: {item.totalCrates}</p>
                               </div>
                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
                                  <Pencil className="h-4 w-4" />
@@ -431,6 +430,10 @@ export default function CargoValuatorPage() {
                            <div className="flex justify-between items-center text-sm">
                              <p className="font-semibold">Prix Total (Riyal):</p>
                              <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
+                           </div>
+                           <div className="flex justify-between items-center text-sm mt-1">
+                                <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
+                                <p className="font-bold">{item.totalCrates}</p>
                            </div>
                            <Separator className="my-2" />
                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
@@ -504,5 +507,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
