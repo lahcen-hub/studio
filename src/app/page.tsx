@@ -182,27 +182,7 @@ export default function CargoValuatorPage() {
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-6">
-                 <div className="grid grid-cols-2 gap-4">
-                  <InputField
-                    id="mlihCrates"
-                    label="مليح"
-                    value={mlihCrates}
-                    setValue={setMlihCrates}
-                    unit="caisses"
-                    icon={<Package className="w-4 h-4 text-primary" />}
-                    isBold
-                  />
-                  <InputField
-                    id="dichiCrates"
-                    label="ديشي"
-                    value={dichiCrates}
-                    setValue={setDichiCrates}
-                    unit="caisses"
-                    icon={<Package className="w-4 h-4 text-primary" />}
-                    isBold
-                  />
-                </div>
-                 <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                    <InputField
                     id="grossWeight"
                     label="Poids total brut"
@@ -220,6 +200,26 @@ export default function CargoValuatorPage() {
                     setValue={setFullCrateWeight}
                     unit="kg"
                     icon={<Scale className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                </div>
+                 <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihCrates"
+                    label="مليح"
+                    value={mlihCrates}
+                    setValue={setMlihCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                  <InputField
+                    id="dichiCrates"
+                    label="ديشي"
+                    value={dichiCrates}
+                    setValue={setDichiCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
                     isBold
                   />
                 </div>
