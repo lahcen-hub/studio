@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Amaranth } from 'next/font/google';
 
 interface InputFieldProps {
   id: string;
@@ -204,41 +207,70 @@ export default function CargoValuatorPage() {
     setHistory([]);
   };
 
-  const downloadHistory = () => {
+  const downloadHistory = async () => {
     if (history.length === 0) {
       alert("L'historique est vide.");
       return;
     }
   
-    const headers = [
-      "Date",
-      "Nom du client",
-      "Prix Total (Riyal)",
-      "مجموع الصندوق",
-      "الصندوق الباقي",
-      "Reste d'argent (MAD)"
+    const doc = new jsPDF();
+
+    // Add font that supports arabic
+    // This is a simplified example. For full support, you might need to host a font file
+    // and load it, which is beyond what can be done here. We'll try a built-in font
+    // that might have some support, but it's not guaranteed.
+    // A better approach is to use a library that embeds fonts.
+    try {
+        await doc.addFont('/fonts/Amiri-Regular.ttf', 'Amiri', 'normal');
+        doc.setFont('Amiri');
+    } catch(e) {
+        console.warn("Could not load Amiri font. Arabic text might not render correctly. Using default font.", e);
+        // Fallback to a default font if Amiri can't be loaded.
+        doc.setFont('helvetica');
+    }
+
+
+    doc.text("Historique des Calculs", 14, 16);
+  
+    const head = [
+      ["Date", "Nom du client", "Prix Total (Riyal)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
     ];
   
-    const rows = history.map(item => [
+    const body = history.map(item => [
       item.date,
-      `"${item.clientName.replace(/"/g, '""')}"`, // Handle quotes in client name
+      item.clientName,
       item.results.grandTotalPriceRiyal.toFixed(2),
       item.totalCrates,
       item.remainingCrates,
       item.remainingMoney.toFixed(2)
     ]);
   
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-  
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    autoTable(doc, {
+      head: head,
+      body: body,
+      startY: 20,
+      styles: { font: "Amiri", halign: 'center' },
+      headStyles: { halign: 'center', fontStyle: 'bold' },
+      columnStyles: {
+        0: { halign: 'left' },
+        1: { halign: 'left', font: 'Amiri' }, // Apply Arabic font to client name column
+        2: { halign: 'right' },
+        3: { halign: 'center', font: 'Amiri' },
+        4: { halign: 'center', font: 'Amiri' },
+        5: { halign: 'right' },
+      },
+      didParseCell: function (data) {
+        // Reverse text for RTL columns
+         if (data.column.index === 1 || data.column.index === 3 || data.column.index === 4) {
+            if (data.cell.raw && typeof data.cell.raw === 'string') {
+               data.cell.text = data.cell.raw.split(' ').reverse().join(' ');
+            }
+        }
+      }
+    });
+
     const formattedDate = new Date().toISOString().slice(0, 10);
-    link.setAttribute("download", `historique_cargo_${formattedDate}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    doc.save(`historique_cargo_${formattedDate}.pdf`);
   };
 
   return (
