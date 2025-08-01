@@ -209,64 +209,47 @@ export default function CargoValuatorPage() {
 
   const downloadHistory = async () => {
     if (history.length === 0) {
-      alert("L'historique est vide.");
-      return;
+        alert("L'historique est vide.");
+        return;
     }
-  
+
     const doc = new jsPDF();
-
-    // Add font that supports arabic
-    // This is a simplified example. For full support, you might need to host a font file
-    // and load it, which is beyond what can be done here. We'll try a built-in font
-    // that might have some support, but it's not guaranteed.
-    // A better approach is to use a library that embeds fonts.
-    try {
-        await doc.addFont('/fonts/Amiri-Regular.ttf', 'Amiri', 'normal');
-        doc.setFont('Amiri');
-    } catch(e) {
-        console.warn("Could not load Amiri font. Arabic text might not render correctly. Using default font.", e);
-        // Fallback to a default font if Amiri can't be loaded.
-        doc.setFont('helvetica');
-    }
-
+    
+    // It's crucial to use a font that supports the characters you want to display.
+    // jsPDF has limited built-in font support for Arabic. We will try a workaround
+    // but a robust solution would involve embedding a font file (e.g., Amiri).
+    // This example will use a standard font and may not render Arabic correctly.
+    doc.setFont('helvetica');
 
     doc.text("Historique des Calculs", 14, 16);
-  
+
     const head = [
-      ["Date", "Nom du client", "Prix Total (Riyal)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
+        ["Date", "Nom du client", "Prix Total (Riyal)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
     ];
-  
+
     const body = history.map(item => [
-      item.date,
-      item.clientName,
-      item.results.grandTotalPriceRiyal.toFixed(2),
-      item.totalCrates,
-      item.remainingCrates,
-      item.remainingMoney.toFixed(2)
+        String(item.date),
+        String(item.clientName),
+        String(item.results.grandTotalPriceRiyal.toFixed(2)),
+        String(item.totalCrates),
+        String(item.remainingCrates),
+        String(item.remainingMoney.toFixed(2))
     ]);
-  
+
     autoTable(doc, {
-      head: head,
-      body: body,
-      startY: 20,
-      styles: { font: "Amiri", halign: 'center' },
-      headStyles: { halign: 'center', fontStyle: 'bold' },
-      columnStyles: {
-        0: { halign: 'left' },
-        1: { halign: 'left', font: 'Amiri' }, // Apply Arabic font to client name column
-        2: { halign: 'right' },
-        3: { halign: 'center', font: 'Amiri' },
-        4: { halign: 'center', font: 'Amiri' },
-        5: { halign: 'right' },
-      },
-      didParseCell: function (data) {
-        // Reverse text for RTL columns
-         if (data.column.index === 1 || data.column.index === 3 || data.column.index === 4) {
-            if (data.cell.raw && typeof data.cell.raw === 'string') {
-               data.cell.text = data.cell.raw.split(' ').reverse().join(' ');
-            }
-        }
-      }
+        head: head,
+        body: body,
+        startY: 20,
+        styles: { halign: 'center' },
+        headStyles: { halign: 'center', fontStyle: 'bold' },
+        columnStyles: {
+            0: { halign: 'left' },
+            1: { halign: 'left' },
+            2: { halign: 'right' },
+            3: { halign: 'center' },
+            4: { halign: 'center' },
+            5: { halign: 'right' },
+        },
     });
 
     const formattedDate = new Date().toISOString().slice(0, 10);
@@ -590,5 +573,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
