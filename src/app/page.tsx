@@ -261,7 +261,7 @@ export default function CargoValuatorPage() {
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8 md:mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
-            <Calculator className="w-12 h-12 text-primary" />
+            <Truck className="w-12 h-12 text-primary" />
             Cargo
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
@@ -572,4 +572,5 @@ export default function CargoValuatorPage() {
       </div>
     </main>
   );
-}
+
+    
