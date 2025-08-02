@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect } from 'react';
+import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,15 +35,18 @@ interface InputFieldProps {
 }
 
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Allow the field to be empty
     if (val === '') {
         setValue(0);
     } else {
         setValue(parseFloat(val));
     }
   };
+
+  const displayValue = value === 0 && document.activeElement !== inputRef.current ? '0' : value;
 
   return (
     <div className="grid gap-2">
@@ -53,9 +56,10 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
       </Label>
       <div className="relative flex items-center">
         <Input
+          ref={inputRef}
           id={id}
           type="number"
-          value={value === 0 && document.activeElement !== e.target ? '0' : value}
+          value={displayValue}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -288,7 +292,7 @@ export default function CargoValuatorPage() {
     }
     
     return (
-        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full">
+        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
             <LogIn className="h-4 w-4" />
         </Button>
     );
@@ -296,18 +300,18 @@ export default function CargoValuatorPage() {
 
 
   return (
-    <main className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
+    <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-6 md:mb-8">
-          <div className="flex-1 text-center">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
-              <Truck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+        <header className="flex justify-between items-center mb-4 md:mb-6">
+           <div className="flex-1 text-center">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
+              <Truck className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
               Cargo
             </h1>
-            <p className={`mt-2 text-sm text-foreground ${arefRuqaa.className}`}>
+            <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
               الحساب كيطول الشركة، وكيطور الخدمة
             </p>
-            <p className="mt-1 text-base text-muted-foreground">
+            <p className="mt-1 text-sm text-muted-foreground">
               Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
             </p>
           </div>
@@ -317,14 +321,14 @@ export default function CargoValuatorPage() {
         </header>
 
 
-        <div className="grid md:grid-cols-5 gap-6 md:gap-8">
-          <div className="md:col-span-2 space-y-6 md:space-y-8">
+        <div className="grid md:grid-cols-5 gap-4 md:gap-6">
+          <div className="md:col-span-2 space-y-4 md:space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-xl sm:text-2xl font-bold">Données de la Cargaison</CardTitle>
+                <CardTitle className="text-lg sm:text-xl font-bold">Données de la Cargaison</CardTitle>
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-4 sm:gap-6">
+              <CardContent className="grid gap-4 sm:gap-5">
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="grossWeight"
@@ -400,22 +404,22 @@ export default function CargoValuatorPage() {
             <div className="md:col-span-3">
               <Card className="shadow-lg h-full flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-xl sm:text-2xl">Résumé du Calcul</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Résumé du Calcul</CardTitle>
                   <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
-                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                          <p className="text-sm text-muted-foreground font-bold">صندوق حرة</p>
-                          <p className="text-lg sm:text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-center">
+                      <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground font-bold">صندوق حرة</p>
+                          <p className="text-base sm:text-lg font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
                       </div>
-                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                          <p className="text-sm text-muted-foreground font-bold">المليح حر</p>
-                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
+                      <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground font-bold">المليح حر</p>
+                          <p className="text-base sm:text-lg font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
                       </div>
-                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                          <p className="text-sm text-muted-foreground font-bold">الديشي حر</p>
-                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
+                      <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
+                          <p className="text-xs text-muted-foreground font-bold">الديشي حر</p>
+                          <p className="text-base sm:text-lg font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
                       </div>
                   </div>
 
@@ -430,32 +434,32 @@ export default function CargoValuatorPage() {
                           </TableHeader>
                           <TableBody>
                               <TableRow>
-                                  <TableCell className="font-medium flex items-center gap-2"><Scale className="w-4 h-4 text-primary"/>Poids net (kg)</TableCell>
-                                  <TableCell className="text-center">{calculations.netWeightMlih.toFixed(2)}</TableCell>
-                                  <TableCell className="text-center">{calculations.netWeightDichi.toFixed(2)}</TableCell>
+                                  <TableCell className="font-medium flex items-center gap-2 text-xs sm:text-sm"><Scale className="w-4 h-4 text-primary"/>Poids net (kg)</TableCell>
+                                  <TableCell className="text-center text-xs sm:text-sm">{calculations.netWeightMlih.toFixed(2)}</TableCell>
+                                  <TableCell className="text-center text-xs sm:text-sm">{calculations.netWeightDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow>
-                                  <TableCell className="font-bold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
-                                  <TableCell className="text-center font-bold">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
-                                  <TableCell className="text-center font-bold">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
+                                  <TableCell className="font-bold flex items-center gap-2 text-xs sm:text-sm"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
+                                  <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
+                                  <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow className="bg-primary/10">
-                                  <TableCell className="font-semibold flex items-center gap-2"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
-                                  <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
-                                  <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
+                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
+                                  <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
+                                  <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
                               </TableRow>
                           </TableBody>
                       </Table>
                   </div>
                 </CardContent>
-                <CardFooter className="mt-auto flex flex-col gap-4">
-                  <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
-                      <span className="text-lg sm:text-xl font-bold">Prix Total Général</span>
-                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
+                <CardFooter className="mt-auto flex flex-col gap-3">
+                  <div className="w-full bg-accent text-accent-foreground p-3 rounded-lg flex justify-between items-center">
+                      <span className="text-base sm:text-lg font-bold">Prix Total Général</span>
+                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
                   </div>
-                  <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
-                      <span className="text-lg sm:text-xl font-bold">Prix Total (Riyal)</span>
-                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
+                  <div className="w-full bg-secondary text-secondary-foreground p-3 rounded-lg flex justify-between items-center">
+                      <span className="text-base sm:text-lg font-bold">Prix Total (Riyal)</span>
+                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                   </div>
                   <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                     <DialogTrigger asChild>
@@ -509,12 +513,12 @@ export default function CargoValuatorPage() {
             </div>
           )}
 
-          <div className="md:col-span-5 mt-4 md:mt-8">
+          <div className="md:col-span-5 mt-4 md:mt-6">
             <Card className="shadow-lg">
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="space-y-1.5">
-                  <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                    <History className="w-6 h-6" />
+                  <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                    <History className="w-5 h-5" />
                     Historique
                   </CardTitle>
                   <CardDescription>
@@ -524,10 +528,10 @@ export default function CargoValuatorPage() {
                 {history.length > 0 && (
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     <Button variant="outline" size="sm" onClick={downloadHistory}>
-                      <Download className="mr-1 sm:mr-2 h-4 w-4" /> Télécharger
+                      <Download className="mr-1 h-3 w-3" /> Télécharger
                     </Button>
                     <Button variant="destructive" size="sm" onClick={clearHistory}>
-                      <Trash2 className="mr-1 sm:mr-2 h-4 w-4" /> Vider
+                      <Trash2 className="mr-1 h-3 w-3" /> Vider
                     </Button>
                   </div>
                 )}
@@ -544,10 +548,10 @@ export default function CargoValuatorPage() {
                                 <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                               </div>
                               <div className="flex items-center gap-1 -mr-2 -mt-1">
-                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => openEditDialog(item)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
