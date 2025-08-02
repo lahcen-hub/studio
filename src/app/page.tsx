@@ -55,7 +55,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
         <Input
           id={id}
           type="number"
-          value={value}
+          value={value === 0 && document.activeElement !== e.target ? '0' : value}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -288,7 +288,7 @@ export default function CargoValuatorPage() {
     }
     
     return (
-        <Button variant="outline" size="icon" onClick={signInWithGoogle} className="rounded-full">
+        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full">
             <LogIn className="h-4 w-4" />
         </Button>
     );
@@ -299,8 +299,8 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-6 md:mb-8">
-          <div className="text-left">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-start gap-3">
+          <div className="flex-1 text-center">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
               <Truck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               Cargo
             </h1>
@@ -311,7 +311,9 @@ export default function CargoValuatorPage() {
               Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
             </p>
           </div>
-          <AuthArea />
+          <div className="flex-shrink-0">
+            <AuthArea />
+          </div>
         </header>
 
 
