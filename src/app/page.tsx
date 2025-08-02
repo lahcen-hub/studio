@@ -13,9 +13,9 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Amaranth } from 'next/font/google';
+import { Aref_Ruqaa } from 'next/font/google';
 
-const amaranth = Amaranth({
+const arefRuqaa = Aref_Ruqaa({
   weight: '700',
   subsets: ['latin'],
 });
@@ -269,7 +269,7 @@ export default function CargoValuatorPage() {
             <Truck className="w-12 h-12 text-primary" />
             Cargo
           </h1>
-          <p className={`mt-4 text-xl text-muted-foreground ${amaranth.className}`}>
+          <p className={`mt-4 text-2xl text-foreground ${arefRuqaa.className}`}>
             الحساب لي كيطول الشركة، وكيطور الخدمة
           </p>
         </header>
