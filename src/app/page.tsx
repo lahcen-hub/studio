@@ -220,10 +220,6 @@ export default function CargoValuatorPage() {
 
     const doc = new jsPDF();
     
-    // It's crucial to use a font that supports the characters you want to display.
-    // jsPDF has limited built-in font support for Arabic. We will try a workaround
-    // but a robust solution would involve embedding a font file (e.g., Amiri).
-    // This example will use a standard font and may not render Arabic correctly.
     doc.setFont('helvetica');
 
     doc.text("Historique des Calculs", 14, 16);
@@ -262,29 +258,29 @@ export default function CargoValuatorPage() {
   };
 
   return (
-    <main className="min-h-screen p-4 sm:p-6 md:p-8">
+    <main className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
-            <Truck className="w-12 h-12 text-primary" />
+        <header className="text-center mb-8">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
+            <Truck className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
             Cargo
           </h1>
-          <p className={`mt-4 text-xl text-foreground ${arefRuqaa.className}`}>
+          <p className={`mt-3 text-lg sm:text-xl text-foreground ${arefRuqaa.className}`}>
             الحساب كيطول الشركة، وكيطور الخدمة
           </p>
-          <p className="mt-2 text-lg text-muted-foreground">
+          <p className="mt-2 text-base sm:text-lg text-muted-foreground">
             Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
           </p>
         </header>
 
-        <div className="grid md:grid-cols-5 gap-8">
-          <div className="md:col-span-2 space-y-8">
+        <div className="grid md:grid-cols-5 gap-6 md:gap-8">
+          <div className="md:col-span-2 space-y-6 md:space-y-8">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold">Données de la Cargaison</CardTitle>
+                <CardTitle className="text-xl sm:text-2xl font-bold">Données de la Cargaison</CardTitle>
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
-              <CardContent className="grid gap-6">
+              <CardContent className="grid gap-4 sm:gap-6">
                 <div className="grid grid-cols-2 gap-4">
                    <InputField
                     id="grossWeight"
@@ -360,22 +356,22 @@ export default function CargoValuatorPage() {
             <div className="md:col-span-3">
                <Card className="shadow-lg h-full flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Résumé du Calcul</CardTitle>
+                  <CardTitle className="text-xl sm:text-2xl">Résumé du Calcul</CardTitle>
                   <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
-                      <div className="bg-secondary/50 p-4 rounded-lg">
+                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
                           <p className="text-sm text-muted-foreground font-bold">صندوق حرة</p>
-                          <p className="text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
                       </div>
-                       <div className="bg-secondary/50 p-4 rounded-lg">
+                       <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
                           <p className="text-sm text-muted-foreground font-bold">المليح حر</p>
-                          <p className="text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
                       </div>
-                       <div className="bg-secondary/50 p-4 rounded-lg">
+                       <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
                           <p className="text-sm text-muted-foreground font-bold">الديشي حر</p>
-                          <p className="text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
                       </div>
                   </div>
 
@@ -383,7 +379,7 @@ export default function CargoValuatorPage() {
                       <Table>
                           <TableHeader>
                               <TableRow>
-                                  <TableHead className="w-[200px] font-bold">Catégorie</TableHead>
+                                  <TableHead className="w-[150px] sm:w-[200px] font-bold">Catégorie</TableHead>
                                   <TableHead className="text-center font-bold">المليح (Mlih)</TableHead>
                                   <TableHead className="text-center font-bold">الديشي (Dichi)</TableHead>
                               </TableRow>
@@ -410,12 +406,12 @@ export default function CargoValuatorPage() {
                 </CardContent>
                 <CardFooter className="mt-auto flex flex-col gap-4">
                   <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
-                      <span className="text-xl font-bold">Prix Total Général</span>
-                      <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
+                      <span className="text-lg sm:text-xl font-bold">Prix Total Général</span>
+                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
                   </div>
                   <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
-                      <span className="text-xl font-bold">Prix Total (Riyal)</span>
-                      <span className="text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
+                      <span className="text-lg sm:text-xl font-bold">Prix Total (Riyal)</span>
+                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                   </div>
                   <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                     <DialogTrigger asChild>
@@ -457,11 +453,11 @@ export default function CargoValuatorPage() {
             </div>
           )}
 
-          <div className="md:col-span-5 mt-8">
+          <div className="md:col-span-5 mt-4 md:mt-8">
             <Card className="shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="space-y-1.5">
-                  <CardTitle className="text-2xl font-bold flex items-center gap-2">
+                  <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
                     <History className="w-6 h-6" />
                     Historique
                   </CardTitle>
@@ -470,32 +466,32 @@ export default function CargoValuatorPage() {
                   </CardDescription>
                 </div>
                  {history.length > 0 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-end sm:self-center">
                     <Button variant="outline" size="sm" onClick={downloadHistory}>
-                      <Download className="mr-2 h-4 w-4" /> Télécharger
+                      <Download className="mr-1 sm:mr-2 h-4 w-4" /> Télécharger
                     </Button>
                     <Button variant="destructive" size="sm" onClick={clearHistory}>
-                      <Trash2 className="mr-2 h-4 w-4" /> Vider
+                      <Trash2 className="mr-1 sm:mr-2 h-4 w-4" /> Vider
                     </Button>
                   </div>
                  )}
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[420px]">
+                <ScrollArea className="h-[420px] pr-3">
                  {history.length > 0 ? (
                     <div className="space-y-4">
                       {history.map((item) => (
                         <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
                            <div className="flex justify-between items-start">
                               <div>
-                                <p className="text-sm text-muted-foreground">{item.date}</p>
+                                <p className="text-xs text-muted-foreground">{item.date}</p>
                                 <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
+                              <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => openEditDialog(item)}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(item.id)}>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => handleDelete(item.id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -582,5 +578,6 @@ export default function CargoValuatorPage() {
   );
 
     
+
 
 
