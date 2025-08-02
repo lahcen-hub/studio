@@ -269,8 +269,8 @@ export default function CargoValuatorPage() {
             <Truck className="w-12 h-12 text-primary" />
             Cargo
           </h1>
-          <p className={`mt-4 text-2xl text-foreground ${arefRuqaa.className}`}>
-            الحساب لي كيطول الشركة، وكيطور الخدمة
+          <p className={`mt-4 text-xl text-foreground ${arefRuqaa.className}`}>
+            الحساب كيطول الشركة، وكيطور الخدمة
           </p>
           <p className="mt-2 text-lg text-muted-foreground">
             Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
@@ -582,4 +582,5 @@ export default function CargoValuatorPage() {
   );
 
     
+
 
