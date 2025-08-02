@@ -26,7 +26,7 @@ const arefRuqaa = Aref_Ruqaa({
 interface InputFieldProps {
   id: string;
   label: string;
-  value: number;
+  value: number | string;
   setValue: (value: number) => void;
   unit: string;
   icon: ReactNode;
@@ -37,12 +37,13 @@ interface InputFieldProps {
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    setValue(val === '' ? 0 : parseFloat(val));
+    // Allow the field to be empty
+    if (val === '') {
+        setValue(0);
+    } else {
+        setValue(parseFloat(val));
+    }
   };
-  
-  const increment = () => setValue(value + step);
-  const decrement = () => setValue(Math.max(0, value - step));
-
 
   return (
     <div className="grid gap-2">
@@ -54,7 +55,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
         <Input
           id={id}
           type="number"
-          value={value === 0 ? '0' : value}
+          value={value}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -93,8 +94,8 @@ export default function CargoValuatorPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   
   const [clientName, setClientName] = useState('');
-  const [remainingCrates, setRemainingCrates] = useState(0);
-  const [remainingMoney, setRemainingMoney] = useState(0);
+  const [remainingCrates, setRemainingCrates] = useState<number | string>(0);
+  const [remainingMoney, setRemainingMoney] = useState<number | string>(0);
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
@@ -184,8 +185,8 @@ export default function CargoValuatorPage() {
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
       },
       clientName: clientName,
-      remainingCrates: remainingCrates,
-      remainingMoney: remainingMoney,
+      remainingCrates: Number(remainingCrates),
+      remainingMoney: Number(remainingMoney),
       totalCrates: calculations.totalCrates
     };
     setHistory([newEntry, ...history]);
@@ -268,48 +269,45 @@ export default function CargoValuatorPage() {
 
   const AuthArea = () => {
     if (loading) {
-      return <div className="h-10 w-48 bg-gray-200 animate-pulse rounded-md"></div>;
+      return <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-md"></div>;
     }
 
     if (user) {
       return (
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'Avatar'} />
-              <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium text-foreground hidden sm:inline">{user.displayName}</span>
-          </div>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Déconnexion
+        <div className="flex items-center gap-2">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'Avatar'} />
+            <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium text-foreground hidden sm:inline">{user.displayName}</span>
+          <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       );
     }
     
     return (
-        <Button onClick={signInWithGoogle}>
-            <LogIn className="mr-2 h-4 w-4" /> Se connecter avec Google
+        <Button variant="outline" size="icon" onClick={signInWithGoogle} className="rounded-full">
+            <LogIn className="h-4 w-4" />
         </Button>
     );
   };
 
 
   return (
-    <main className="min-h-screen bg-background p-4 md:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-8">
+        <header className="flex justify-between items-center mb-6 md:mb-8">
           <div className="text-left">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-start gap-3">
-              <Truck className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-start gap-3">
+              <Truck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
               Cargo
             </h1>
-            <p className={`mt-3 text-sm sm:text-base text-foreground ${arefRuqaa.className}`}>
+            <p className={`mt-2 text-sm text-foreground ${arefRuqaa.className}`}>
               الحساب كيطول الشركة، وكيطور الخدمة
             </p>
-            <p className="mt-2 text-base sm:text-lg text-muted-foreground">
+            <p className="mt-1 text-base text-muted-foreground">
               Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
             </p>
           </div>
@@ -477,11 +475,23 @@ export default function CargoValuatorPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
-                          <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
+                           <Input 
+                                id="remainingCrates" 
+                                type="number" 
+                                value={remainingCrates}
+                                onChange={(e) => setRemainingCrates(e.target.value === '' ? '' : Number(e.target.value))}
+                                className="col-span-3" 
+                            />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
-                          <Input id="remainingMoney" type="number" value={remainingMoney} onChange={(e) => setRemainingMoney(Number(e.target.value))} className="col-span-3" />
+                           <Input 
+                                id="remainingMoney" 
+                                type="number" 
+                                value={remainingMoney}
+                                onChange={(e) => setRemainingMoney(e.target.value === '' ? '' : Number(e.target.value))} 
+                                className="col-span-3" 
+                            />
                         </div>
                       </div>
                       <DialogFooter>
@@ -621,4 +631,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 
+}
     
