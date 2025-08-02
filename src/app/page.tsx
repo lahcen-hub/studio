@@ -37,7 +37,6 @@ interface InputFieldProps {
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Allow clearing the input, which will be treated as 0
     setValue(val === '' ? 0 : parseFloat(val));
   };
   
@@ -55,7 +54,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
         <Input
           id={id}
           type="number"
-          value={value}
+          value={value === 0 ? '0' : value}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -113,12 +112,16 @@ export default function CargoValuatorPage() {
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('cargoHistory', JSON.stringify(history));
-    } catch (error) {
-      console.error("Failed to save history to localStorage", error);
+    // We only save to localStorage if the user is not logged in.
+    // Once Firestore is implemented, we'll change this logic.
+    if (!user) {
+      try {
+        localStorage.setItem('cargoHistory', JSON.stringify(history));
+      } catch (error) {
+        console.error("Failed to save history to localStorage", error);
+      }
     }
-  }, [history]);
+  }, [history, user]);
 
   const calculations = useMemo(() => {
     const totalCrates = mlihCrates + dichiCrates;
@@ -168,6 +171,11 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = () => {
+     if (!user) {
+      // If user is not logged in, prompt them to sign in.
+      signInWithGoogle();
+      return;
+    }
     const newEntry: HistoryEntry = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
@@ -309,273 +317,261 @@ export default function CargoValuatorPage() {
         </header>
 
 
-        {user && (
-          <div className="grid md:grid-cols-5 gap-6 md:gap-8">
-            <div className="md:col-span-2 space-y-6 md:space-y-8">
-              <Card className="shadow-lg">
+        <div className="grid md:grid-cols-5 gap-6 md:gap-8">
+          <div className="md:col-span-2 space-y-6 md:space-y-8">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl sm:text-2xl font-bold">Données de la Cargaison</CardTitle>
+                <CardDescription>Entrez les détails ci-dessous.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:gap-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="grossWeight"
+                    label="Poids total brut"
+                    value={grossWeight}
+                    setValue={setGrossWeight}
+                    unit="kg"
+                    icon={<Truck className="w-4 h-4 text-primary" />}
+                    step={10}
+                    isBold
+                  />
+                  <InputField
+                    id="fullCrateWeight"
+                    label="Poids caisse pleine"
+                    value={fullCrateWeight}
+                    setValue={setFullCrateWeight}
+                    unit="kg"
+                    icon={<Scale className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihCrates"
+                    label="مليح"
+                    value={mlihCrates}
+                    setValue={setMlihCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                  <InputField
+                    id="dichiCrates"
+                    label="ديشي"
+                    value={dichiCrates}
+                    setValue={setDichiCrates}
+                    unit="caisses"
+                    icon={<Package className="w-4 h-4 text-primary" />}
+                    isBold
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField
+                    id="mlihPrice"
+                    label="Prix المليح"
+                    value={mlihPrice}
+                    setValue={setMlihPrice}
+                    unit="DH"
+                    icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
+                    step={5}
+                    isBold
+                  />
+                  <InputField
+                    id="dichiPrice"
+                    label="Prix الديشي"
+                    value={dichiPrice}
+                    setValue={setDichiPrice}
+                    unit="DH"
+                    icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
+                    step={5}
+                    isBold
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" onClick={handleCalculate}>
+                  <Calculator className="mr-2 h-4 w-4" /> Calculer
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+          {showResults && (
+            <div className="md:col-span-3">
+              <Card className="shadow-lg h-full flex flex-col">
                 <CardHeader>
-                  <CardTitle className="text-xl sm:text-2xl font-bold">Données de la Cargaison</CardTitle>
-                  <CardDescription>Entrez les détails ci-dessous.</CardDescription>
+                  <CardTitle className="text-xl sm:text-2xl">Résumé du Calcul</CardTitle>
+                  <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4 sm:gap-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputField
-                      id="grossWeight"
-                      label="Poids total brut"
-                      value={grossWeight}
-                      setValue={setGrossWeight}
-                      unit="kg"
-                      icon={<Truck className="w-4 h-4 text-primary" />}
-                      step={10}
-                      isBold
-                    />
-                    <InputField
-                      id="fullCrateWeight"
-                      label="Poids caisse pleine"
-                      value={fullCrateWeight}
-                      setValue={setFullCrateWeight}
-                      unit="kg"
-                      icon={<Scale className="w-4 h-4 text-primary" />}
-                      isBold
-                    />
+                <CardContent className="flex-grow">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
+                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
+                          <p className="text-sm text-muted-foreground font-bold">صندوق حرة</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
+                          <p className="text-sm text-muted-foreground font-bold">المليح حر</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
+                      </div>
+                      <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
+                          <p className="text-sm text-muted-foreground font-bold">الديشي حر</p>
+                          <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
+                      </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputField
-                      id="mlihCrates"
-                      label="مليح"
-                      value={mlihCrates}
-                      setValue={setMlihCrates}
-                      unit="caisses"
-                      icon={<Package className="w-4 h-4 text-primary" />}
-                      isBold
-                    />
-                    <InputField
-                      id="dichiCrates"
-                      label="ديشي"
-                      value={dichiCrates}
-                      setValue={setDichiCrates}
-                      unit="caisses"
-                      icon={<Package className="w-4 h-4 text-primary" />}
-                      isBold
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputField
-                      id="mlihPrice"
-                      label="Prix المليح"
-                      value={mlihPrice}
-                      setValue={setMlihPrice}
-                      unit="DH"
-                      icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
-                      step={5}
-                      isBold
-                    />
-                    <InputField
-                      id="dichiPrice"
-                      label="Prix الديشي"
-                      value={dichiPrice}
-                      setValue={setDichiPrice}
-                      unit="DH"
-                      icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
-                      step={5}
-                      isBold
-                    />
+
+                  <div className="overflow-x-auto">
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead className="w-[150px] sm:w-[200px] font-bold">Catégorie</TableHead>
+                                  <TableHead className="text-center font-bold">المليح (Mlih)</TableHead>
+                                  <TableHead className="text-center font-bold">الديشي (Dichi)</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              <TableRow>
+                                  <TableCell className="font-medium flex items-center gap-2"><Scale className="w-4 h-4 text-primary"/>Poids net (kg)</TableCell>
+                                  <TableCell className="text-center">{calculations.netWeightMlih.toFixed(2)}</TableCell>
+                                  <TableCell className="text-center">{calculations.netWeightDichi.toFixed(2)}</TableCell>
+                              </TableRow>
+                              <TableRow>
+                                  <TableCell className="font-bold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
+                                  <TableCell className="text-center font-bold">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
+                                  <TableCell className="text-center font-bold">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
+                              </TableRow>
+                              <TableRow className="bg-primary/10">
+                                  <TableCell className="font-semibold flex items-center gap-2"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
+                                  <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
+                                  <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
+                              </TableRow>
+                          </TableBody>
+                      </Table>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button className="w-full" onClick={handleCalculate}>
-                    <Calculator className="mr-2 h-4 w-4" /> Calculer
-                  </Button>
+                <CardFooter className="mt-auto flex flex-col gap-4">
+                  <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
+                      <span className="text-lg sm:text-xl font-bold">Prix Total Général</span>
+                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
+                  </div>
+                  <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
+                      <span className="text-lg sm:text-xl font-bold">Prix Total (Riyal)</span>
+                      <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
+                  </div>
+                  <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full">
+                        <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Enregistrer les détails</DialogTitle>
+                        <DialogDescription>
+                          Ajoutez des informations supplémentaires pour ce calcul.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="clientName" className="text-right">Nom du client</Label>
+                          <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                          <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
+                          <Input id="remainingMoney" type="number" value={remainingMoney} onChange={(e) => setRemainingMoney(Number(e.target.value))} className="col-span-3" />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Annuler</Button>
+                        </DialogClose>
+                        <Button onClick={handleSave}>Enregistrer</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardFooter>
               </Card>
             </div>
-            {showResults && (
-              <div className="md:col-span-3">
-                <Card className="shadow-lg h-full flex flex-col">
-                  <CardHeader>
-                    <CardTitle className="text-xl sm:text-2xl">Résumé du Calcul</CardTitle>
-                    <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 text-center">
-                        <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                            <p className="text-sm text-muted-foreground font-bold">صندوق حرة</p>
-                            <p className="text-lg sm:text-xl font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
-                        </div>
-                        <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                            <p className="text-sm text-muted-foreground font-bold">المليح حر</p>
-                            <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
-                        </div>
-                        <div className="bg-secondary/50 p-3 sm:p-4 rounded-lg">
-                            <p className="text-sm text-muted-foreground font-bold">الديشي حر</p>
-                            <p className="text-lg sm:text-xl font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
-                        </div>
-                    </div>
+          )}
 
-                    <div className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[150px] sm:w-[200px] font-bold">Catégorie</TableHead>
-                                    <TableHead className="text-center font-bold">المليح (Mlih)</TableHead>
-                                    <TableHead className="text-center font-bold">الديشي (Dichi)</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell className="font-medium flex items-center gap-2"><Scale className="w-4 h-4 text-primary"/>Poids net (kg)</TableCell>
-                                    <TableCell className="text-center">{calculations.netWeightMlih.toFixed(2)}</TableCell>
-                                    <TableCell className="text-center">{calculations.netWeightDichi.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-bold flex items-center gap-2"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
-                                    <TableCell className="text-center font-bold">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
-                                    <TableCell className="text-center font-bold">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
-                                </TableRow>
-                                <TableRow className="bg-primary/10">
-                                    <TableCell className="font-semibold flex items-center gap-2"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
-                                    <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
-                                    <TableCell className="text-center font-bold">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="mt-auto flex flex-col gap-4">
-                    <div className="w-full bg-accent text-accent-foreground p-4 rounded-lg flex justify-between items-center">
-                        <span className="text-lg sm:text-xl font-bold">Prix Total Général</span>
-                        <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
-                    </div>
-                    <div className="w-full bg-secondary text-secondary-foreground p-4 rounded-lg flex justify-between items-center">
-                        <span className="text-lg sm:text-xl font-bold">Prix Total (Riyal)</span>
-                        <span className="text-xl sm:text-2xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
-                    </div>
-                    <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">
-                          <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Enregistrer les détails</DialogTitle>
-                          <DialogDescription>
-                            Ajoutez des informations supplémentaires pour ce calcul.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="clientName" className="text-right">Nom du client</Label>
-                            <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
-                            <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
-                            <Input id="remainingMoney" type="number" value={remainingMoney} onChange={(e) => setRemainingMoney(Number(e.target.value))} className="col-span-3" />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button variant="outline">Annuler</Button>
-                          </DialogClose>
-                          <Button onClick={handleSave}>Enregistrer</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </CardFooter>
-                </Card>
-              </div>
-            )}
-
-            <div className="md:col-span-5 mt-4 md:mt-8">
-              <Card className="shadow-lg">
-                <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                  <div className="space-y-1.5">
-                    <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                      <History className="w-6 h-6" />
-                      Historique
-                    </CardTitle>
-                    <CardDescription>
-                      Vos calculs enregistrés.
-                    </CardDescription>
+          <div className="md:col-span-5 mt-4 md:mt-8">
+            <Card className="shadow-lg">
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div className="space-y-1.5">
+                  <CardTitle className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                    <History className="w-6 h-6" />
+                    Historique
+                  </CardTitle>
+                  <CardDescription>
+                    {user ? "Vos calculs enregistrés et synchronisés." : "Connectez-vous pour sauvegarder votre historique en ligne."}
+                  </CardDescription>
+                </div>
+                {history.length > 0 && (
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <Button variant="outline" size="sm" onClick={downloadHistory}>
+                      <Download className="mr-1 sm:mr-2 h-4 w-4" /> Télécharger
+                    </Button>
+                    <Button variant="destructive" size="sm" onClick={clearHistory}>
+                      <Trash2 className="mr-1 sm:mr-2 h-4 w-4" /> Vider
+                    </Button>
                   </div>
-                  {history.length > 0 && (
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      <Button variant="outline" size="sm" onClick={downloadHistory}>
-                        <Download className="mr-1 sm:mr-2 h-4 w-4" /> Télécharger
-                      </Button>
-                      <Button variant="destructive" size="sm" onClick={clearHistory}>
-                        <Trash2 className="mr-1 sm:mr-2 h-4 w-4" /> Vider
-                      </Button>
-                    </div>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[420px] pr-3">
-                  {history.length > 0 ? (
-                      <div className="space-y-4">
-                        {history.map((item) => (
-                          <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                  <p className="text-xs text-muted-foreground">{item.date}</p>
-                                  <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
-                                </div>
-                                <div className="flex items-center gap-1 -mr-2 -mt-1">
-                                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => openEditDialog(item)}>
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => handleDelete(item.id)}>
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                            </div>
-                            <Separator className="my-2" />
-                            <div className="flex justify-between items-center text-sm">
-                              <p className="font-semibold">Prix Total (Riyal):</p>
-                              <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
-                            </div>
-                            <div className="flex justify-between items-center text-sm mt-1">
-                                  <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
-                                  <p className="font-bold">{item.totalCrates}</p>
-                            </div>
-                            <Separator className="my-2" />
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
-                                  <div className="flex justify-between items-center">
-                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
-                                      <span className="font-bold">{item.remainingCrates}</span>
-                                  </div>
-                                  <div className="flex justify-between items-center">
-                                      <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
-                                      <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
-                                  </div>
-                            </div>
+                )}
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[420px] pr-3">
+                {history.length > 0 ? (
+                    <div className="space-y-4">
+                      {history.map((item) => (
+                        <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
+                          <div className="flex justify-between items-start">
+                              <div>
+                                <p className="text-xs text-muted-foreground">{item.date}</p>
+                                <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                              </div>
+                              <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => openEditDialog(item)}>
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
-                    )}
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </div>
+                          <Separator className="my-2" />
+                          <div className="flex justify-between items-center text-sm">
+                            <p className="font-semibold">Prix Total (Riyal):</p>
+                            <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
+                          </div>
+                          <div className="flex justify-between items-center text-sm mt-1">
+                                <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
+                                <p className="font-bold">{item.totalCrates}</p>
+                          </div>
+                          <Separator className="my-2" />
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
+                                    <span className="font-bold">{item.remainingCrates}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                    <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
           </div>
-        )}
-
-        {!user && !loading && (
-          <div className="text-center py-20">
-            <h2 className="text-2xl font-semibold mb-4">Bienvenue sur Cargo</h2>
-            <p className="text-muted-foreground mb-8">Veuillez vous connecter pour accéder au calculateur et à votre historique.</p>
-            <Button onClick={signInWithGoogle} size="lg">
-              <LogIn className="mr-2 h-5 w-5" /> Se connecter avec Google
-            </Button>
-          </div>
-        )}
-
+        </div>
+        
         {/* Edit Dialog */}
         <Dialog open={!!editingEntry} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
             <DialogContent>
@@ -626,9 +622,3 @@ export default function CargoValuatorPage() {
   );
 
     
-
-
-
-
-
-
