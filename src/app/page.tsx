@@ -34,11 +34,8 @@ interface InputFieldProps {
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val === '') {
-        setValue(0);
-    } else {
-        setValue(parseFloat(val));
-    }
+    // Allow clearing the input, which will be treated as 0
+    setValue(val === '' ? 0 : parseFloat(val));
   };
   
   const increment = () => setValue(value + step);
@@ -55,7 +52,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
         <Input
           id={id}
           type="number"
-          value={value === 0 ? '' : value}
+          value={value === 0 && document.activeElement !== document.getElementById(id) ? '0' : (value || '')}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -433,11 +430,11 @@ export default function CargoValuatorPage() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
-                          <Input id="remainingCrates" type="number" value={remainingCrates} onChange={(e) => setRemainingCrates(Number(e.target.value))} className="col-span-3" />
+                          <Input id="remainingCrates" type="number" value={remainingCrates || ''} onChange={(e) => setRemainingCrates(e.target.value === '' ? 0 : Number(e.target.value))} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
-                          <Input id="remainingMoney" type="number" value={remainingMoney} onChange={(e) => setRemainingMoney(Number(e.target.value))} className="col-span-3" />
+                          <Input id="remainingMoney" type="number" value={remainingMoney || ''} onChange={(e) => setRemainingMoney(e.target.value === '' ? 0 : Number(e.target.value))} className="col-span-3" />
                         </div>
                       </div>
                       <DialogFooter>
@@ -552,8 +549,8 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
-                                value={editingEntry.remainingCrates} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: Number(e.target.value) })}
+                                value={editingEntry.remainingCrates || ''} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: e.target.value === '' ? 0 : Number(e.target.value) })}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -561,8 +558,8 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
-                                value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
+                                value={editingEntry.remainingMoney || ''} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: e.target.value === '' ? 0 : Number(e.target.value) })}
                                 className="col-span-3" />
                         </div>
                     </div>
@@ -578,6 +575,8 @@ export default function CargoValuatorPage() {
   );
 
     
+
+
 
 
 
