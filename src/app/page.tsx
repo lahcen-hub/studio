@@ -39,14 +39,14 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val === '') {
+    if (val === '' || val === '-') {
         setValue(0);
     } else {
         setValue(parseFloat(val));
     }
   };
 
-  const displayValue = value === 0 && document.activeElement !== inputRef.current ? '0' : value;
+  const displayValue = value === 0 ? '' : value;
 
   return (
     <div className="grid gap-2">
@@ -88,13 +88,13 @@ interface HistoryEntry {
 
 export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
-  const [mlihCrates, setMlihCrates] = useState(72);
-  const [dichiCrates, setDichiCrates] = useState(48);
-  const [grossWeight, setGrossWeight] = useState(3280);
+  const [mlihCrates, setMlihCrates] = useState(0);
+  const [dichiCrates, setDichiCrates] = useState(0);
+  const [grossWeight, setGrossWeight] = useState(0);
   const emptyCrateWeight = 3;
-  const [fullCrateWeight, setFullCrateWeight] = useState(27);
-  const [mlihPrice, setMlihPrice] = useState(85);
-  const [dichiPrice, setDichiPrice] = useState(70);
+  const [fullCrateWeight, setFullCrateWeight] = useState(0);
+  const [mlihPrice, setMlihPrice] = useState(0);
+  const [dichiPrice, setDichiPrice] = useState(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   
   const [clientName, setClientName] = useState('');
@@ -219,7 +219,9 @@ export default function CargoValuatorPage() {
   };
   
   const handleCalculate = () => {
-    setShowResults(true);
+    if (grossWeight > 0) {
+      setShowResults(true);
+    }
   };
   
   const clearHistory = () => {
