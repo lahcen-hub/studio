@@ -15,6 +15,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Amaranth } from 'next/font/google';
 
+const amaranth = Amaranth({
+  weight: '700',
+  subsets: ['latin'],
+});
+
 interface InputFieldProps {
   id: string;
   label: string;
@@ -264,8 +269,8 @@ export default function CargoValuatorPage() {
             <Truck className="w-12 h-12 text-primary" />
             Cargo
           </h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            Calculez le prix de votre cargaison de manière simple et rapide.
+          <p className={`mt-4 text-xl text-muted-foreground ${amaranth.className}`}>
+            الحساب لي كيطول الشركة، وكيطور الخدمة
           </p>
         </header>
 
