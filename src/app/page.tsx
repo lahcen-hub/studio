@@ -129,19 +129,26 @@ export default function CargoValuatorPage() {
   }, [history, user]);
 
   const calculations = useMemo(() => {
-    const totalCrates = mlihCrates + dichiCrates;
+    const mlihCratesNum = Number(mlihCrates) || 0;
+    const dichiCratesNum = Number(dichiCrates) || 0;
+    const grossWeightNum = Number(grossWeight) || 0;
+    const fullCrateWeightNum = Number(fullCrateWeight) || 0;
+    const mlihPriceNum = Number(mlihPrice) || 0;
+    const dichiPriceNum = Number(dichiPrice) || 0;
+
+    const totalCrates = mlihCratesNum + dichiCratesNum;
     const totalEmptyCratesWeight = totalCrates * emptyCrateWeight;
-    const totalNetProductWeight = grossWeight > totalEmptyCratesWeight ? grossWeight - totalEmptyCratesWeight : 0;
+    const totalNetProductWeight = grossWeightNum > totalEmptyCratesWeight ? grossWeightNum - totalEmptyCratesWeight : 0;
     const averageNetWeightPerCrate = totalCrates > 0 ? totalNetProductWeight / totalCrates : 0;
     
-    const netWeightMlih = mlihCrates * averageNetWeightPerCrate;
-    const netWeightDichi = dichiCrates * averageNetWeightPerCrate;
+    const netWeightMlih = mlihCratesNum * averageNetWeightPerCrate;
+    const netWeightDichi = dichiCratesNum * averageNetWeightPerCrate;
 
-    const virtualCratesMlih = fullCrateWeight > 0 ? netWeightMlih / fullCrateWeight : 0;
-    const virtualCratesDichi = fullCrateWeight > 0 ? netWeightDichi / fullCrateWeight : 0;
+    const virtualCratesMlih = fullCrateWeightNum > 0 ? netWeightMlih / fullCrateWeightNum : 0;
+    const virtualCratesDichi = fullCrateWeightNum > 0 ? netWeightDichi / fullCrateWeightNum : 0;
 
-    const totalPriceMlih = virtualCratesMlih * mlihPrice;
-    const totalPriceDichi = virtualCratesDichi * dichiPrice;
+    const totalPriceMlih = virtualCratesMlih * mlihPriceNum;
+    const totalPriceDichi = virtualCratesDichi * dichiPriceNum;
 
     const grandTotalPrice = totalPriceMlih + totalPriceDichi;
     const grandTotalPriceRiyal = grandTotalPrice * 20;
@@ -640,4 +647,5 @@ export default function CargoValuatorPage() {
   );
 
 }
+
     
