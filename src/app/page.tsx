@@ -35,9 +35,8 @@ interface InputFieldProps {
 }
 
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
-
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value);
+    setValue(e.target.value === '' ? '' : Number(e.target.value));
   };
 
   return (
