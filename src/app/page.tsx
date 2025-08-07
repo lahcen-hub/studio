@@ -27,7 +27,7 @@ interface InputFieldProps {
   id: string;
   label: string;
   value: number | string;
-  setValue: (value: number) => void;
+  setValue: (value: number | string) => void;
   unit: string;
   icon: ReactNode;
   step?: number;
@@ -35,18 +35,10 @@ interface InputFieldProps {
 }
 
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (val === '' || val === '-') {
-        setValue(0);
-    } else {
-        setValue(parseFloat(val));
-    }
+    setValue(e.target.value);
   };
-
-  const displayValue = value === 0 ? '' : value;
 
   return (
     <div className="grid gap-2">
@@ -56,10 +48,9 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
       </Label>
       <div className="relative flex items-center">
         <Input
-          ref={inputRef}
           id={id}
           type="number"
-          value={displayValue}
+          value={value}
           onChange={handleInputChange}
           placeholder="0"
           className="pr-16"
@@ -88,18 +79,18 @@ interface HistoryEntry {
 
 export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
-  const [mlihCrates, setMlihCrates] = useState(0);
-  const [dichiCrates, setDichiCrates] = useState(0);
-  const [grossWeight, setGrossWeight] = useState(0);
+  const [mlihCrates, setMlihCrates] = useState<number | string>('');
+  const [dichiCrates, setDichiCrates] = useState<number | string>('');
+  const [grossWeight, setGrossWeight] = useState<number | string>('');
   const emptyCrateWeight = 3;
-  const [fullCrateWeight, setFullCrateWeight] = useState(0);
-  const [mlihPrice, setMlihPrice] = useState(0);
-  const [dichiPrice, setDichiPrice] = useState(0);
+  const [fullCrateWeight, setFullCrateWeight] = useState<number | string>('');
+  const [mlihPrice, setMlihPrice] = useState<number | string>('');
+  const [dichiPrice, setDichiPrice] = useState<number | string>('');
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   
   const [clientName, setClientName] = useState('');
-  const [remainingCrates, setRemainingCrates] = useState<number | string>(0);
-  const [remainingMoney, setRemainingMoney] = useState<number | string>(0);
+  const [remainingCrates, setRemainingCrates] = useState<number | string>('');
+  const [remainingMoney, setRemainingMoney] = useState<number | string>('');
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
@@ -196,15 +187,15 @@ export default function CargoValuatorPage() {
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
       },
       clientName: clientName,
-      remainingCrates: Number(remainingCrates),
-      remainingMoney: Number(remainingMoney),
+      remainingCrates: Number(remainingCrates) || 0,
+      remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates
     };
     setHistory([newEntry, ...history]);
     // Reset form and close dialog
     setClientName('');
-    setRemainingCrates(0);
-    setRemainingMoney(0);
+    setRemainingCrates('');
+    setRemainingMoney('');
     setSaveDialogOpen(false);
   };
 
@@ -226,7 +217,7 @@ export default function CargoValuatorPage() {
   };
   
   const handleCalculate = () => {
-    if (grossWeight > 0) {
+    if (Number(grossWeight) > 0) {
       setShowResults(true);
     }
   };
@@ -494,7 +485,7 @@ export default function CargoValuatorPage() {
                                 id="remainingCrates" 
                                 type="number" 
                                 value={remainingCrates}
-                                onChange={(e) => setRemainingCrates(e.target.value === '' ? '' : Number(e.target.value))}
+                                onChange={(e) => setRemainingCrates(e.target.value)}
                                 className="col-span-3" 
                             />
                         </div>
@@ -504,7 +495,7 @@ export default function CargoValuatorPage() {
                                 id="remainingMoney" 
                                 type="number" 
                                 value={remainingMoney}
-                                onChange={(e) => setRemainingMoney(e.target.value === '' ? '' : Number(e.target.value))} 
+                                onChange={(e) => setRemainingMoney(e.target.value)} 
                                 className="col-span-3" 
                             />
                         </div>
@@ -647,5 +638,7 @@ export default function CargoValuatorPage() {
   );
 
 }
+
+    
 
     
