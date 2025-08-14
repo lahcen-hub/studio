@@ -38,6 +38,8 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value === '' ? '' : Number(e.target.value));
   };
+  
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="grid gap-2">
@@ -47,6 +49,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
       </Label>
       <div className="relative flex items-center">
         <Input
+          ref={inputRef}
           id={id}
           type="number"
           value={value}
@@ -78,13 +81,13 @@ interface HistoryEntry {
 
 export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
-  const [mlihCrates, setMlihCrates] = useState<number | string>('');
-  const [dichiCrates, setDichiCrates] = useState<number | string>('');
-  const [grossWeight, setGrossWeight] = useState<number | string>('');
+  const [mlihCrates, setMlihCrates] = useState<number | string>(0);
+  const [dichiCrates, setDichiCrates] = useState<number | string>(0);
+  const [grossWeight, setGrossWeight] = useState<number | string>(0);
   const emptyCrateWeight = 3;
-  const [fullCrateWeight, setFullCrateWeight] = useState<number | string>('');
-  const [mlihPrice, setMlihPrice] = useState<number | string>('');
-  const [dichiPrice, setDichiPrice] = useState<number | string>('');
+  const [fullCrateWeight, setFullCrateWeight] = useState<number | string>(0);
+  const [mlihPrice, setMlihPrice] = useState<number | string>(0);
+  const [dichiPrice, setDichiPrice] = useState<number | string>(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   
   const [clientName, setClientName] = useState('');
@@ -637,7 +640,5 @@ export default function CargoValuatorPage() {
   );
 
 }
-
-    
 
     
