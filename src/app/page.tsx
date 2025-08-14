@@ -40,6 +40,18 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value === '' ? '' : Number(e.target.value));
   };
+
+  const handleFocus = () => {
+    if (Number(value) === 0) {
+      setValue('');
+    }
+  };
+
+  const handleBlur = () => {
+    if (value === '') {
+      setValue(0);
+    }
+  };
   
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -56,6 +68,8 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
           type="number"
           value={value}
           onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder="0"
           className={cn("pr-16", isError && "border-destructive ring-destructive ring-1")}
         />
@@ -547,7 +561,8 @@ export default function CargoValuatorPage() {
                     Historique
                   </CardTitle>
                   <CardDescription>
-                    {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."}
+                    {/* {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."} */}
+                    Vos calculs sont sauvegardés localement.
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
