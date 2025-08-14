@@ -1,7 +1,7 @@
 {
   "name": "CargoValuator",
-  "short_name": "CargoValuator",
-  "description": "Calculates total price for two product types based on cargo data.",
+  "short_name": "Cargo",
+  "description": "Calculates total price for product types based on cargo data.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F0F4F0",
