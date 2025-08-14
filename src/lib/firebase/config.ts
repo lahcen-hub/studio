@@ -3,9 +3,9 @@ import {initializeApp, getApp, getApps} from 'firebase/app';
 
 const firebaseConfig = {
   "projectId": "cargovaluator",
-  "appId": "1:972849138960:web:d2551532f22c6017ff6995",
+  "appId": "1:972849138960:web:3a9afda13bdf5752ff6995",
   "storageBucket": "cargovaluator.firebasestorage.app",
-  "apiKey": "AIzaSyDr-s19e6hU_BYna0j4Z75cOaO7p_kgjHk",
+  "apiKey": "AIzaSyDpxBFkfaOyezhkI7FRh9iaR3NRjhOlrHU",
   "authDomain": "cargovaluator.firebaseapp.com",
   "messagingSenderId": "972849138960"
 };
