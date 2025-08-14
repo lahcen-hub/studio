@@ -16,6 +16,7 @@ import autoTable from 'jspdf-autotable';
 import { Aref_Ruqaa } from 'next/font/google';
 // import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -32,9 +33,10 @@ interface InputFieldProps {
   icon: ReactNode;
   step?: number;
   isBold?: boolean;
+  isError?: boolean;
 }
 
-const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false }) => {
+const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false, isError = false }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value === '' ? '' : Number(e.target.value));
   };
@@ -43,7 +45,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
 
   return (
     <div className="grid gap-2">
-      <Label htmlFor={id} className={`flex items-center gap-2 text-sm ${isBold ? 'font-bold' : ''}`}>
+      <Label htmlFor={id} className={cn(`flex items-center gap-2 text-sm ${isBold ? 'font-bold' : ''}`, isError && "text-destructive")}>
         {icon}
         {label}
       </Label>
@@ -55,7 +57,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
           value={value}
           onChange={handleInputChange}
           placeholder="0"
-          className="pr-16"
+          className={cn("pr-16", isError && "border-destructive ring-destructive ring-1")}
         />
         <div className="absolute right-0 flex items-center pr-3">
           <span className="text-sm text-muted-foreground">{unit}</span>
@@ -97,6 +99,8 @@ export default function CargoValuatorPage() {
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  
+  const [errors, setErrors] = useState<{ grossWeight?: boolean; fullCrateWeight?: boolean }>({});
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
   
@@ -221,8 +225,23 @@ export default function CargoValuatorPage() {
   };
   
   const handleCalculate = () => {
-    if (Number(grossWeight) > 0) {
+    const grossWeightNum = Number(grossWeight) || 0;
+    const fullCrateWeightNum = Number(fullCrateWeight) || 0;
+    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
+
+    if (grossWeightNum <= 0) {
+      newErrors.grossWeight = true;
+    }
+    if (fullCrateWeightNum <= 0) {
+      newErrors.fullCrateWeight = true;
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
       setShowResults(true);
+    } else {
+      setShowResults(false);
     }
   };
   
@@ -343,6 +362,7 @@ export default function CargoValuatorPage() {
                     icon={<Truck className="w-4 h-4 text-primary" />}
                     step={10}
                     isBold
+                    isError={errors.grossWeight}
                   />
                   <InputField
                     id="fullCrateWeight"
@@ -352,6 +372,7 @@ export default function CargoValuatorPage() {
                     unit="kg"
                     icon={<Scale className="w-4 h-4 text-primary" />}
                     isBold
+                    isError={errors.fullCrateWeight}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
