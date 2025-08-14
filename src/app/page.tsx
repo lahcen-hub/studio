@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Aref_Ruqaa } from 'next/font/google';
-import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
+// import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -80,7 +80,9 @@ interface HistoryEntry {
 
 
 export default function CargoValuatorPage() {
-  const { user, loading } = useAuth();
+  // const { user, loading } = useAuth();
+  const user = null;
+  const loading = false;
   const [mlihCrates, setMlihCrates] = useState<number | string>(0);
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
   const [grossWeight, setGrossWeight] = useState<number | string>(0);
@@ -176,11 +178,11 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = () => {
-     if (!user) {
-      // If user is not logged in, prompt them to sign in.
-      signInWithGoogle();
-      return;
-    }
+    //  if (!user) {
+    //   // If user is not logged in, prompt them to sign in.
+    //   signInWithGoogle();
+    //   return;
+    // }
     const newEntry: HistoryEntry = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
@@ -282,11 +284,11 @@ export default function CargoValuatorPage() {
       return (
         <div className="flex items-center gap-2">
           <Avatar className="h-9 w-9">
-            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'Avatar'} />
-            <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
+            <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-foreground hidden sm:inline">{user.displayName}</span>
-          <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
+          <span className="text-sm font-medium text-foreground hidden sm:inline">{(user as any).displayName}</span>
+          <Button variant="ghost" size="icon" onClick={() => {}} className="rounded-full">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
@@ -294,7 +296,7 @@ export default function CargoValuatorPage() {
     }
     
     return (
-        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
+        <Button variant="default" size="icon" onClick={() => {}} className="rounded-full bg-primary hover:bg-primary/90">
             <LogIn className="h-4 w-4" />
         </Button>
     );
@@ -318,7 +320,7 @@ export default function CargoValuatorPage() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            <AuthArea />
+            {/* <AuthArea /> */}
           </div>
         </header>
 
@@ -524,7 +526,7 @@ export default function CargoValuatorPage() {
                     Historique
                   </CardTitle>
                   <CardDescription>
-                    {user ? "Vos calculs enregistrés et synchronisés." : "Connectez-vous pour sauvegarder votre historique en ligne."}
+                    {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."}
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
