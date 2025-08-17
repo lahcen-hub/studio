@@ -128,17 +128,12 @@ export default function CargoValuatorPage() {
   }, []);
 
   useEffect(() => {
-    // We only save to localStorage if the user is not logged in.
-    // Once Firestore is implemented, we'll change this logic.
-    if (!user) {
-      try {
-        localStorage.setItem('cargoHistory', JSON.stringify(history));
-      } catch (error)
-{
-        console.error("Failed to save history to localStorage", error);
-      }
+    try {
+      localStorage.setItem('cargoHistory', JSON.stringify(history));
+    } catch (error) {
+      console.error("Failed to save history to localStorage", error);
     }
-  }, [history, user]);
+  }, [history]);
 
   const calculations = useMemo(() => {
     const mlihCratesNum = Number(mlihCrates) || 0;
@@ -195,10 +190,12 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = () => {
-     if (!user) {
-      signInWithGoogle();
-      return;
+    // If user is not logged in, prompt them to sign in for synchronization, but still allow local save.
+    if (!user) {
+      // In a real app, you might show a toast notification here suggesting to log in to sync.
+      console.log("User not logged in. Saving locally.");
     }
+
     const newEntry: HistoryEntry = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
@@ -211,12 +208,23 @@ export default function CargoValuatorPage() {
       remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates
     };
+
     setHistory([newEntry, ...history]);
+    
     setClientName('');
     setRemainingCrates('');
     setRemainingMoney('');
     setSaveDialogOpen(false);
   };
+  
+  const handleOpenSaveDialog = () => {
+     if (!user) {
+      // We could show a dialog here explaining that data is saved locally and login is needed for sync.
+      // For now, just open the dialog.
+    }
+    setSaveDialogOpen(true);
+  }
+
 
   const handleUpdate = () => {
     if (!editingEntry) return;
@@ -499,7 +507,7 @@ export default function CargoValuatorPage() {
                   </div>
                   <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full">
+                       <Button className="w-full" onClick={handleOpenSaveDialog}>
                         <Save className="mr-2 h-4 w-4" /> Enregistrer le Calcul
                       </Button>
                     </DialogTrigger>
@@ -508,6 +516,7 @@ export default function CargoValuatorPage() {
                         <DialogTitle>Enregistrer les détails</DialogTitle>
                         <DialogDescription>
                           Ajoutez des informations supplémentaires pour ce calcul.
+                          { !user && " Connectez-vous pour synchroniser avec le serveur."}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -558,7 +567,7 @@ export default function CargoValuatorPage() {
                     Historique
                   </CardTitle>
                   <CardDescription>
-                    {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."}
+                    {user ? "Vos calculs enregistrés et prêts à être synchronisés." : "Vos calculs sont sauvegardés localement. Connectez-vous pour les synchroniser."}
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
@@ -673,3 +682,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
