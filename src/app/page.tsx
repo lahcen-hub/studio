@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Aref_Ruqaa } from 'next/font/google';
-// import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
+import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -96,9 +96,7 @@ interface HistoryEntry {
 
 
 export default function CargoValuatorPage() {
-  // const { user, loading } = useAuth();
-  const user = null;
-  const loading = false;
+  const { user, loading } = useAuth();
   const [mlihCrates, setMlihCrates] = useState<number | string>(0);
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
   const [grossWeight, setGrossWeight] = useState<number | string>(0);
@@ -135,7 +133,8 @@ export default function CargoValuatorPage() {
     if (!user) {
       try {
         localStorage.setItem('cargoHistory', JSON.stringify(history));
-      } catch (error) {
+      } catch (error)
+{
         console.error("Failed to save history to localStorage", error);
       }
     }
@@ -196,11 +195,10 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = () => {
-    //  if (!user) {
-    //   // If user is not logged in, prompt them to sign in.
-    //   signInWithGoogle();
-    //   return;
-    // }
+     if (!user) {
+      signInWithGoogle();
+      return;
+    }
     const newEntry: HistoryEntry = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
@@ -214,7 +212,6 @@ export default function CargoValuatorPage() {
       totalCrates: calculations.totalCrates
     };
     setHistory([newEntry, ...history]);
-    // Reset form and close dialog
     setClientName('');
     setRemainingCrates('');
     setRemainingMoney('');
@@ -321,7 +318,7 @@ export default function CargoValuatorPage() {
             <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
           </Avatar>
           <span className="text-sm font-medium text-foreground hidden sm:inline">{(user as any).displayName}</span>
-          <Button variant="ghost" size="icon" onClick={() => {}} className="rounded-full">
+          <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
@@ -329,8 +326,8 @@ export default function CargoValuatorPage() {
     }
     
     return (
-        <Button variant="default" size="icon" onClick={() => {}} className="rounded-full bg-primary hover:bg-primary/90">
-            <LogIn className="h-4 w-4" />
+        <Button variant="default" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
+            <LogIn className="mr-2 h-4 w-4" /> Connexion
         </Button>
     );
   };
@@ -343,7 +340,7 @@ export default function CargoValuatorPage() {
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
               <Truck className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
-              Cargo
+              CargoValuator
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
               الحساب كيطول الشركة، وكيطور الخدمة
@@ -353,7 +350,7 @@ export default function CargoValuatorPage() {
             </p>
           </div>
           <div className="flex-shrink-0">
-            {/* <AuthArea /> */}
+             <AuthArea />
           </div>
         </header>
 
@@ -561,8 +558,7 @@ export default function CargoValuatorPage() {
                     Historique
                   </CardTitle>
                   <CardDescription>
-                    {/* {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."} */}
-                    Vos calculs sont sauvegardés localement.
+                    {user ? "Vos calculs enregistrés et synchronisés." : "Vos calculs sont sauvegardés localement."}
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
@@ -676,5 +672,4 @@ export default function CargoValuatorPage() {
       </div>
     </main>
   );
-
 }

@@ -1,9 +1,10 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Cargo',
+  title: 'CargoValuator',
   description: 'Calculates total price for two product types based on cargo data.',
   manifest: '/manifest.json',
 };
