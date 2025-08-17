@@ -17,6 +17,8 @@ import { Aref_Ruqaa } from 'next/font/google';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { saveCalculation, type CalculationInput } from '@/ai/flows/saveCalculationFlow';
+import { useToast } from '@/hooks/use-toast';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -92,11 +94,13 @@ interface HistoryEntry {
   remainingCrates: number;
   remainingMoney: number;
   totalCrates: number;
+  synced?: boolean;
 }
 
 
 export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
+  const { toast } = useToast();
   const [mlihCrates, setMlihCrates] = useState<number | string>(0);
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
   const [grossWeight, setGrossWeight] = useState<number | string>(0);
@@ -134,6 +138,50 @@ export default function CargoValuatorPage() {
       console.error("Failed to save history to localStorage", error);
     }
   }, [history]);
+  
+  useEffect(() => {
+    const syncOfflineData = async () => {
+      if (user && navigator.onLine) {
+        const offlineEntries = history.filter(entry => !entry.synced);
+        if (offlineEntries.length > 0) {
+          console.log(`Syncing ${offlineEntries.length} offline entries...`);
+          const syncPromises = offlineEntries.map(async (entry) => {
+            const input: CalculationInput = {
+              uid: user.uid,
+              ...entry,
+            };
+            const result = await saveCalculation(input);
+            if (result.success) {
+              return { ...entry, synced: true };
+            }
+            return entry; // Keep as unsynced if save fails
+          });
+
+          const syncedResults = await Promise.all(syncPromises);
+          
+          setHistory(prevHistory => {
+            const newHistory = [...prevHistory];
+            syncedResults.forEach(syncedEntry => {
+              const index = newHistory.findIndex(h => h.id === syncedEntry.id);
+              if (index !== -1) {
+                newHistory[index] = syncedEntry;
+              }
+            });
+            return newHistory;
+          });
+          toast({ title: "Synchronisation terminée", description: `${offlineEntries.length} calculs ont été synchronisés.` });
+        }
+      }
+    };
+
+    syncOfflineData();
+    
+    window.addEventListener('online', syncOfflineData);
+    return () => {
+        window.removeEventListener('online', syncOfflineData);
+    }
+
+  }, [user, history, toast]);
 
   const calculations = useMemo(() => {
     const mlihCratesNum = Number(mlihCrates) || 0;
@@ -189,14 +237,8 @@ export default function CargoValuatorPage() {
     return new Intl.NumberFormat(locale, options).format(value);
   }
   
-  const handleSave = () => {
-    // If user is not logged in, prompt them to sign in for synchronization, but still allow local save.
-    if (!user) {
-      // In a real app, you might show a toast notification here suggesting to log in to sync.
-      console.log("User not logged in. Saving locally.");
-    }
-
-    const newEntry: HistoryEntry = {
+  const handleSave = async () => {
+    const newEntryData = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
       results: {
@@ -209,7 +251,28 @@ export default function CargoValuatorPage() {
       totalCrates: calculations.totalCrates
     };
 
-    setHistory([newEntry, ...history]);
+    if (user && navigator.onLine) {
+      try {
+        const input: CalculationInput = {
+          uid: user.uid,
+          ...newEntryData
+        };
+        const result = await saveCalculation(input);
+        if (result.success) {
+          setHistory([{ ...newEntryData, synced: true }, ...history]);
+          toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
+        } else {
+          throw new Error("Failed to save to Firestore");
+        }
+      } catch (error) {
+        console.error("Failed to save online, saving locally", error);
+        setHistory([{ ...newEntryData, synced: false }, ...history]);
+        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement." });
+      }
+    } else {
+      setHistory([{ ...newEntryData, synced: false }, ...history]);
+      toast({ title: "Sauvegardé localement", description: "Connectez-vous pour synchroniser le calcul." });
+    }
     
     setClientName('');
     setRemainingCrates('');
@@ -218,13 +281,8 @@ export default function CargoValuatorPage() {
   };
   
   const handleOpenSaveDialog = () => {
-     if (!user) {
-      // We could show a dialog here explaining that data is saved locally and login is needed for sync.
-      // For now, just open the dialog.
-    }
     setSaveDialogOpen(true);
   }
-
 
   const handleUpdate = () => {
     if (!editingEntry) return;
