@@ -148,7 +148,12 @@ export default function CargoValuatorPage() {
           const syncPromises = offlineEntries.map(async (entry) => {
             const input: CalculationInput = {
               uid: user.uid,
-              ...entry,
+              date: entry.date,
+              results: entry.results,
+              clientName: entry.clientName,
+              remainingCrates: entry.remainingCrates,
+              remainingMoney: entry.remainingMoney,
+              totalCrates: entry.totalCrates,
             };
             const result = await saveCalculation(input);
             if (result.success) {
@@ -163,7 +168,7 @@ export default function CargoValuatorPage() {
             const newHistory = [...prevHistory];
             syncedResults.forEach(syncedEntry => {
               const index = newHistory.findIndex(h => h.id === syncedEntry.id);
-              if (index !== -1) {
+              if (index !== -1 && syncedEntry.synced) {
                 newHistory[index] = syncedEntry;
               }
             });
@@ -255,7 +260,12 @@ export default function CargoValuatorPage() {
       try {
         const input: CalculationInput = {
           uid: user.uid,
-          ...newEntryData
+          date: newEntryData.date,
+          results: newEntryData.results,
+          clientName: newEntryData.clientName,
+          remainingCrates: newEntryData.remainingCrates,
+          remainingMoney: newEntryData.remainingMoney,
+          totalCrates: newEntryData.totalCrates,
         };
         const result = await saveCalculation(input);
         if (result.success) {
@@ -740,5 +750,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
