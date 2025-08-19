@@ -23,6 +23,21 @@ export default function RootLayout({
         <meta name="theme-color" content="#B2D7B3" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').then(registration => {
+                    console.log('Service Worker registered: ', registration);
+                  }).catch(registrationError => {
+                    console.log('Service Worker registration failed: ', registrationError);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body className="font-body antialiased h-full">
         {children}
