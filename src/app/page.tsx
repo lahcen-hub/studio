@@ -415,7 +415,7 @@ export default function CargoValuatorPage() {
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline text-foreground flex items-center justify-center gap-3">
               <Truck className="w-7 h-7 sm:w-9 sm:h-9 text-primary" />
-              CargoValuator
+              Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
               الحساب كيطول الشركة، وكيطور الخدمة

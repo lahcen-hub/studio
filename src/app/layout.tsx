@@ -4,7 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'CargoValuator',
+  title: 'Cargo',
   description: 'Calculates total price for two product types based on cargo data.',
   manifest: '/manifest.json',
 };
