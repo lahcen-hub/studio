@@ -383,7 +383,7 @@ export default function CargoValuatorPage() {
 
   const AuthArea = () => {
     if (loading) {
-      return <div className="h-10 w-32 bg-gray-200 animate-pulse rounded-md"></div>;
+      return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
     }
 
     if (user) {
@@ -393,7 +393,6 @@ export default function CargoValuatorPage() {
             <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
             <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-foreground hidden sm:inline">{(user as any).displayName}</span>
           <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
             <LogOut className="h-4 w-4" />
           </Button>
@@ -402,8 +401,8 @@ export default function CargoValuatorPage() {
     }
     
     return (
-        <Button variant="default" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
-            <LogIn className="mr-2 h-4 w-4" /> Connexion
+        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
+            <LogIn className="h-5 w-5" />
         </Button>
     );
   };
@@ -750,6 +749,8 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
 
