@@ -455,6 +455,17 @@ export default function CargoValuatorPage() {
               </CardHeader>
               <CardContent className="grid gap-4 sm:gap-5">
                 <div className="grid grid-cols-2 gap-4">
+                    <InputField
+                        id="grossWeight"
+                        label="Poids total brut"
+                        value={grossWeight}
+                        setValue={setGrossWeight}
+                        unit="kg"
+                        icon={<Truck className="w-4 h-4 text-primary" />}
+                        step={10}
+                        isBold
+                        isError={errors.grossWeight}
+                    />
                     <div className="grid gap-2">
                         <Label className={cn("flex items-center gap-2 text-sm font-bold", errors.fullCrateWeight && "text-destructive")}>
                             <Scale className="w-4 h-4 text-primary" />
@@ -477,17 +488,6 @@ export default function CargoValuatorPage() {
                         </Select>
                         {errors.fullCrateWeight && <p className="text-xs text-destructive">Obligatoire.</p>}
                     </div>
-                    <InputField
-                        id="grossWeight"
-                        label="Poids total brut"
-                        value={grossWeight}
-                        setValue={setGrossWeight}
-                        unit="kg"
-                        icon={<Truck className="w-4 h-4 text-primary" />}
-                        step={10}
-                        isBold
-                        isError={errors.grossWeight}
-                    />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
@@ -777,5 +777,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
