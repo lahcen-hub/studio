@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Aref_Ruqaa } from 'next/font/google';
@@ -28,8 +29,8 @@ const arefRuqaa = Aref_Ruqaa({
 
 
 const vegetables = {
-    tomato: { name: 'Tomate', weight: 31, icon: <span className="text-4xl">🍅</span> },
-    cucumber: { name: 'Concombre', weight: 27, icon: <span className="text-4xl">🥒</span> },
+    tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
+    cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
 };
 
 
@@ -150,6 +151,8 @@ export default function CargoValuatorPage() {
   useEffect(() => {
     if (selectedVegetable) {
       setFullCrateWeight(vegetables[selectedVegetable].weight);
+    } else {
+      setFullCrateWeight(0);
     }
   }, [selectedVegetable]);
   
@@ -469,20 +472,21 @@ export default function CargoValuatorPage() {
                         <Scale className="w-4 h-4 text-primary" />
                         Type de Produit
                     </Label>
-                    <div className="grid grid-cols-2 gap-4">
+                    <Select onValueChange={(value: 'tomato' | 'cucumber') => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
+                      <SelectTrigger className={cn(errors.fullCrateWeight && "border-destructive ring-destructive ring-1")}>
+                        <SelectValue placeholder="Sélectionner un produit..." />
+                      </SelectTrigger>
+                      <SelectContent>
                         {(Object.keys(vegetables) as Array<keyof typeof vegetables>).map((key) => (
-                            <Button
-                                key={key}
-                                variant={selectedVegetable === key ? "default" : "outline"}
-                                className="h-auto py-3 flex flex-col gap-2"
-                                onClick={() => setSelectedVegetable(key)}
-                            >
-                                {vegetables[key].icon}
-                                <span className="font-semibold">{vegetables[key].name}</span>
-                                <span className="text-xs text-muted-foreground">{vegetables[key].weight} kg/caisse</span>
-                            </Button>
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">{vegetables[key].icon}</span>
+                                <span>{vegetables[key].name} ({vegetables[key].weight} kg/caisse)</span>
+                            </div>
+                          </SelectItem>
                         ))}
-                    </div>
+                      </SelectContent>
+                    </Select>
                     {errors.fullCrateWeight && <p className="text-xs text-destructive">Veuillez sélectionner un produit.</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -773,6 +777,8 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
 
