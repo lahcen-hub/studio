@@ -26,28 +26,10 @@ const arefRuqaa = Aref_Ruqaa({
   subsets: ['latin'],
 });
 
-const TomatoIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-        <path d="M15 12c0-2.2-1.8-4-4-4s-4 1.8-4 4c0 1.5.8 2.8 2 3.5V17a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2v-1.5c1.2-.7 2-2 2-3.5z" />
-        <path d="M15 8c0-1.1.9-2 2-2h0a2 2 0 0 1 2 2v1c0 1.1-.9 2-2 2h-1" />
-        <path d="M9 8c0-1.1-.9-2-2-2H7a2 2 0 0 0-2 2v1c0 1.1.9 2 2 2h1" />
-        <path d="M12 4c0-1.1.9-2 2-2h0a2 2 0 0 1 2 2v2" />
-    </svg>
-);
-
-const CucumberIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-        <path d="M4 20c0-4 4-4 8-4s8 0 8 4" />
-        <path d="M12 4v16" />
-        <path d="M10 4h4" />
-        <path d="M10 20h4" />
-        <path d="M4 12h16" />
-    </svg>
-);
 
 const vegetables = {
-    tomato: { name: 'Tomate', weight: 31, icon: <TomatoIcon className="w-8 h-8 mx-auto" /> },
-    cucumber: { name: 'Concombre', weight: 27, icon: <CucumberIcon className="w-8 h-8 mx-auto" /> },
+    tomato: { name: 'Tomate', weight: 31, icon: <span className="text-4xl">🍅</span> },
+    cucumber: { name: 'Concombre', weight: 27, icon: <span className="text-4xl">🥒</span> },
 };
 
 
@@ -791,5 +773,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
