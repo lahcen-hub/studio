@@ -26,6 +26,31 @@ const arefRuqaa = Aref_Ruqaa({
   subsets: ['latin'],
 });
 
+const TomatoIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M15 12c0-2.2-1.8-4-4-4s-4 1.8-4 4c0 1.5.8 2.8 2 3.5V17a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2v-1.5c1.2-.7 2-2 2-3.5z" />
+        <path d="M15 8c0-1.1.9-2 2-2h0a2 2 0 0 1 2 2v1c0 1.1-.9 2-2 2h-1" />
+        <path d="M9 8c0-1.1-.9-2-2-2H7a2 2 0 0 0-2 2v1c0 1.1.9 2 2 2h1" />
+        <path d="M12 4c0-1.1.9-2 2-2h0a2 2 0 0 1 2 2v2" />
+    </svg>
+);
+
+const CucumberIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M4 20c0-4 4-4 8-4s8 0 8 4" />
+        <path d="M12 4v16" />
+        <path d="M10 4h4" />
+        <path d="M10 20h4" />
+        <path d="M4 12h16" />
+    </svg>
+);
+
+const vegetables = {
+    tomato: { name: 'Tomate', weight: 31, icon: <TomatoIcon className="w-8 h-8 mx-auto" /> },
+    cucumber: { name: 'Concombre', weight: 27, icon: <CucumberIcon className="w-8 h-8 mx-auto" /> },
+};
+
+
 interface InputFieldProps {
   id: string;
   label: string;
@@ -105,7 +130,7 @@ export default function CargoValuatorPage() {
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
   const [grossWeight, setGrossWeight] = useState<number | string>(0);
   const emptyCrateWeight = 3;
-  const [fullCrateWeight, setFullCrateWeight] = useState<number | string>(0);
+  const [fullCrateWeight, setFullCrateWeight] = useState<number>(0);
   const [mlihPrice, setMlihPrice] = useState<number | string>(0);
   const [dichiPrice, setDichiPrice] = useState<number | string>(0);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -117,6 +142,7 @@ export default function CargoValuatorPage() {
   const [showResults, setShowResults] = useState(false);
   
   const [errors, setErrors] = useState<{ grossWeight?: boolean; fullCrateWeight?: boolean }>({});
+  const [selectedVegetable, setSelectedVegetable] = useState<'tomato' | 'cucumber' | null>(null);
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
   
@@ -138,6 +164,12 @@ export default function CargoValuatorPage() {
       console.error("Failed to save history to localStorage", error);
     }
   }, [history]);
+
+  useEffect(() => {
+    if (selectedVegetable) {
+      setFullCrateWeight(vegetables[selectedVegetable].weight);
+    }
+  }, [selectedVegetable]);
   
   useEffect(() => {
     const syncOfflineData = async () => {
@@ -313,13 +345,12 @@ export default function CargoValuatorPage() {
   
   const handleCalculate = () => {
     const grossWeightNum = Number(grossWeight) || 0;
-    const fullCrateWeightNum = Number(fullCrateWeight) || 0;
     const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
 
     if (grossWeightNum <= 0) {
       newErrors.grossWeight = true;
     }
-    if (fullCrateWeightNum <= 0) {
+    if (fullCrateWeight <= 0) {
       newErrors.fullCrateWeight = true;
     }
 
@@ -438,7 +469,7 @@ export default function CargoValuatorPage() {
                 <CardDescription>Entrez les détails ci-dessous.</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:gap-5">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <InputField
                     id="grossWeight"
                     label="Poids total brut"
@@ -450,16 +481,27 @@ export default function CargoValuatorPage() {
                     isBold
                     isError={errors.grossWeight}
                   />
-                  <InputField
-                    id="fullCrateWeight"
-                    label="Poids caisse pleine"
-                    value={fullCrateWeight}
-                    setValue={setFullCrateWeight}
-                    unit="kg"
-                    icon={<Scale className="w-4 h-4 text-primary" />}
-                    isBold
-                    isError={errors.fullCrateWeight}
-                  />
+                </div>
+                 <div className="grid gap-2">
+                    <Label className={cn("flex items-center gap-2 text-sm font-bold", errors.fullCrateWeight && "text-destructive")}>
+                        <Scale className="w-4 h-4 text-primary" />
+                        Type de Produit
+                    </Label>
+                    <div className="grid grid-cols-2 gap-4">
+                        {(Object.keys(vegetables) as Array<keyof typeof vegetables>).map((key) => (
+                            <Button
+                                key={key}
+                                variant={selectedVegetable === key ? "default" : "outline"}
+                                className="h-auto py-3 flex flex-col gap-2"
+                                onClick={() => setSelectedVegetable(key)}
+                            >
+                                {vegetables[key].icon}
+                                <span className="font-semibold">{vegetables[key].name}</span>
+                                <span className="text-xs text-muted-foreground">{vegetables[key].weight} kg/caisse</span>
+                            </Button>
+                        ))}
+                    </div>
+                    {errors.fullCrateWeight && <p className="text-xs text-destructive">Veuillez sélectionner un produit.</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
@@ -749,9 +791,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
 
     
