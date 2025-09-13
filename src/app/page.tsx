@@ -622,7 +622,7 @@ export default function CargoValuatorPage() {
                    <div className="w-full flex items-center gap-3">
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
-                           <Button className="w-full" onClick={handleOpenSaveDialog}>
+                           <Button className="w-full" variant="secondary" onClick={handleOpenSaveDialog}>
                             <Save className="mr-2 h-4 w-4" /> Enregistrer
                           </Button>
                         </DialogTrigger>
@@ -668,7 +668,7 @@ export default function CargoValuatorPage() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                       <Button variant="secondary" className="w-full" onClick={() => setShowReverseCalculator(!showReverseCalculator)}>
+                       <Button variant="default" className="w-full" onClick={() => setShowReverseCalculator(!showReverseCalculator)}>
                         <RefreshCw className="mr-2 h-4 w-4" /> Calcul Inversé
                       </Button>
                   </div>
@@ -840,3 +840,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
