@@ -129,9 +129,6 @@ export default function CargoValuatorPage() {
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
-  const [showReverseCalculator, setShowReverseCalculator] = useState(false);
-  const [desiredVirtualCrates, setDesiredVirtualCrates] = useState<number | string>('');
-
   
   useEffect(() => {
     try {
@@ -251,26 +248,6 @@ export default function CargoValuatorPage() {
     };
   }, [mlihCrates, dichiCrates, grossWeight, fullCrateWeight, mlihPrice, dichiPrice]);
 
-   const reverseCalculations = useMemo(() => {
-    const desiredVirtualCratesNum = Number(desiredVirtualCrates) || 0;
-    const avgNetWeight = calculations.averageNetWeightPerCrate;
-    const fullCrateWeightNum = Number(fullCrateWeight) || 0;
-
-    if (avgNetWeight <= 0 || fullCrateWeightNum <= 0) {
-      return { grossCrates: 0, grossWeight: 0 };
-    }
-
-    const grossCrates = (fullCrateWeightNum * desiredVirtualCratesNum) / avgNetWeight;
-    const netWeight = grossCrates * avgNetWeight;
-    const emptyWeight = grossCrates * emptyCrateWeight;
-    const grossWeight = netWeight + emptyWeight;
-
-    return {
-      grossCrates: grossCrates,
-      grossWeight: grossWeight,
-    };
-  }, [desiredVirtualCrates, calculations.averageNetWeightPerCrate, fullCrateWeight]);
-
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
@@ -368,8 +345,6 @@ export default function CargoValuatorPage() {
 
     if (Object.keys(newErrors).length === 0) {
       setShowResults(true);
-      setShowReverseCalculator(false);
-      setDesiredVirtualCrates('');
     } else {
       setShowResults(false);
     }
@@ -619,7 +594,6 @@ export default function CargoValuatorPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="mt-auto flex flex-col gap-3">
-                   <div className="w-full flex flex-col gap-3">
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
                            <Button className="w-full" variant="secondary" onClick={handleOpenSaveDialog}>
@@ -668,10 +642,6 @@ export default function CargoValuatorPage() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                       <Button variant="default" className="w-full" onClick={() => setShowReverseCalculator(!showReverseCalculator)}>
-                        <RefreshCw className="mr-2 h-4 w-4" /> Calcul Inversé
-                      </Button>
-                  </div>
                   <div className="w-full bg-accent text-accent-foreground p-3 rounded-lg flex justify-between items-center">
                       <span className="text-base sm:text-lg font-bold">Prix Total Général</span>
                       <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
@@ -682,37 +652,6 @@ export default function CargoValuatorPage() {
                   </div>
                 </CardFooter>
               </Card>
-               {showReverseCalculator && (
-                <Card className="shadow-lg mt-4 md:mt-6">
-                  <CardHeader>
-                    <CardTitle className="text-lg sm:text-xl">Calcul Inversé</CardTitle>
-                    <CardDescription>
-                      Calculez le nombre de caisses brutes et le poids total à partir d'un nombre de "صندوق حرة".
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid sm:grid-cols-2 gap-4 items-end">
-                    <InputField
-                      id="desiredVirtualCrates"
-                      label="صندوق حرة souhaité"
-                      value={desiredVirtualCrates}
-                      setValue={setDesiredVirtualCrates}
-                      unit="caisses"
-                      icon={<Calculator className="w-4 h-4 text-primary" />}
-                      isBold
-                    />
-                    <div className="grid grid-cols-2 gap-3 text-center">
-                       <div className="bg-secondary/50 p-3 rounded-lg">
-                          <p className="text-xs text-muted-foreground font-bold">Caisses Brutes</p>
-                          <p className="text-base sm:text-lg font-bold">{reverseCalculations.grossCrates.toFixed(2)}</p>
-                      </div>
-                       <div className="bg-secondary/50 p-3 rounded-lg">
-                          <p className="text-xs text-muted-foreground font-bold">Poids Total (kg)</p>
-                          <p className="text-base sm:text-lg font-bold">{reverseCalculations.grossWeight.toFixed(2)}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
 
