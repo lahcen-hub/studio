@@ -594,6 +594,14 @@ export default function CargoValuatorPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="mt-auto flex flex-col gap-3">
+                  <div className="w-full bg-accent text-accent-foreground p-3 rounded-lg flex justify-between items-center">
+                      <span className="text-base sm:text-lg font-bold">Prix Total Général</span>
+                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
+                  </div>
+                  <div className="w-full bg-secondary text-secondary-foreground p-3 rounded-lg flex justify-between items-center">
+                      <span className="text-base sm:text-lg font-bold">Prix Total (Riyal)</span>
+                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
+                  </div>
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
                            <Button className="w-full" variant="secondary" onClick={handleOpenSaveDialog}>
@@ -642,14 +650,6 @@ export default function CargoValuatorPage() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                  <div className="w-full bg-accent text-accent-foreground p-3 rounded-lg flex justify-between items-center">
-                      <span className="text-base sm:text-lg font-bold">Prix Total Général</span>
-                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
-                  </div>
-                  <div className="w-full bg-secondary text-secondary-foreground p-3 rounded-lg flex justify-between items-center">
-                      <span className="text-base sm:text-lg font-bold">Prix Total (Riyal)</span>
-                      <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
-                  </div>
                 </CardFooter>
               </Card>
             </div>
