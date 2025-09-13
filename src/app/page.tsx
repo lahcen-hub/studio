@@ -619,7 +619,7 @@ export default function CargoValuatorPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="mt-auto flex flex-col gap-3">
-                   <div className="w-full flex items-center gap-3">
+                   <div className="w-full flex flex-col gap-3">
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
                            <Button className="w-full" variant="secondary" onClick={handleOpenSaveDialog}>
