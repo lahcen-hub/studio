@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -129,6 +129,10 @@ export default function CargoValuatorPage() {
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
+  const [isDistributeDialogOpen, setDistributeDialogOpen] = useState(false);
+  const [distributeVirtualCrates, setDistributeVirtualCrates] = useState<number | string>('');
+
+
   
   useEffect(() => {
     try {
@@ -248,6 +252,26 @@ export default function CargoValuatorPage() {
     };
   }, [mlihCrates, dichiCrates, grossWeight, fullCrateWeight, mlihPrice, dichiPrice]);
 
+  const distributionCalculations = useMemo(() => {
+    const virtualCrates = Number(distributeVirtualCrates) || 0;
+    const fullCrateWeightNum = Number(fullCrateWeight) || 0;
+    const averageNetWeightPerCrate = calculations.averageNetWeightPerCrate || 0;
+
+    if (averageNetWeightPerCrate === 0) {
+      return {
+        grossCrates: 0,
+        totalWeight: 0,
+      };
+    }
+
+    const grossCrates = (fullCrateWeightNum * virtualCrates) / averageNetWeightPerCrate;
+    const totalWeight = grossCrates * averageNetWeightPerCrate + grossCrates * emptyCrateWeight;
+
+    return {
+      grossCrates,
+      totalWeight,
+    };
+  }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
@@ -544,9 +568,53 @@ export default function CargoValuatorPage() {
           {showResults && (
             <div className="md:col-span-3">
               <Card className="shadow-lg h-full flex flex-col">
-                <CardHeader>
-                  <CardTitle className="text-lg sm:text-xl">Résumé du Calcul</CardTitle>
-                  <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg sm:text-xl">Résumé du Calcul</CardTitle>
+                    <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
+                  </div>
+                  <Dialog open={isDistributeDialogOpen} onOpenChange={setDistributeDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Share className="mr-2 h-4 w-4" /> Distribuer
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Calcul de Distribution</DialogTitle>
+                        <DialogDescription>
+                          Entrez le nombre de "صندوق حرة" pour calculer les caisses et le poids brut.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="distributeVirtualCrates" className="text-right font-bold">صندوق حرة</Label>
+                            <Input
+                                id="distributeVirtualCrates"
+                                type="number"
+                                value={distributeVirtualCrates}
+                                onChange={(e) => setDistributeVirtualCrates(e.target.value)}
+                                className="col-span-3"
+                                placeholder="ex: 20"
+                            />
+                        </div>
+                        <Separator />
+                        <div className="space-y-2 text-center">
+                            <p className="text-sm text-muted-foreground">Caisses brutes à donner</p>
+                            <p className="text-2xl font-bold">{distributionCalculations.grossCrates.toFixed(2)}</p>
+                        </div>
+                        <div className="space-y-2 text-center">
+                            <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
+                            <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline">Fermer</Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </CardHeader>
                 <CardContent className="flex-grow">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-center">
@@ -779,5 +847,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
