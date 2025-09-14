@@ -256,11 +256,15 @@ export default function CargoValuatorPage() {
     const virtualCrates = Number(distributeVirtualCrates) || 0;
     const fullCrateWeightNum = Number(fullCrateWeight) || 0;
     const averageNetWeightPerCrate = calculations.averageNetWeightPerCrate || 0;
+    
+    const averagePricePerVirtualCrate = calculations.totalVirtualCrates > 0 ? calculations.grandTotalPrice / calculations.totalVirtualCrates : 0;
+    const totalPrice = virtualCrates * averagePricePerVirtualCrate;
 
     if (averageNetWeightPerCrate === 0) {
       return {
         grossCrates: 0,
         totalWeight: 0,
+        totalPrice: 0,
       };
     }
 
@@ -270,8 +274,9 @@ export default function CargoValuatorPage() {
     return {
       grossCrates,
       totalWeight,
+      totalPrice,
     };
-  }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate]);
+  }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate, calculations.grandTotalPrice, calculations.totalVirtualCrates]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
@@ -575,7 +580,7 @@ export default function CargoValuatorPage() {
                   </div>
                   <Dialog open={isDistributeDialogOpen} onOpenChange={setDistributeDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button>
+                      <Button variant="default">
                         <Share className="mr-2 h-4 w-4" /> Distribuer
                       </Button>
                     </DialogTrigger>
@@ -583,7 +588,7 @@ export default function CargoValuatorPage() {
                       <DialogHeader>
                         <DialogTitle>Calcul de Distribution</DialogTitle>
                         <DialogDescription>
-                          Entrez le nombre de "صندوق حرة" pour calculer les caisses et le poids brut.
+                          Entrez le nombre de "صندوق حرة" pour calculer les caisses, le poids brut et le prix.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -599,13 +604,19 @@ export default function CargoValuatorPage() {
                             />
                         </div>
                         <Separator />
-                        <div className="space-y-2 text-center">
-                            <p className="text-sm text-muted-foreground">Caisses brutes à donner</p>
-                            <p className="text-2xl font-bold">{distributionCalculations.grossCrates.toFixed(2)}</p>
-                        </div>
-                        <div className="space-y-2 text-center">
-                            <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
-                            <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)}</p>
+                        <div className="space-y-4 text-center">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Caisses brutes à donner</p>
+                                <p className="text-2xl font-bold">{distributionCalculations.grossCrates.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
+                                <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Prix total (DH)</p>
+                                <p className="text-2xl font-bold">{formatCurrency(distributionCalculations.totalPrice)}</p>
+                            </div>
                         </div>
                       </div>
                       <DialogFooter>
@@ -672,7 +683,7 @@ export default function CargoValuatorPage() {
                   </div>
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
-                           <Button className="w-full" variant="secondary" onClick={handleOpenSaveDialog}>
+                           <Button className="w-full" onClick={handleOpenSaveDialog}>
                             <Save className="mr-2 h-4 w-4" /> Enregistrer
                           </Button>
                         </DialogTrigger>
@@ -847,3 +858,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
