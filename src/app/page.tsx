@@ -599,7 +599,7 @@ export default function CargoValuatorPage() {
                   </div>
                   <Dialog open={isDistributeDialogOpen} onOpenChange={setDistributeDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="default">
+                      <Button variant="default" className="font-bold">
                         <Share className="mr-2 h-4 w-4" /> توزيع
                       </Button>
                     </DialogTrigger>
@@ -926,3 +926,4 @@ export default function CargoValuatorPage() {
 
 
     
+
