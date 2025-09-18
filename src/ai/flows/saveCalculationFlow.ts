@@ -19,6 +19,7 @@ const CalculationInputSchema = z.object({
   results: z.object({
     grandTotalPrice: z.number(),
     grandTotalPriceRiyal: z.number(),
+    totalNetWeight: z.number(),
   }),
   clientName: z.string(),
   remainingCrates: z.number(),

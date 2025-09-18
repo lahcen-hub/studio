@@ -97,6 +97,7 @@ interface HistoryEntry {
   results: {
     grandTotalPrice: number;
     grandTotalPriceRiyal: number;
+    totalNetWeight: number;
   };
   clientName: string;
   remainingCrates: number;
@@ -176,7 +177,11 @@ export default function CargoValuatorPage() {
             const input: CalculationInput = {
               uid: user.uid,
               date: entry.date,
-              results: entry.results,
+              results: {
+                grandTotalPrice: entry.results.grandTotalPrice,
+                grandTotalPriceRiyal: entry.results.grandTotalPriceRiyal,
+                totalNetWeight: entry.results.totalNetWeight
+              },
               clientName: entry.clientName,
               remainingCrates: entry.remainingCrates,
               remainingMoney: entry.remainingMoney,
@@ -304,6 +309,7 @@ export default function CargoValuatorPage() {
       results: {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
+        totalNetWeight: calculations.totalNetProductWeight,
       },
       clientName: clientName,
       remainingCrates: Number(remainingCrates) || 0,
@@ -831,8 +837,8 @@ export default function CargoValuatorPage() {
                                     <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                 </div>
                                 <div className="col-span-2 flex justify-between items-center">
-                                    <span className="font-semibold">Prix Total (Riyal):</span>
-                                    <span className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</span>
+                                    <span className="font-semibold">Poids net total (kg):</span>
+                                    <span className="font-bold">{item.results.totalNetWeight.toFixed(2)}</span>
                                 </div>
                           </div>
                         </div>
