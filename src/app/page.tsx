@@ -607,7 +607,7 @@ export default function CargoValuatorPage() {
                       <DialogHeader>
                         <DialogTitle>Calcul de Distribution</DialogTitle>
                         <DialogDescription>
-                          Entrez le nombre de "صندوق حرة" pour calculer les caisses, le poids brut et le prix.
+                          Entrez le nombre de "صندوق حرة" pour calculer les caisses et le poids brut.
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
@@ -631,10 +631,6 @@ export default function CargoValuatorPage() {
                             <div>
                                 <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
                                 <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-muted-foreground">Prix total (DH)</p>
-                                <p className="text-2xl font-bold">{formatCurrency(distributionCalculations.totalPrice)}</p>
                             </div>
                         </div>
                       </div>
@@ -927,3 +923,6 @@ export default function CargoValuatorPage() {
 
     
 
+
+
+    
