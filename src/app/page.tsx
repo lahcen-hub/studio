@@ -181,9 +181,8 @@ export default function CargoValuatorPage() {
               remainingCrates: entry.remainingCrates,
               remainingMoney: entry.remainingMoney,
               totalCrates: entry.totalCrates,
-              // These fields do not exist on CalculationInput
-              // agreedAmount: entry.agreedAmount,
-              // agreedAmountCurrency: entry.agreedAmountCurrency,
+              agreedAmount: entry.agreedAmount,
+              agreedAmountCurrency: entry.agreedAmountCurrency,
             };
             const result = await saveCalculation(input);
             if (result.success) {
@@ -324,8 +323,8 @@ export default function CargoValuatorPage() {
           remainingCrates: newEntryData.remainingCrates,
           remainingMoney: newEntryData.remainingMoney,
           totalCrates: newEntryData.totalCrates,
-          // agreedAmount: newEntryData.agreedAmount,
-          // agreedAmountCurrency: newEntryData.agreedAmountCurrency,
+          agreedAmount: newEntryData.agreedAmount,
+          agreedAmountCurrency: newEntryData.agreedAmountCurrency,
         };
         const result = await saveCalculation(input);
         if (result.success) {
@@ -715,26 +714,6 @@ export default function CargoValuatorPage() {
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
-                               <Input 
-                                    id="remainingCrates" 
-                                    type="number" 
-                                    value={remainingCrates}
-                                    onChange={(e) => setRemainingCrates(e.target.value)}
-                                    className="col-span-3" 
-                                />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
-                               <Input 
-                                    id="remainingMoney" 
-                                    type="number" 
-                                    value={remainingMoney}
-                                    onChange={(e) => setRemainingMoney(e.target.value)} 
-                                    className="col-span-3" 
-                                />
-                            </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="agreedAmount" className="text-right font-bold">المبلغ المتفق عليه</Label>
                                 <div className="col-span-3 grid grid-cols-3 gap-2">
                                     <Input 
@@ -754,6 +733,26 @@ export default function CargoValuatorPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                               <Input 
+                                    id="remainingCrates" 
+                                    type="number" 
+                                    value={remainingCrates}
+                                    onChange={(e) => setRemainingCrates(e.target.value)}
+                                    className="col-span-3" 
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
+                               <Input 
+                                    id="remainingMoney" 
+                                    type="number" 
+                                    value={remainingMoney}
+                                    onChange={(e) => setRemainingMoney(e.target.value)} 
+                                    className="col-span-3" 
+                                />
                             </div>
                           </div>
                           <DialogFooter>
