@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -102,6 +102,8 @@ interface HistoryEntry {
   remainingCrates: number;
   remainingMoney: number;
   totalCrates: number;
+  agreedAmount: number;
+  agreedAmountCurrency: 'MAD' | 'Riyal';
   synced?: boolean;
 }
 
@@ -121,6 +123,9 @@ export default function CargoValuatorPage() {
   const [clientName, setClientName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
+  const [agreedAmount, setAgreedAmount] = useState<number | string>('');
+  const [agreedAmountCurrency, setAgreedAmountCurrency] = useState<'MAD' | 'Riyal'>('MAD');
+
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
   
@@ -176,6 +181,9 @@ export default function CargoValuatorPage() {
               remainingCrates: entry.remainingCrates,
               remainingMoney: entry.remainingMoney,
               totalCrates: entry.totalCrates,
+              // These fields do not exist on CalculationInput
+              // agreedAmount: entry.agreedAmount,
+              // agreedAmountCurrency: entry.agreedAmountCurrency,
             };
             const result = await saveCalculation(input);
             if (result.success) {
@@ -279,19 +287,19 @@ export default function CargoValuatorPage() {
   }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate, calculations.grandTotalPrice, calculations.totalVirtualCrates]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
-    const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
-    let locale = 'fr-MA';
-    
+    if (isNaN(value)) value = 0;
     if (currency === 'Riyal') {
         const numberPart = new Intl.NumberFormat('fr-MA').format(value);
         return `${numberPart} Riyal`;
     }
+    const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
+    let locale = 'fr-MA';
 
     return new Intl.NumberFormat(locale, options).format(value);
   }
   
   const handleSave = async () => {
-    const newEntryData = {
+    const newEntryData: HistoryEntry = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
       results: {
@@ -301,7 +309,9 @@ export default function CargoValuatorPage() {
       clientName: clientName,
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
-      totalCrates: calculations.totalCrates
+      totalCrates: calculations.totalCrates,
+      agreedAmount: Number(agreedAmount) || 0,
+      agreedAmountCurrency: agreedAmountCurrency,
     };
 
     if (user && navigator.onLine) {
@@ -314,6 +324,8 @@ export default function CargoValuatorPage() {
           remainingCrates: newEntryData.remainingCrates,
           remainingMoney: newEntryData.remainingMoney,
           totalCrates: newEntryData.totalCrates,
+          // agreedAmount: newEntryData.agreedAmount,
+          // agreedAmountCurrency: newEntryData.agreedAmountCurrency,
         };
         const result = await saveCalculation(input);
         if (result.success) {
@@ -335,6 +347,8 @@ export default function CargoValuatorPage() {
     setClientName('');
     setRemainingCrates('');
     setRemainingMoney('');
+    setAgreedAmount('');
+    setAgreedAmountCurrency('MAD');
     setSaveDialogOpen(false);
   };
   
@@ -346,7 +360,7 @@ export default function CargoValuatorPage() {
     if (!editingEntry) return;
 
     setHistory(history.map(entry => 
-        entry.id === editingEntry.id ? { ...entry, clientName: editingEntry.clientName, remainingCrates: editingEntry.remainingCrates, remainingMoney: editingEntry.remainingMoney } : entry
+        entry.id === editingEntry.id ? editingEntry : entry
     ));
     setEditingEntry(null);
   };
@@ -720,6 +734,27 @@ export default function CargoValuatorPage() {
                                     className="col-span-3" 
                                 />
                             </div>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="agreedAmount" className="text-right font-bold">المبلغ المتفق عليه</Label>
+                                <div className="col-span-3 grid grid-cols-3 gap-2">
+                                    <Input 
+                                        id="agreedAmount" 
+                                        type="number" 
+                                        value={agreedAmount}
+                                        onChange={(e) => setAgreedAmount(e.target.value)} 
+                                        className="col-span-2"
+                                    />
+                                    <Select value={agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setAgreedAmountCurrency(value)}>
+                                        <SelectTrigger className="col-span-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="MAD">MAD</SelectItem>
+                                            <SelectItem value="Riyal">Riyal</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
                           </div>
                           <DialogFooter>
                             <DialogClose asChild>
@@ -796,6 +831,10 @@ export default function CargoValuatorPage() {
                                     <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
                                     <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                 </div>
+                                <div className="col-span-2 flex justify-between items-center">
+                                    <span className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</span>
+                                    <span className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</span>
+                                </div>
                           </div>
                         </div>
                       ))}
@@ -846,6 +885,26 @@ export default function CargoValuatorPage() {
                                 onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
                                 className="col-span-3" />
                         </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editAgreedAmount" className="text-right font-bold">Montant convenu</Label>
+                             <div className="col-span-3 grid grid-cols-3 gap-2">
+                                <Input 
+                                    id="editAgreedAmount" 
+                                    type="number" 
+                                    value={editingEntry.agreedAmount} 
+                                    onChange={(e) => setEditingEntry({ ...editingEntry, agreedAmount: Number(e.target.value) })}
+                                    className="col-span-2" />
+                                <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry({ ...editingEntry, agreedAmountCurrency: value })}>
+                                    <SelectTrigger className="col-span-1">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="MAD">MAD</SelectItem>
+                                        <SelectItem value="Riyal">Riyal</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
                     </div>
                 )}
                 <DialogFooter>
@@ -858,5 +917,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     

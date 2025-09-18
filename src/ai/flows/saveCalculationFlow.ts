@@ -24,6 +24,8 @@ const CalculationInputSchema = z.object({
   remainingCrates: z.number(),
   remainingMoney: z.number(),
   totalCrates: z.number(),
+  agreedAmount: z.number(),
+  agreedAmountCurrency: z.enum(['MAD', 'Riyal']),
 });
 
 export type CalculationInput = z.infer<typeof CalculationInputSchema>;
@@ -61,5 +63,7 @@ const saveCalculationFlow = ai.defineFlow(
 export async function saveCalculation(input: CalculationInput): Promise<{success: boolean, docId?: string}> {
     return saveCalculationFlow(input);
 }
+
+    
 
     
