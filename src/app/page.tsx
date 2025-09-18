@@ -813,8 +813,8 @@ export default function CargoValuatorPage() {
                           </div>
                           <Separator className="my-2" />
                           <div className="flex justify-between items-center text-sm">
-                            <p className="font-semibold">Prix Total (Riyal):</p>
-                            <p className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</p>
+                                <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
+                                <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
                           </div>
                           <div className="flex justify-between items-center text-sm mt-1">
                                 <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
@@ -831,8 +831,8 @@ export default function CargoValuatorPage() {
                                     <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                 </div>
                                 <div className="col-span-2 flex justify-between items-center">
-                                    <span className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</span>
-                                    <span className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</span>
+                                    <span className="font-semibold">Prix Total (Riyal):</span>
+                                    <span className="font-bold">{formatCurrency(item.results.grandTotalPriceRiyal, 'Riyal')}</span>
                                 </div>
                           </div>
                         </div>
@@ -867,24 +867,6 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
-                            <Input 
-                                id="editRemainingCrates" 
-                                type="number" 
-                                value={editingEntry.remainingCrates} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: Number(e.target.value) })}
-                                className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>
-                            <Input 
-                                id="editRemainingMoney" 
-                                type="number" 
-                                value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
-                                className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editAgreedAmount" className="text-right font-bold">Montant convenu</Label>
                              <div className="col-span-3 grid grid-cols-3 gap-2">
                                 <Input 
@@ -903,6 +885,24 @@ export default function CargoValuatorPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editRemainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                            <Input 
+                                id="editRemainingCrates" 
+                                type="number" 
+                                value={editingEntry.remainingCrates} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: Number(e.target.value) })}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>
+                            <Input 
+                                id="editRemainingMoney" 
+                                type="number" 
+                                value={editingEntry.remainingMoney} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
+                                className="col-span-3" />
                         </div>
                     </div>
                 )}
