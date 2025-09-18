@@ -719,7 +719,7 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="clientName" className="text-right">Nom du client</Label>
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
+                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="agreedAmount" className="text-right font-bold">المبلغ المتفق عليه</Label>
                                 <div className="col-span-3 grid grid-cols-3 gap-2">
                                     <Input 
@@ -838,7 +838,7 @@ export default function CargoValuatorPage() {
                                 </div>
                                 <div className="col-span-2 flex justify-between items-center">
                                     <span className="font-semibold">Poids net total (kg):</span>
-                                    <span className="font-bold">{item.results.totalNetWeight.toFixed(2)}</span>
+                                    <span className="font-bold">{item.results.totalNetWeight?.toFixed(2) || 'N/A'}</span>
                                 </div>
                           </div>
                         </div>
@@ -926,3 +926,4 @@ export default function CargoValuatorPage() {
     
 
     
+
