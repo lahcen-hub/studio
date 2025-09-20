@@ -271,13 +271,11 @@ export default function CargoValuatorPage() {
     const averageNetWeightPerCrate = calculations.averageNetWeightPerCrate || 0;
     
     const averagePricePerVirtualCrate = calculations.totalVirtualCrates > 0 ? calculations.grandTotalPrice / calculations.totalVirtualCrates : 0;
-    const totalPrice = virtualCrates * averagePricePerVirtualCrate;
 
     if (averageNetWeightPerCrate === 0) {
       return {
         grossCrates: 0,
         totalWeight: 0,
-        totalPrice: 0,
       };
     }
 
@@ -287,7 +285,6 @@ export default function CargoValuatorPage() {
     return {
       grossCrates,
       totalWeight,
-      totalPrice,
     };
   }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate, calculations.grandTotalPrice, calculations.totalVirtualCrates]);
 
@@ -816,7 +813,7 @@ export default function CargoValuatorPage() {
                           </div>
                           <Separator className="my-2" />
                           <div className="flex justify-between items-center text-sm">
-                                <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
+                                <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>المبلغ الاجمالي:</p>
                                 <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
                           </div>
                           <div className="flex justify-between items-center text-sm mt-1">
@@ -919,3 +916,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
