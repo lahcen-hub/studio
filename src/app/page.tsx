@@ -628,7 +628,7 @@ export default function CargoValuatorPage() {
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
-                                <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)}</p>
+                                <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)} kg</p>
                             </div>
                         </div>
                       </div>
