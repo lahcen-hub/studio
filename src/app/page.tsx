@@ -412,13 +412,13 @@ export default function CargoValuatorPage() {
     doc.text("Historique des Calculs", 14, 16);
 
     const head = [
-        ["Date", "Nom du client", "Prix Total (Riyal)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
+        ["Date", "Nom du client", "Poids Net Total (kg)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
     ];
 
     const body = history.map(item => [
         String(item.date),
         String(item.clientName),
-        String(item.results.grandTotalPriceRiyal.toFixed(2)),
+        String(item.results.totalNetWeight?.toFixed(2) || 'N/A'),
         String(item.totalCrates),
         String(item.remainingCrates),
         String(item.remainingMoney.toFixed(2))
@@ -852,11 +852,11 @@ export default function CargoValuatorPage() {
                                     <span className="font-bold">{item.remainingCrates}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="font-semibold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                    <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
                                     <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                 </div>
                                 <div className="col-span-2 flex justify-between items-center">
-                                    <span className="font-semibold">Poids net total (kg):</span>
+                                    <span className="font-bold">Poids net total (kg):</span>
                                     <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                 </div>
                           </div>
@@ -941,3 +941,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
