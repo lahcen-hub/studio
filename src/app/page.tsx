@@ -31,6 +31,7 @@ const arefRuqaa = Aref_Ruqaa({
 const vegetables = {
     tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
     cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
+    pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
 };
 
 
@@ -131,7 +132,7 @@ export default function CargoValuatorPage() {
   const [showResults, setShowResults] = useState(false);
   
   const [errors, setErrors] = useState<{ grossWeight?: boolean; fullCrateWeight?: boolean }>({});
-  const [selectedVegetable, setSelectedVegetable] = useState<'tomato' | 'cucumber' | null>(null);
+  const [selectedVegetable, setSelectedVegetable] = useState<'tomato' | 'cucumber' | 'pepper' | null>(null);
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
@@ -521,7 +522,7 @@ export default function CargoValuatorPage() {
                             <Scale className="w-4 h-4 text-primary" />
                             Type de Produit
                         </Label>
-                        <Select onValueChange={(value: 'tomato' | 'cucumber') => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
+                        <Select onValueChange={(value: 'tomato' | 'cucumber' | 'pepper') => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
                           <SelectTrigger className={cn("text-base", errors.fullCrateWeight && "border-destructive ring-destructive ring-1")}>
                             <SelectValue placeholder="Sélectionner..." />
                           </SelectTrigger>
@@ -918,12 +919,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
-
-
-
-    
-
