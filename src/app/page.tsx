@@ -447,7 +447,12 @@ export default function CargoValuatorPage() {
   const downloadHistoryItemAsImage = (id: number, clientName: string) => {
     const element = document.getElementById(`history-item-${id}`);
     if (element) {
-        htmlToImage.toPng(element, { backgroundColor: '#F0F4F0' })
+        htmlToImage.toPng(element, { 
+          backgroundColor: '#F0F4F0',
+          fontEmbedCSS: `
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap');
+          `
+        })
             .then((dataUrl) => {
                 const link = document.createElement('a');
                 link.download = `calcul_${clientName.replace(' ', '_')}_${new Date().toISOString().slice(0, 10)}.png`;
@@ -936,7 +941,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-
