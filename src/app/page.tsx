@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt } from 'lucide-react';
+import { Boxes, Calculator, Scale, CircleDollarSign, Package, Truck, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { saveCalculation, type CalculationInput } from '@/ai/flows/saveCalculationFlow';
 import { useToast } from '@/hooks/use-toast';
+import * as htmlToImage from 'html-to-image';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -443,6 +444,24 @@ export default function CargoValuatorPage() {
     doc.save(`historique_cargo_${formattedDate}.pdf`);
   };
 
+  const downloadHistoryItemAsImage = (id: number, clientName: string) => {
+    const element = document.getElementById(`history-item-${id}`);
+    if (element) {
+        htmlToImage.toPng(element, { backgroundColor: '#F0F4F0' })
+            .then((dataUrl) => {
+                const link = document.createElement('a');
+                link.download = `calcul_${clientName.replace(' ', '_')}_${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = dataUrl;
+                link.click();
+            })
+            .catch((error) => {
+                console.error('oops, something went wrong!', error);
+                toast({ variant: "destructive", title: "Erreur", description: "Impossible de générer l'image." });
+            });
+    }
+  };
+
+
   const AuthArea = () => {
     if (loading) {
       return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
@@ -794,13 +813,16 @@ export default function CargoValuatorPage() {
                 {history.length > 0 ? (
                     <div className="space-y-4">
                       {history.map((item) => (
-                        <div key={item.id} className="p-3 bg-secondary/50 rounded-lg">
+                        <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
                           <div className="flex justify-between items-start">
                               <div>
                                 <p className="text-xs text-muted-foreground">{item.date}</p>
                                 <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                               </div>
                               <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
+                                  <ImageIcon className="h-4 w-4" />
+                                </Button>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
@@ -916,4 +938,5 @@ export default function CargoValuatorPage() {
 }
 
     
+
 
