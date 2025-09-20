@@ -270,8 +270,6 @@ export default function CargoValuatorPage() {
     const fullCrateWeightNum = Number(fullCrateWeight) || 0;
     const averageNetWeightPerCrate = calculations.averageNetWeightPerCrate || 0;
     
-    const averagePricePerVirtualCrate = calculations.totalVirtualCrates > 0 ? calculations.grandTotalPrice / calculations.totalVirtualCrates : 0;
-
     if (averageNetWeightPerCrate === 0) {
       return {
         grossCrates: 0,
@@ -286,7 +284,7 @@ export default function CargoValuatorPage() {
       grossCrates,
       totalWeight,
     };
-  }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate, calculations.grandTotalPrice, calculations.totalVirtualCrates]);
+  }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate]);
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     if (isNaN(value)) value = 0;
@@ -832,7 +830,7 @@ export default function CargoValuatorPage() {
                                 </div>
                                 <div className="col-span-2 flex justify-between items-center">
                                     <span className="font-semibold">Poids net total (kg):</span>
-                                    <span className="font-bold">{item.results.totalNetWeight?.toFixed(2) || 'N/A'}</span>
+                                    <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                 </div>
                           </div>
                         </div>
@@ -918,3 +916,4 @@ export default function CargoValuatorPage() {
 }
 
     
+
