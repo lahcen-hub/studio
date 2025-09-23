@@ -1,6 +1,6 @@
 {
-  "name": "CargoValuator",
-  "short_name": "CargoValuator",
+  "name": "Cargo",
+  "short_name": "Cargo",
   "description": "Calculates total price for two product types based on cargo data.",
   "icons": [
     {
