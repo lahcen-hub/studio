@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef } from 'react';
@@ -943,8 +942,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
-
