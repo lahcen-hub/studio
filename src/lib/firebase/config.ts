@@ -2,12 +2,12 @@
 import {initializeApp, getApp, getApps} from 'firebase/app';
 
 const firebaseConfig = {
-  "projectId": "cargovaluator",
-  "appId": "1:972849138960:web:3a9afda13bdf5752ff6995",
-  "storageBucket": "cargovaluator.firebasestorage.app",
-  "apiKey": "AIzaSyDpxBFkfaOyezhkI7FRh9iaR3NRjhOlrHU",
-  "authDomain": "cargovaluator.firebaseapp.com",
-  "messagingSenderId": "972849138960"
+  "apiKey": "AIzaSyC_iFXh_0PZkK_5c7s-58_Yh_Yko",
+  "authDomain": "cargovaluate.firebaseapp.com",
+  "projectId": "cargovaluate",
+  "storageBucket": "cargovaluate.appspot.com",
+  "messagingSenderId": "679054339458",
+  "appId": "1:679054339458:web:4ff9a2886f499690184b25"
 };
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
