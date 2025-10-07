@@ -10,8 +10,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getFirestore} from 'firebase-admin/firestore';
-import {initializeApp, getApps} from 'firebase-admin/app';
+import { getFirestore, addDoc, collection } from 'firebase/firestore';
+import { app } from '@/lib/firebase/config';
+
 
 const CalculationInputSchema = z.object({
   uid: z.string().describe('User ID of the person saving the calculation'),
@@ -31,14 +32,7 @@ const CalculationInputSchema = z.object({
 
 export type CalculationInput = z.infer<typeof CalculationInputSchema>;
 
-// Initialize Firebase Admin SDK
-if (!getApps().length) {
-  initializeApp({
-    // You might want to use environment variables for service account credentials
-  });
-}
-
-const db = getFirestore();
+const db = getFirestore(app);
 
 const saveCalculationFlow = ai.defineFlow(
   {
@@ -48,7 +42,7 @@ const saveCalculationFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const docRef = await db.collection('calculations').add({
+      const docRef = await addDoc(collection(db, 'calculations'), {
         ...input,
         createdAt: new Date().toISOString(),
       });
@@ -64,7 +58,3 @@ const saveCalculationFlow = ai.defineFlow(
 export async function saveCalculation(input: CalculationInput): Promise<{success: boolean, docId?: string}> {
     return saveCalculationFlow(input);
 }
-
-    
-
-    
