@@ -32,8 +32,6 @@ const CalculationInputSchema = z.object({
 
 export type CalculationInput = z.infer<typeof CalculationInputSchema>;
 
-const db = getFirestore(app);
-
 const saveCalculationFlow = ai.defineFlow(
   {
     name: 'saveCalculationFlow',
@@ -42,6 +40,7 @@ const saveCalculationFlow = ai.defineFlow(
   },
   async (input) => {
     try {
+      const db = getFirestore(app);
       // Save to 'calculations' collection for inter-app communication
       const docRef = await addDoc(collection(db, 'calculations'), {
         ...input,
@@ -59,3 +58,5 @@ const saveCalculationFlow = ai.defineFlow(
 export async function saveCalculation(input: CalculationInput): Promise<{success: boolean, docId?: string}> {
     return saveCalculationFlow(input);
 }
+
+    

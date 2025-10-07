@@ -334,16 +334,16 @@ export default function CargoValuatorPage() {
           setHistory([{ ...newEntryData, synced: true }, ...history]);
           toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
         } else {
-          throw new Error("Failed to save to Firestore");
+          throw new Error("Failed to save to Firestore via flow");
         }
       } catch (error) {
         console.error("Failed to save online, saving locally", error);
         setHistory([{ ...newEntryData, synced: false }, ...history]);
-        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement." });
+        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement. Vérifiez votre connexion ou contactez le support." });
       }
     } else {
       setHistory([{ ...newEntryData, synced: false }, ...history]);
-      toast({ title: "Sauvegardé localement", description: "Connectez-vous pour synchroniser le calcul." });
+      toast({ title: "Sauvegardé localement", description: "Connectez-vous et soyez en ligne pour synchroniser le calcul." });
     }
     
     setClientName('');
@@ -941,5 +941,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
