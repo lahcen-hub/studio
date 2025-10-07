@@ -2,12 +2,12 @@
 import {initializeApp, getApp, getApps} from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC_iFXh_0PZkK_5c7s-58_Yh_Yko",
+  apiKey: "AIzaSyBbbZqD_3VgInLwtR6Fe2CvX45-keG-MLM",
   authDomain: "cargo-prx9x.firebaseapp.com",
   projectId: "cargo-prx9x",
-  storageBucket: "cargo-prx9x.appspot.com",
-  messagingSenderId: "972849138960",
-  appId: "1:972849138960:web:3a9afda13bdf5752ff6995"
+  storageBucket: "cargo-prx9x.firebasestorage.app",
+  messagingSenderId: "1015260437563",
+  appId: "1:1015260437563:web:a317c913ddd7d0fbed101e"
 };
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
