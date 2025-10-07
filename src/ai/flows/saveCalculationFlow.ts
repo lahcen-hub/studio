@@ -42,7 +42,8 @@ const saveCalculationFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const docRef = await addDoc(collection(db, 'calculations'), {
+      // Save to a more specific collection name 'cargoCalculations' for inter-app communication
+      const docRef = await addDoc(collection(db, 'cargoCalculations'), {
         ...input,
         createdAt: new Date().toISOString(),
       });
