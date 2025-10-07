@@ -4,7 +4,8 @@ import {
   onAuthStateChanged,
   getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as signOutFirebase,
   type User,
 } from 'firebase/auth';
@@ -20,8 +21,24 @@ export function useAuth() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
+      if (user) {
+        setUser(user);
+        setLoading(false);
+      } else {
+        // This handles the redirect result after coming back from Google sign-in
+        getRedirectResult(auth)
+          .then((result) => {
+            if (result && result.user) {
+              setUser(result.user);
+            }
+          })
+          .catch((error) => {
+            console.error("Error getting redirect result: ", error);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
     });
 
     return () => unsubscribe();
@@ -31,8 +48,8 @@ export function useAuth() {
 }
 
 export function signInWithGoogle() {
-  signInWithPopup(auth, provider).catch((error) => {
-    console.error("Error signing in with Google: ", error);
+  signInWithRedirect(auth, provider).catch((error) => {
+    console.error("Error signing in with Google redirect: ", error);
   });
 }
 
