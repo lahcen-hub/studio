@@ -10,8 +10,17 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { getFirestore, addDoc, collection } from 'firebase/firestore';
-import { app } from '@/lib/firebase/config';
+import { getFirestore } from 'firebase-admin/firestore';
+import { initializeApp, getApps, App } from 'firebase-admin/app';
+import { credential } from 'firebase-admin';
+
+// Initialize Firebase Admin SDK if not already initialized
+if (!getApps().length) {
+  initializeApp({
+    credential: credential.applicationDefault(),
+    databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`
+  });
+}
 
 
 const CalculationInputSchema = z.object({
@@ -40,8 +49,8 @@ const saveCalculationFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const db = getFirestore(app);
-      const docRef = await addDoc(collection(db, 'calculations'), {
+      const db = getFirestore();
+      const docRef = await db.collection('calculations').add({
         ...input,
         createdAt: new Date().toISOString(),
       });
