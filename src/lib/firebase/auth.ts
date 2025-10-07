@@ -4,13 +4,12 @@ import {
   onAuthStateChanged,
   getAuth,
   GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut as signOutFirebase,
   type User,
 } from 'firebase/auth';
-import {app} from './config';
-import {useEffect, useState} from 'react';
+import { app } from './config';
+import { useEffect, useState } from 'react';
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
@@ -20,42 +19,42 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs once on mount to check for redirect results and set up the auth state listener.
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result?.user) {
-          // User has just signed in via redirect.
-          setUser(result.user);
-        }
-      })
-      .catch((error) => {
-        console.error("Error getting redirect result: ", error);
-      })
-      .finally(() => {
-        // Now, set up the listener for subsequent auth state changes.
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-          setUser(currentUser);
-          setLoading(false); // Set loading to false only after the listener is set up and initial state is known.
-        });
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
 
-        // Cleanup the listener on component unmount.
-        return () => unsubscribe();
-      });
+    // Cleanup the listener on component unmount.
+    return () => unsubscribe();
   }, []);
 
-  return {user, loading};
+  return { user, loading };
 }
 
 export function signInWithGoogle() {
-  signInWithRedirect(auth, provider).catch((error) => {
-    // This catch is for immediate errors, like misconfiguration.
-    // The main result is handled by getRedirectResult in useAuth.
-    console.error("Error initiating Google sign-in redirect: ", error);
-  });
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // User signed in.
+      console.log('User signed in:', result.user);
+    })
+    .catch((error) => {
+      // Handle Errors here.
+      console.error('Google Sign-In Error:', error);
+      // This is often due to pop-ups being blocked, especially on mobile.
+      // You could inform the user to enable pop-ups for your site.
+      if (error.code === 'auth/popup-blocked') {
+        alert('La fenêtre de connexion a été bloquée par votre navigateur. Veuillez autoriser les pop-ups pour ce site.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // User closed the popup, this is not a critical error.
+        console.log('Popup closed by user.');
+      } else {
+        alert(`Erreur de connexion : ${error.message}`);
+      }
+    });
 }
 
 export function signOut() {
   signOutFirebase(auth).catch((error) => {
-    console.error("Error signing out: ", error);
+    console.error('Error signing out: ', error);
   });
 }
