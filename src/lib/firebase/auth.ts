@@ -20,28 +20,27 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        // This handles the redirect result after coming back from Google sign-in
-        getRedirectResult(auth)
-          .then((result) => {
-            if (result && result.user) {
-              setUser(result.user);
-            }
-          })
-          .catch((error) => {
-            console.error("Error getting redirect result: ", error);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
-      }
-    });
+    // This effect runs once on mount to check for redirect results and set up the auth state listener.
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result?.user) {
+          // User has just signed in via redirect.
+          setUser(result.user);
+        }
+      })
+      .catch((error) => {
+        console.error("Error getting redirect result: ", error);
+      })
+      .finally(() => {
+        // Now, set up the listener for subsequent auth state changes.
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          setUser(currentUser);
+          setLoading(false); // Set loading to false only after the listener is set up and initial state is known.
+        });
 
-    return () => unsubscribe();
+        // Cleanup the listener on component unmount.
+        return () => unsubscribe();
+      });
   }, []);
 
   return {user, loading};
@@ -49,7 +48,9 @@ export function useAuth() {
 
 export function signInWithGoogle() {
   signInWithRedirect(auth, provider).catch((error) => {
-    console.error("Error signing in with Google redirect: ", error);
+    // This catch is for immediate errors, like misconfiguration.
+    // The main result is handled by getRedirectResult in useAuth.
+    console.error("Error initiating Google sign-in redirect: ", error);
   });
 }
 
