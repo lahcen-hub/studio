@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef } from 'react';
@@ -18,7 +19,7 @@ import { Aref_Ruqaa } from 'next/font/google';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { saveCalculation, type CalculationInput } from '@/ai/flows/saveCalculationFlow';
+import { saveCalculation } from '@/ai/flows/saveCalculationFlow';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 
@@ -176,7 +177,7 @@ export default function CargoValuatorPage() {
         if (offlineEntries.length > 0) {
           console.log(`Syncing ${offlineEntries.length} offline entries...`);
           const syncPromises = offlineEntries.map(async (entry) => {
-            const input: CalculationInput = {
+            const result = await saveCalculation({
               uid: user.uid,
               date: entry.date,
               results: {
@@ -190,8 +191,7 @@ export default function CargoValuatorPage() {
               totalCrates: entry.totalCrates,
               agreedAmount: entry.agreedAmount,
               agreedAmountCurrency: entry.agreedAmountCurrency,
-            };
-            const result = await saveCalculation(input);
+            });
             if (result.success) {
               return { ...entry, synced: true };
             }
@@ -300,7 +300,7 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = async () => {
-    const newEntryData: HistoryEntry = {
+    const newEntryData = {
       id: Date.now(),
       date: new Date().toLocaleString('fr-FR'),
       results: {
@@ -318,7 +318,7 @@ export default function CargoValuatorPage() {
 
     if (user && navigator.onLine) {
       try {
-        const input: CalculationInput = {
+        const result = await saveCalculation({
           uid: user.uid,
           date: newEntryData.date,
           results: newEntryData.results,
@@ -328,22 +328,24 @@ export default function CargoValuatorPage() {
           totalCrates: newEntryData.totalCrates,
           agreedAmount: newEntryData.agreedAmount,
           agreedAmountCurrency: newEntryData.agreedAmountCurrency,
-        };
-        const result = await saveCalculation(input);
+        });
+
         if (result.success) {
-          setHistory([{ ...newEntryData, synced: true }, ...history]);
+          setHistory(prev => [{ ...newEntryData, synced: true }, ...prev]);
           toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
         } else {
-          throw new Error("Failed to save to Firestore via flow");
+          // This else block will now catch failures from the flow
+          setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
+          toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
         }
       } catch (error) {
         console.error("Failed to save online, saving locally", error);
-        setHistory([{ ...newEntryData, synced: false }, ...history]);
-        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement. Vérifiez votre connexion ou contactez le support." });
+        setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
+        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement. Vérifiez votre connexion." });
       }
     } else {
-      setHistory([{ ...newEntryData, synced: false }, ...history]);
-      toast({ title: "Sauvegardé localement", description: "Connectez-vous et soyez en ligne pour synchroniser le calcul." });
+      setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
+      toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
     }
     
     setClientName('');
