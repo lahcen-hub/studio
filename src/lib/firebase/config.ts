@@ -2,12 +2,12 @@
 import {initializeApp, getApp, getApps} from 'firebase/app';
 
 const firebaseConfig = {
-  "apiKey": "AIzaSyC_iFXh_0PZkK_5c7s-58_Yh_Yko",
-  "authDomain": "cargovaluate.firebaseapp.com",
-  "projectId": "cargovaluate",
-  "storageBucket": "cargovaluate.appspot.com",
-  "messagingSenderId": "679054339458",
-  "appId": "1:679054339458:web:4ff9a2886f499690184b25"
+  apiKey: "AIzaSyB2HD4TfpHv8q2SCug5RHmJHmCLVGSQNBo",
+  authDomain: "studio-7119108508-41d7b.firebaseapp.com",
+  projectId: "studio-7119108508-41d7b",
+  storageBucket: "studio-7119108508-41d7b.appspot.com",
+  messagingSenderId: "67232867155",
+  appId: "1:67232867155:web:e2ff506e8fe167a01237a6"
 };
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
