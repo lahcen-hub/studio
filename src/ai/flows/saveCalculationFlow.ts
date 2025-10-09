@@ -2,11 +2,9 @@
 'use server';
 
 /**
- * @fileOverview A flow to save calculation data to Firestore and fetch calculations.
+ * @fileOverview A flow to fetch calculations.
  *
- * - saveCalculation - A function that handles saving the calculation data.
  * - getCalculations - A function that fetches calculations for a user.
- * - CalculationInput - The input type for the saveCalculation function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -17,10 +15,14 @@ import { credential } from 'firebase-admin';
 
 // Initialize Firebase Admin SDK if not already initialized
 if (!getApps().length) {
-  initializeApp({
-    credential: credential.applicationDefault(),
-    databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`
-  });
+  try {
+    initializeApp({
+      credential: credential.applicationDefault(),
+      databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`
+    });
+  } catch (e) {
+    console.error("Firebase Admin SDK initialization failed:", e);
+  }
 }
 
 const CalculationInputSchema = z.object({
@@ -39,7 +41,6 @@ const CalculationInputSchema = z.object({
   agreedAmountCurrency: z.enum(['MAD', 'Riyal']),
 });
 
-export type CalculationInput = z.infer<typeof CalculationInputSchema>;
 
 const CalculationDBSchema = CalculationInputSchema.extend({
   id: z.string(),
@@ -47,33 +48,6 @@ const CalculationDBSchema = CalculationInputSchema.extend({
 });
 
 export type CalculationDB = z.infer<typeof CalculationDBSchema>;
-
-
-const saveCalculationFlow = ai.defineFlow(
-  {
-    name: 'saveCalculationFlow',
-    inputSchema: CalculationInputSchema,
-    outputSchema: z.object({success: z.boolean(), docId: z.string().optional()}),
-  },
-  async (input) => {
-    try {
-      const db = getFirestore();
-      const docRef = await db.collection('calculations').add({
-        ...input,
-        createdAt: new Date().toISOString(),
-      });
-      console.log('Document written with ID: ', docRef.id);
-      return { success: true, docId: docRef.id };
-    } catch (error) {
-      console.error('Error adding document: ', error);
-      return { success: false };
-    }
-  }
-);
-
-export async function saveCalculation(input: CalculationInput): Promise<{success: boolean, docId?: string}> {
-    return saveCalculationFlow(input);
-}
 
 
 const getCalculationsFlow = ai.defineFlow({

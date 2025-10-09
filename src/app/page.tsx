@@ -18,9 +18,10 @@ import { Aref_Ruqaa } from 'next/font/google';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { saveCalculation, getCalculations, type CalculationDB } from '@/ai/flows/saveCalculationFlow';
+import { getCalculations, type CalculationDB } from '@/ai/flows/saveCalculationFlow';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
+import { saveCalculation } from '@/lib/firebase/firestore';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -264,8 +265,7 @@ export default function CargoValuatorPage() {
   const handleSave = async () => {
     setSaveDialogOpen(false);
     
-    const newEntryData: HistoryEntry = {
-      id: Date.now(),
+    const newEntryData: Omit<CalculationDB, 'id' | 'uid' | 'createdAt'> & {id?: string} = {
       date: new Date().toLocaleString('fr-FR'),
       results: {
         grandTotalPrice: calculations.grandTotalPrice,
@@ -278,37 +278,39 @@ export default function CargoValuatorPage() {
       totalCrates: calculations.totalCrates,
       agreedAmount: Number(agreedAmount) || 0,
       agreedAmountCurrency: agreedAmountCurrency,
-      createdAt: new Date().toISOString(),
     };
 
     if (user && navigator.onLine) {
       try {
-        const result = await saveCalculation({
-          uid: user.uid,
-          date: newEntryData.date,
-          results: newEntryData.results,
-          clientName: newEntryData.clientName,
-          remainingCrates: newEntryData.remainingCrates,
-          remainingMoney: newEntryData.remainingMoney,
-          totalCrates: newEntryData.totalCrates,
-          agreedAmount: newEntryData.agreedAmount,
-          agreedAmountCurrency: newEntryData.agreedAmountCurrency,
-        });
-
-        if (result.success && result.docId) {
-          setHistory(prev => [{ ...newEntryData, id: result.docId!, synced: true }, ...prev]);
-          toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
-        } else {
-          setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
-          toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
+        const docId = await saveCalculation(user.uid, newEntryData);
+        const newHistoryEntry: HistoryEntry = {
+          ...newEntryData,
+          id: docId,
+          createdAt: new Date().toISOString(),
+          synced: true,
         }
+        setHistory(prev => [newHistoryEntry, ...prev]);
+        toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
+        
       } catch (error) {
         console.error("Failed to save online, saving locally", error);
-        setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
-        toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Le calcul est sauvegardé localement. Vérifiez votre connexion." });
+        const localEntry: HistoryEntry = {
+            ...newEntryData,
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            synced: false
+        };
+        setHistory(prev => [localEntry, ...prev]);
+        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
       }
     } else {
-      setHistory(prev => [{ ...newEntryData, synced: false }, ...prev]);
+        const localEntry: HistoryEntry = {
+            ...newEntryData,
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            synced: false
+        };
+      setHistory(prev => [localEntry, ...prev]);
       toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
     }
     
