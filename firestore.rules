@@ -1,35 +1,40 @@
 /**
- * @fileoverview Firestore Security Rules for the cargo calculation application.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model, where each user can only access their own calculation data.
- *
- * Data Structure:
- * All calculation data is stored in the `/calculations/{calculationId}` collection. Each document represents a calculation and must contain a `uid` field matching the user's ID.
- *
- * Key Security Decisions:
- * - Users can only create, read, update, and delete calculations that they own.
- * - Listing all calculations is restricted to prevent unauthorized data access.
- *
- * Denormalization for Authorization:
- * The `uid` field is denormalized directly onto the `Calculation` document to enable simple ownership checks without additional `get()` calls.
+ * @description This ruleset enforces a user-ownership model for calculations.
+ *              Each calculation is associated with a specific user, who has full
+ *              control over their own calculations.
+ * @dataStructure All calculations are stored in the `/calculations/{calculationId}`
+ *                collection. Each document contains calculation details and a `uid`
+ *                field indicating the owner.
+ * @keySecurityDecisions
+ *   - Users can only create, read, update, and delete their own calculations.
+ *   - Listing all calculations is not allowed.
+ *   - Data validation is relaxed in prototyping mode, focusing on authorization.
+ *   - The `uid` field on each calculation is used to enforce ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Protects the /calculations/{calculationId} collection, enforcing user-based ownership.
+     * @description Manages access to individual calculation documents.
      * @path /calculations/{calculationId}
-     * @allow (create) - A user with UID 'user_abc' can create a calculation if the 'uid' field in the document matches 'user_abc'.
-     * @allow (get) - A user with UID 'user_abc' can get a calculation if the 'uid' field in the document matches 'user_abc'.
-     * @allow (update) - A user with UID 'user_abc' can update a calculation if the 'uid' field in the document matches 'user_abc' and the document exists.
-     * @allow (delete) - A user with UID 'user_abc' can delete a calculation if the 'uid' field in the document matches 'user_abc' and the document exists.
-     * @deny (create) - A user with UID 'user_xyz' cannot create a calculation with the 'uid' field set to 'user_abc'.
-     * @deny (get) - A user with UID 'user_xyz' cannot get a calculation if the 'uid' field in the document is set to 'user_abc'.
-     * @deny (update) - A user with UID 'user_xyz' cannot update a calculation if the 'uid' field in the document is set to 'user_abc', even if the document exists.
-     * @deny (delete) - A user with UID 'user_xyz' cannot delete a calculation if the 'uid' field in the document is set to 'user_abc', even if the document exists.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - Authenticated user with matching `uid` in the data can create a new calculation.
+     *          Example: User with UID 'user123' creates a calculation document with `data.uid` equal to 'user123'.
+     * @allow (get) - Authenticated user who owns the calculation can retrieve it.
+     *          Example: User with UID 'user123' retrieves a calculation document where `data.uid` is 'user123'.
+     * @allow (update) - Authenticated user who owns the calculation can update it.
+     *          Example: User with UID 'user123' updates a calculation document where `data.uid` is 'user123'.
+     * @allow (delete) - Authenticated user who owns the calculation can delete it.
+     *          Example: User with UID 'user123' deletes a calculation document where `data.uid` is 'user123'.
+     * @deny (create) - Authenticated user attempts to create a calculation document where `data.uid` does not match their UID.
+     *          Example: User with UID 'user123' attempts to create a calculation document with `data.uid` equal to 'user456'.
+     * @deny (get) - Authenticated user attempts to retrieve a calculation document they don't own.
+     *          Example: User with UID 'user123' attempts to retrieve a calculation document where `data.uid` is 'user456'.
+     * @deny (update) - Authenticated user attempts to update a calculation document they don't own.
+     *          Example: User with UID 'user123' attempts to update a calculation document where `data.uid` is 'user456'.
+     * @deny (delete) - Authenticated user attempts to delete a calculation document they don't own.
+     *          Example: User with UID 'user123' attempts to delete a calculation document where `data.uid` is 'user456'.
+     * @principle Enforces document ownership for writes, restricting access to a user's own calculations.
      */
     match /calculations/{calculationId} {
       allow get: if isSignedIn() && isOwner(resource.data.uid);
@@ -39,33 +44,32 @@ service cloud.firestore {
       allow delete: if isSignedIn() && isExistingOwner(resource.data.uid);
     }
 
-  }
-
-  // --- Helper functions ---
-
-  /**
-   * @description Checks if the user is signed in.
-   * @return {bool} True if the user is signed in, false otherwise.
-   */
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  /**
-   * @description Checks if the user ID matches the authenticated user's ID.
-   * @param {string} userId The user ID to check.
-   * @return {bool} True if the user ID matches the authenticated user's ID, false otherwise.
-   */
-  function isOwner(userId) {
-    return userId == request.auth.uid;
-  }
+    // --- Helper functions ---
 
     /**
-   * @description Checks if the user is the owner of an existing document.
-   * @param {string} userId The user ID to check.
-   * @return {bool} True if the user ID matches the authenticated user's ID and the document exists.
-   */
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
+     * @description Checks if the user is signed in.
+     * @return {bool} True if the user is authenticated, false otherwise.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * @description Checks if the provided user ID matches the authenticated user's ID.
+     * @param {string} userId The user ID to compare against.
+     * @return {bool} True if the user IDs match, false otherwise.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && userId == request.auth.uid;
+    }
+
+    /**
+     * @description Checks if the provided user ID matches the authenticated user's ID and the document exists.
+     * @param {string} userId The user ID to compare against.
+     * @return {bool} True if the user IDs match and resource exists, false otherwise.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
   }
 }
