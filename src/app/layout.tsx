@@ -4,6 +4,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from '@vercel/analytics/react';
+import { FirebaseErrorListener } from '@/lib/firebase/FirebaseErrorListener';
 
 export const metadata: Metadata = {
   title: 'Cargo',
@@ -46,6 +47,7 @@ export default function RootLayout({
         <Toaster />
         <SpeedInsights />
         <Analytics />
+        <FirebaseErrorListener />
       </body>
     </html>
   );
