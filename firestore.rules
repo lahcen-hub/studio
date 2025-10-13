@@ -1,0 +1,20 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /calculations/{calculationId} {
+      // Allow users to read their own calculations
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      
+      // Allow users to create calculations for themselves
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+
+      // Allow users to update their own calculations
+      allow update: if request.auth != null && request.auth.uid == resource.data.uid;
+
+      // Allow users to delete their own calculations
+      allow delete: if request.auth != null && request.auth.uid == resource.data.uid;
+    }
+  }
+}
