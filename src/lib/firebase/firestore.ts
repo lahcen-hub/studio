@@ -10,13 +10,13 @@ const db = getFirestore(app);
 
 export function saveCalculation(
   uid: string,
-  calculationData: Omit<CalculationDB, 'id' | 'uid' | 'createdAt'>
+  calculationData: Omit<CalculationDB, 'id' | 'uid' | 'createdAt'> & { createdAt?: string }
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const dataToSave = {
       ...calculationData,
       uid,
-      createdAt: new Date().toISOString(),
+      createdAt: calculationData.createdAt || new Date().toISOString(),
     };
 
     addDoc(collection(db, 'calculations'), dataToSave)
@@ -36,3 +36,5 @@ export function saveCalculation(
       });
   });
 }
+
+    

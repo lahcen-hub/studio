@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef } from 'react';
+import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -94,22 +94,8 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
   );
 };
 
-interface HistoryEntry {
-  id: string | number;
-  date: string;
-  results: {
-    grandTotalPrice: number;
-    grandTotalPriceRiyal: number;
-    totalNetWeight: number;
-  };
-  clientName: string;
-  remainingCrates: number;
-  remainingMoney: number;
-  totalCrates: number;
-  agreedAmount: number;
-  agreedAmountCurrency: 'MAD' | 'Riyal';
+interface HistoryEntry extends CalculationDB {
   synced?: boolean;
-  createdAt?: string;
 }
 
 
@@ -142,24 +128,48 @@ export default function CargoValuatorPage() {
   const [isDistributeDialogOpen, setDistributeDialogOpen] = useState(false);
   const [distributeVirtualCrates, setDistributeVirtualCrates] = useState<number | string>('');
 
+  const hasSynced = useRef(false);
 
-  // Fetch data from Firestore when user is logged in
+  const sortHistory = useCallback((history: HistoryEntry[]) => {
+    return history.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }, []);
+
+  // Fetch data from Firestore or localStorage
   useEffect(() => {
     const fetchHistory = async () => {
       if (user) {
-        try {
-          const firestoreHistory = await getCalculations(user.uid);
-          setHistory(firestoreHistory);
-        } catch (error) {
-           console.error("Failed to fetch history from Firestore", error);
-           toast({ variant: "destructive", title: "Erreur de chargement", description: "Impossible de charger l'historique depuis le serveur." });
+        if (!hasSynced.current) {
+            hasSynced.current = true; // Prevents re-sync on re-renders
+            try {
+                // 1. Sync local data to Firestore
+                const localHistoryString = localStorage.getItem('cargoHistory');
+                if (localHistoryString) {
+                    const localHistory: HistoryEntry[] = JSON.parse(localHistoryString);
+                    if (localHistory.length > 0) {
+                        toast({ title: "Synchronisation...", description: "Synchronisation de l'historique local avec le cloud." });
+                        const syncPromises = localHistory.map(item => saveCalculation(user.uid, item));
+                        await Promise.all(syncPromises);
+                        localStorage.removeItem('cargoHistory'); // Clear local after sync
+                        toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
+                    }
+                }
+
+                // 2. Fetch all data from Firestore
+                const firestoreHistory = await getCalculations(user.uid);
+                setHistory(sortHistory(firestoreHistory.map(h => ({...h, synced: true}))));
+
+            } catch (error) {
+                console.error("Failed to sync or fetch history", error);
+                toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser ou charger l'historique." });
+            }
         }
       } else {
         // Load from localStorage if not logged in
+        hasSynced.current = false;
          try {
           const savedHistory = localStorage.getItem('cargoHistory');
           if (savedHistory) {
-            setHistory(JSON.parse(savedHistory));
+            setHistory(sortHistory(JSON.parse(savedHistory)));
           } else {
             setHistory([]);
           }
@@ -169,14 +179,19 @@ export default function CargoValuatorPage() {
         }
       }
     };
-    fetchHistory();
-  }, [user, toast]);
+    if(!loading) {
+        fetchHistory();
+    }
+  }, [user, loading, toast, sortHistory]);
 
   // Save to localStorage when not logged in
   useEffect(() => {
-    if (!user) {
+    if (!user && history.length > 0) {
       try {
-        localStorage.setItem('cargoHistory', JSON.stringify(history));
+        const localHistory = history.filter(item => !item.synced);
+        if (localHistory.length > 0) {
+          localStorage.setItem('cargoHistory', JSON.stringify(localHistory));
+        }
       } catch (error) {
         console.error("Failed to save history to localStorage", error);
       }
@@ -270,8 +285,10 @@ export default function CargoValuatorPage() {
   const handleSave = async () => {
     setSaveDialogOpen(false);
     
-    const newEntryData: Omit<CalculationDB, 'id' | 'uid' | 'createdAt'> & {id?: string} = {
+    const newEntryData: Omit<CalculationDB, 'id'> = {
+      uid: user?.uid || 'local',
       date: new Date().toLocaleString('fr-FR'),
+      createdAt: new Date().toISOString(),
       results: {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
@@ -291,10 +308,9 @@ export default function CargoValuatorPage() {
         const newHistoryEntry: HistoryEntry = {
           ...newEntryData,
           id: docId,
-          createdAt: new Date().toISOString(),
           synced: true,
         }
-        setHistory(prev => [newHistoryEntry, ...prev].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()));
+        setHistory(prev => sortHistory([newHistoryEntry, ...prev]));
         toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
         
       } catch (error) {
@@ -302,20 +318,18 @@ export default function CargoValuatorPage() {
         toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
         const localEntry: HistoryEntry = {
             ...newEntryData,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
+            id: Date.now().toString(),
             synced: false
         };
-        setHistory(prev => [localEntry, ...prev]);
+        setHistory(prev => sortHistory([localEntry, ...prev]));
       }
     } else {
         const localEntry: HistoryEntry = {
             ...newEntryData,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
+            id: Date.now().toString(),
             synced: false
         };
-      setHistory(prev => [localEntry, ...prev]);
+      setHistory(prev => sortHistory([localEntry, ...prev]));
       toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
     }
     
@@ -926,5 +940,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
