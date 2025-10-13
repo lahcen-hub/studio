@@ -18,10 +18,9 @@ import { Aref_Ruqaa } from 'next/font/google';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { getCalculations, type CalculationDB } from '@/ai/flows/saveCalculationFlow';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
-import { saveCalculation } from '@/lib/firebase/firestore';
+import { saveCalculation, getCalculations, type CalculationDB } from '@/lib/firebase/firestore';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -130,59 +129,63 @@ export default function CargoValuatorPage() {
 
   const hasSynced = useRef(false);
 
-  const sortHistory = useCallback((history: HistoryEntry[]) => {
-    return history.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  const sortHistory = useCallback((historyToSort: HistoryEntry[]) => {
+    return historyToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, []);
 
-  // Fetch data from Firestore or localStorage
+  // Fetch data from Firestore in real-time or load from localStorage
   useEffect(() => {
-    const fetchHistory = async () => {
-      if (user) {
-        if (!hasSynced.current) {
-            hasSynced.current = true; // Prevents re-sync on re-renders
-            try {
-                // 1. Sync local data to Firestore
-                const localHistoryString = localStorage.getItem('cargoHistory');
-                if (localHistoryString) {
-                    const localHistory: HistoryEntry[] = JSON.parse(localHistoryString);
-                    if (localHistory.length > 0) {
-                        toast({ title: "Synchronisation...", description: "Synchronisation de l'historique local avec le cloud." });
-                        const syncPromises = localHistory.map(item => saveCalculation(user.uid, item));
-                        await Promise.all(syncPromises);
-                        localStorage.removeItem('cargoHistory'); // Clear local after sync
-                        toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
-                    }
-                }
+    let unsubscribe = () => {};
 
-                // 2. Fetch all data from Firestore
-                const firestoreHistory = await getCalculations(user.uid);
-                setHistory(sortHistory(firestoreHistory.map(h => ({...h, synced: true}))));
-
-            } catch (error) {
-                console.error("Failed to sync or fetch history", error);
-                toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser ou charger l'historique." });
+    if (user) {
+      if (!hasSynced.current) {
+        hasSynced.current = true;
+        const localHistoryString = localStorage.getItem('cargoHistory');
+        if (localHistoryString) {
+          try {
+            const localHistory: HistoryEntry[] = JSON.parse(localHistoryString);
+            if (localHistory.length > 0) {
+              toast({ title: "Synchronisation...", description: "Synchronisation de l'historique local avec le cloud." });
+              const syncPromises = localHistory.map(item => {
+                const { id, synced, ...dataToSave } = item;
+                return saveCalculation(user.uid, dataToSave as Omit<CalculationDB, 'id' | 'uid'>);
+              });
+              Promise.all(syncPromises)
+                .then(() => {
+                  localStorage.removeItem('cargoHistory');
+                  toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
+                })
+                .catch(err => {
+                   console.error("Failed to sync history", err);
+                   toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser l'historique local." });
+                });
             }
-        }
-      } else {
-        // Load from localStorage if not logged in
-        hasSynced.current = false;
-         try {
-          const savedHistory = localStorage.getItem('cargoHistory');
-          if (savedHistory) {
-            setHistory(sortHistory(JSON.parse(savedHistory)));
-          } else {
-            setHistory([]);
+          } catch (e) {
+            console.error("Could not parse local history for sync", e);
           }
-        } catch (error) {
-          console.error("Failed to load history from localStorage", error);
-          setHistory([]);
         }
       }
-    };
-    if(!loading) {
-        fetchHistory();
+
+      // Listen for real-time updates from Firestore
+      unsubscribe = getCalculations(user.uid, (firestoreHistory) => {
+        setHistory(sortHistory(firestoreHistory.map(h => ({...h, synced: true}))));
+      });
+
+    } else { // Not logged in
+      hasSynced.current = false;
+      try {
+        const savedHistory = localStorage.getItem('cargoHistory');
+        setHistory(savedHistory ? sortHistory(JSON.parse(savedHistory)) : []);
+      } catch (error) {
+        console.error("Failed to load history from localStorage", error);
+        setHistory([]);
+      }
     }
+
+    // Cleanup listener on unmount or user change
+    return () => unsubscribe();
   }, [user, loading, toast, sortHistory]);
+
 
   // Save to localStorage when not logged in
   useEffect(() => {
@@ -285,8 +288,7 @@ export default function CargoValuatorPage() {
   const handleSave = async () => {
     setSaveDialogOpen(false);
     
-    const newEntryData: Omit<CalculationDB, 'id'> = {
-      uid: user?.uid || 'local',
+    const newEntryData: Omit<CalculationDB, 'id' | 'uid'> = {
       date: new Date().toLocaleString('fr-FR'),
       createdAt: new Date().toISOString(),
       results: {
@@ -304,15 +306,9 @@ export default function CargoValuatorPage() {
 
     if (user && navigator.onLine) {
       try {
-        const docId = await saveCalculation(user.uid, newEntryData);
-        const newHistoryEntry: HistoryEntry = {
-          ...newEntryData,
-          id: docId,
-          synced: true,
-        }
-        setHistory(prev => sortHistory([newHistoryEntry, ...prev]));
+        await saveCalculation(user.uid, newEntryData);
+        // No need to manually update history, onSnapshot will do it.
         toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
-        
       } catch (error) {
         console.error("Failed to save online, saving locally", error);
         toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
@@ -327,7 +323,8 @@ export default function CargoValuatorPage() {
         const localEntry: HistoryEntry = {
             ...newEntryData,
             id: Date.now().toString(),
-            synced: false
+            synced: false,
+            uid: 'local'
         };
       setHistory(prev => sortHistory([localEntry, ...prev]));
       toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
@@ -798,7 +795,7 @@ export default function CargoValuatorPage() {
                     Historique
                   </CardTitle>
                   <CardDescription>
-                    {user ? "Vos calculs enregistrés et prêts à être synchronisés." : "Vos calculs sont sauvegardés localement. Connectez-vous pour les synchroniser."}
+                    {user ? "Vos calculs enregistrés et synchronisés en temps réel." : "Vos calculs sont sauvegardés localement. Connectez-vous pour les synchroniser."}
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
