@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "Calculation": {
+      "title": "Calculation",
+      "description": "Represents a single cargo calculation entry.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "User ID of the person who saved the calculation."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date of the calculation."
+        },
+        "results": {
+          "type": "object",
+          "properties": {
+            "grandTotalPrice": { "type": "number" },
+            "grandTotalPriceRiyal": { "type": "number" },
+            "totalNetWeight": { "type": "number" }
+          },
+          "required": ["grandTotalPrice", "grandTotalPriceRiyal", "totalNetWeight"]
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Name of the client."
+        },
+        "remainingCrates": {
+          "type": "number",
+          "description": "Number of remaining crates."
+        },
+        "remainingMoney": {
+          "type": "number",
+          "description": "Amount of money remaining."
+        },
+        "totalCrates": {
+          "type": "number",
+          "description": "Total number of crates in the calculation."
+        },
+        "agreedAmount": {
+          "type": "number",
+          "description": "The amount agreed upon with the client."
+        },
+        "agreedAmountCurrency": {
+          "type": "string",
+          "enum": ["MAD", "Riyal"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of when the calculation was saved."
+        }
+      },
+      "required": [
+        "uid",
+        "date",
+        "results",
+        "clientName",
+        "totalCrates",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/calculations/{calculationId}": {
+      "schema": { "$ref": "#/entities/Calculation" },
+      "description": "Stores user-specific calculation entries."
+    }
+  }
+}
