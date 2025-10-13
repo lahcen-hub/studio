@@ -147,8 +147,13 @@ export default function CargoValuatorPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       if (user) {
-        const firestoreHistory = await getCalculations(user.uid);
-        setHistory(firestoreHistory);
+        try {
+          const firestoreHistory = await getCalculations(user.uid);
+          setHistory(firestoreHistory);
+        } catch (error) {
+           console.error("Failed to fetch history from Firestore", error);
+           toast({ variant: "destructive", title: "Erreur de chargement", description: "Impossible de charger l'historique depuis le serveur." });
+        }
       } else {
         // Load from localStorage if not logged in
          try {
@@ -165,7 +170,7 @@ export default function CargoValuatorPage() {
       }
     };
     fetchHistory();
-  }, [user]);
+  }, [user, toast]);
 
   // Save to localStorage when not logged in
   useEffect(() => {
@@ -289,11 +294,12 @@ export default function CargoValuatorPage() {
           createdAt: new Date().toISOString(),
           synced: true,
         }
-        setHistory(prev => [newHistoryEntry, ...prev]);
+        setHistory(prev => [newHistoryEntry, ...prev].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()));
         toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
         
       } catch (error) {
         console.error("Failed to save online, saving locally", error);
+        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
         const localEntry: HistoryEntry = {
             ...newEntryData,
             id: Date.now(),
@@ -301,7 +307,6 @@ export default function CargoValuatorPage() {
             synced: false
         };
         setHistory(prev => [localEntry, ...prev]);
-        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
       }
     } else {
         const localEntry: HistoryEntry = {
@@ -921,3 +926,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
