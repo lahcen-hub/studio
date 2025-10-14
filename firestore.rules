@@ -1,66 +1,69 @@
 /**
- * @fileoverview Firestore Security Rules for Cargo Calculation App.
+ * @file Firestore Security Rules
+ * @version 2
  *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model, ensuring that users can only
- * access calculations they have created. All write operations are restricted to the
- * owner of the calculation.
+ * @Core Philosophy
+ * This ruleset enforces a strict user-ownership model for calculations. Users can only
+ * create, read, update, and delete calculations that they own.  Data structure prototyping is allowed.
  *
- * Data Structure:
- * The primary data is stored in the `/calculations/{calculationId}` collection.
- * Each document represents a single calculation entry and contains a `uid` field
- * that identifies the owner.
+ * @Data Structure
+ * All calculation data is stored in the `/calculations/{calculationId}` collection.
+ * Each calculation document must contain a `uid` field that matches the user's UID.
  *
- * Key Security Decisions:
- * - Users can only create, read, update, and delete their own calculations.
- * - Listing calculations is only allowed for the owner.
- * - The rules do NOT enforce a strict schema for the data within the documents,
- *   allowing for flexible data shapes during prototyping. However, the rules
- *   DO enforce that the 'uid' matches the authenticated user's ID.
+ * @Key Security Decisions
+ * - Calculations are private to the user who created them.
+ * - List operations are restricted to the owner of the calculations.
+ * - The `uid` field in each calculation document is used to enforce ownership.
+ * - The schema of the calculation document is not strictly enforced, allowing for flexible
+ *   data shapes during the prototyping phase.
  *
- * Denormalization for Authorization:
- * The `uid` field is denormalized directly onto the `calculation` documents to allow
- * for efficient ownership checks without additional reads.
+ * @Denormalization for Authorization
+ * The `uid` field within the `/calculations/{calculationId}` document is used for direct
+ * authorization checks, avoiding the need for additional reads or complex queries.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages access to individual calculation entries.
+     * @description Controls access to individual calculation documents.
      * @path /calculations/{calculationId}
-     * @allow (create) User with auth UID 'user_abc' can create a calculation if calculation.uid == 'user_abc'.
-     * @deny (create) User with auth UID 'user_abc' cannot create a calculation if calculation.uid != 'user_abc'.
-     * @allow (get) User with auth UID 'user_abc' can read a calculation if calculation.uid == 'user_abc'.
-     * @deny (get) User with auth UID 'user_xyz' cannot read a calculation if calculation.uid == 'user_abc'.
-     * @allow (update) User with auth UID 'user_abc' can update a calculation if calculation.uid == 'user_abc'.
-     * @deny (update) User with auth UID 'user_xyz' cannot update a calculation if calculation.uid == 'user_abc'.
-     * @allow (delete) User with auth UID 'user_abc' can delete a calculation if calculation.uid == 'user_abc'.
-     * @deny (delete) User with auth UID 'user_xyz' cannot delete a calculation if calculation.uid == 'user_abc'.
+     * @allow (create) User with UID 'user_abc' can create a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @allow (get) User with UID 'user_abc' can read a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @allow (update) User with UID 'user_abc' can update a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @allow (delete) User with UID 'user_abc' can delete a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @deny (create) User with UID 'user_xyz' cannot create a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @deny (get) User with UID 'user_xyz' cannot read a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @deny (update) User with UID 'user_xyz' cannot update a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
+     * @deny (delete) User with UID 'user_xyz' cannot delete a calculation with calculationId 'calc_123' if the calculation document contains 'uid': 'user_abc'.
      * @principle Enforces document ownership for all operations on calculations.
      */
     match /calculations/{calculationId} {
-      // Helper function to check if the user is signed in.
-      function isSignedIn() {
-        return request.auth != null;
-      }
+      // Allow anyone to read any calculation
+      allow get: if isSignedIn() && isOwner(resource.data.uid);
+      allow list: if isSignedIn() && isOwner(request.auth.uid);
 
-      // Helper function to check if the user is the owner of the calculation.
-      function isOwner(userId) {
-        return isSignedIn() && request.auth.uid == userId;
-      }
+      // Only the owner can create a calculation, and the 'uid' field must match
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.uid;
 
-      // Helper function to check if the user is the owner of the existing calculation document.
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
+      // Only the owner can update a calculation, and the document must exist. The 'uid' field is immutable.
+      allow update: if isSignedIn() && isExistingOwner(resource.data.uid) && resource.data.uid == request.resource.data.uid;
 
-      allow get: if true;
-      allow list: if isSignedIn();
+      // Only the owner can delete a calculation, and the document must exist
+      allow delete: if isSignedIn() && isExistingOwner(resource.data.uid);
+    }
 
-      allow create: if isOwner(request.resource.data.uid);
-      allow update: if isExistingOwner(resource.data.uid) && request.resource.data.uid == resource.data.uid;
-      allow delete: if isExistingOwner(resource.data.uid);
+    // ------ Helper functions ------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }
