@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/firebase/auth';
 import { getAllCalculations, type CalculationDB } from '@/lib/firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { BarChart, Users } from 'lucide-react';
 
 interface KPI {
@@ -15,18 +14,20 @@ interface KPI {
 }
 
 export default function AdminPage() {
-  const { user, isAdmin, loading } = useAuth();
+  const { isAdmin, loading } = useAuth();
   const router = useRouter();
   const [calculations, setCalculations] = useState<CalculationDB[]>([]);
   const [kpis, setKpis] = useState<KPI[]>([]);
 
   useEffect(() => {
+    // Only redirect if loading is finished and user is not an admin.
     if (!loading && !isAdmin) {
       router.push('/');
     }
-  }, [user, isAdmin, loading, router]);
+  }, [isAdmin, loading, router]);
 
   useEffect(() => {
+    // Only fetch data if user is confirmed to be an admin.
     if (isAdmin) {
       const unsubscribe = getAllCalculations((allCalculations) => {
         setCalculations(allCalculations);
@@ -55,7 +56,8 @@ export default function AdminPage() {
     }
   }, [isAdmin]);
 
-  if (loading || !isAdmin) {
+  // Show a loading screen while auth state is being determined.
+  if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
@@ -65,6 +67,13 @@ export default function AdminPage() {
     );
   }
 
+  // Once loading is complete, if the user is not an admin, they will be redirected.
+  // We can render null or a minimal component here as the redirect is happening.
+  if (!isAdmin) {
+    return null;
+  }
+
+  // If loading is complete AND user is an admin, show the dashboard.
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <header className="mb-8">

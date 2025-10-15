@@ -28,26 +28,27 @@ export function useAuth(): AuthState {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        // User is signed in, now check for admin custom claim.
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
         try {
-          const idTokenResult = await currentUser.getIdTokenResult(true); // Force refresh
-          const isAdmin = idTokenResult.claims.admin === true;
-          setAuthState({ user: currentUser, isAdmin, loading: false });
+          // Force a token refresh to get the latest custom claims.
+          const idTokenResult = await user.getIdTokenResult(true);
+          const isAdmin = !!idTokenResult.claims.admin;
+          setAuthState({ user, isAdmin, loading: false });
         } catch (error) {
-          console.error("Error getting user token or claims:", error);
-          setAuthState({ user: currentUser, isAdmin: false, loading: false });
+          console.error("Error fetching user claims:", error);
+          // Still set the user, but assume not admin if claims fail.
+          setAuthState({ user, isAdmin: false, loading: false });
         }
       } else {
-        // User is signed out.
+        // User is not signed in.
         setAuthState({ user: null, isAdmin: false, loading: false });
       }
     });
 
-    // Cleanup the listener on component unmount.
+    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   return authState;
 }
