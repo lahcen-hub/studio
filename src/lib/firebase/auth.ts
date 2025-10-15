@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -15,21 +14,42 @@ import { useEffect, useState } from 'react';
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthState {
+    user: User | null;
+    isAdmin: boolean;
+    loading: boolean;
+}
+
+export function useAuth(): AuthState {
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    isAdmin: false,
+    loading: true,
+  });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        // User is signed in, now check for admin custom claim.
+        try {
+          const idTokenResult = await currentUser.getIdTokenResult(true); // Force refresh
+          const isAdmin = idTokenResult.claims.admin === true;
+          setAuthState({ user: currentUser, isAdmin, loading: false });
+        } catch (error) {
+          console.error("Error getting user token or claims:", error);
+          setAuthState({ user: currentUser, isAdmin: false, loading: false });
+        }
+      } else {
+        // User is signed out.
+        setAuthState({ user: null, isAdmin: false, loading: false });
+      }
     });
 
     // Cleanup the listener on component unmount.
     return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  return authState;
 }
 
 export function signInWithGoogle() {
