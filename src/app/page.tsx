@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
-
+import { AmiriFont } from '@/lib/amiri-font';
 
 const arefRuqaa = Aref_Ruqaa({
   weight: '700',
@@ -442,47 +442,92 @@ export default function CargoValuatorPage() {
 
   const downloadHistory = async () => {
     if (history.length === 0) {
-        alert("L'historique est vide.");
+        toast({ variant: "destructive", title: "L'historique est vide." });
         return;
     }
 
     const doc = new jsPDF();
-    
-    doc.setFont('helvetica');
 
-    doc.text("Historique des Calculs", 14, 16);
+    // Add the Amiri font to jsPDF
+    doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
+    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
+    doc.setFont("Amiri");
+
+    const title = "Rapport d'Activité Cargo";
+    doc.setFontSize(22);
+    doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+
+    // --- KPIs Section ---
+    const totalCalculs = history.length;
+    const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
+    const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
+    const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
+    const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
+    
+    doc.setFontSize(16);
+    doc.text("Indicateurs Clés (KPIs)", 14, 30);
+    doc.setFontSize(11);
+    
+    const kpiData = [
+        ["Nombre total de calculs:", totalCalculs.toString()],
+        ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
+        ["Nombre total de caisses:", totalCaisses.toString()],
+        ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
+        ["Montant total convenu (Riyal):", formatCurrency(totalAgreedRiyal, 'Riyal')],
+    ];
+
+    autoTable(doc, {
+        body: kpiData,
+        startY: 35,
+        theme: 'plain',
+        styles: { font: 'Amiri', fontSize: 11 },
+        columnStyles: { 0: { fontStyle: 'bold' } },
+    });
+
+
+    // --- History Table Section ---
+    const tableStartY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(16);
+    doc.text("Historique des Calculs", 14, tableStartY);
 
     const head = [
-        ["Date", "Nom du client", "Poids Net Total (kg)", "مجموع الصندوق", "الصندوق الباقي", "Reste d'argent (MAD)"]
+        ["Date", "Nom du client", "Poids Net (kg)", "المبلغ المتفق عليه", "الصندوق الباقي", "Reste (MAD)"]
     ];
 
     const body = history.map(item => [
-        String(item.date),
-        String(item.clientName),
-        String(item.results.totalNetWeight?.toFixed(2) || 'N/A'),
-        String(item.totalCrates),
-        String(item.remainingCrates),
-        String(item.remainingMoney.toFixed(2))
+        item.date,
+        item.clientName,
+        item.results.totalNetWeight?.toFixed(2) || 'N/A',
+        formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
+        item.remainingCrates,
+        item.remainingMoney.toFixed(2)
     ]);
 
     autoTable(doc, {
         head: head,
         body: body,
-        startY: 20,
-        styles: { halign: 'center' },
-        headStyles: { halign: 'center', fontStyle: 'bold' },
+        startY: tableStartY + 5,
+        styles: { font: 'Amiri', halign: 'center', fontSize: 9 },
+        headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
         columnStyles: {
             0: { halign: 'left' },
             1: { halign: 'left' },
             2: { halign: 'right' },
-            3: { halign: 'center' },
+            3: { halign: 'right' },
             4: { halign: 'center' },
             5: { halign: 'right' },
         },
+        didParseCell: function (data) {
+            // Right-align Arabic content
+             const arabicRegex = /[\u0600-\u06FF]/;
+             if (data.cell.raw && arabicRegex.test(data.cell.raw.toString())) {
+                data.cell.styles.halign = 'right';
+            }
+        }
     });
 
     const formattedDate = new Date().toISOString().slice(0, 10);
-    doc.save(`historique_cargo_${formattedDate}.pdf`);
+    doc.save(`rapport_cargo_${formattedDate}.pdf`);
   };
 
   const downloadHistoryItemAsImage = (id: string | number, clientName: string) => {
@@ -982,5 +1027,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
