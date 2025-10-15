@@ -468,7 +468,6 @@ export default function CargoValuatorPage() {
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
     const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
-    const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
     
     doc.setFontSize(16);
     doc.text("Indicateurs Clés (KPIs)", 14, 30);
@@ -479,7 +478,6 @@ export default function CargoValuatorPage() {
         ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
         ["Nombre total de caisses:", totalCaisses.toString()],
         ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
-        ["Montant total convenu (Riyal):", formatCurrency(totalAgreedRiyal, 'Riyal')],
     ];
 
     autoTable(doc, {
@@ -1028,7 +1026,7 @@ export default function CargoValuatorPage() {
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry({ ...editingEntry, agreedAmountCurrency: value })}>
                                     <SelectTrigger className="col-span-1">
                                         <SelectValue />
-                                    </SelectTrigger>
+                                    </Trigger>
                                     <SelectContent>
                                         <SelectItem value="MAD">MAD</SelectItem>
                                         <SelectItem value="Riyal">Riyal</SelectItem>
@@ -1066,7 +1064,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
