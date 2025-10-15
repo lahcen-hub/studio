@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Boxes, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -541,7 +541,7 @@ export default function CargoValuatorPage() {
         <header className="flex justify-between items-center mb-4 md:mb-6">
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Boxes className="w-9 h-9 text-primary" />
+              <Truck className="w-9 h-9 text-primary" />
               Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
@@ -572,7 +572,7 @@ export default function CargoValuatorPage() {
                         value={grossWeight}
                         setValue={setGrossWeight}
                         unit="kg"
-                        icon={<Image src="/logo.svg" alt="Weight Icon" width={16} height={16} className="text-primary" />}
+                        icon={<Image src="/logo.svg" alt="Weight Icon" width={16} height={16} />}
                         step={10}
                         isBold
                         isError={errors.grossWeight}
@@ -982,3 +982,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
