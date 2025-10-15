@@ -319,14 +319,8 @@ export default function CargoValuatorPage() {
         // No need to manually update history, onSnapshot will do it.
         toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
       } catch (error) {
-        console.error("Failed to save online, saving locally", error);
-        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Sauvegardé localement." });
-        const localEntry: HistoryEntry = {
-            ...newEntryData,
-            id: Date.now().toString(),
-            synced: false
-        };
-        setHistory(prev => sortHistory([localEntry, ...prev]));
+        console.error("Failed to save online", error);
+        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Veuillez réessayer." });
       }
     } else {
         const localEntry: HistoryEntry = {
