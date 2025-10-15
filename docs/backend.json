@@ -13,6 +13,11 @@
           "type": "string",
           "description": "The date of the calculation."
         },
+        "productType": {
+          "type": "string",
+          "description": "The type of product for the calculation.",
+          "enum": ["tomato", "cucumber", "pepper"]
+        },
         "results": {
           "type": "object",
           "properties": {
@@ -55,6 +60,7 @@
       "required": [
         "uid",
         "date",
+        "productType",
         "results",
         "clientName",
         "totalCrates",

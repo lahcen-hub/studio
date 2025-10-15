@@ -13,6 +13,7 @@ export interface CalculationDB extends DocumentData {
   uid: string;
   date: string;
   createdAt: string;
+  productType: 'tomato' | 'cucumber' | 'pepper';
   results: {
     grandTotalPrice: number;
     grandTotalPriceRiyal: number;

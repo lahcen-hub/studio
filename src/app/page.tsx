@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -29,8 +29,9 @@ const arefRuqaa = Aref_Ruqaa({
   subsets: ['latin'],
 });
 
+type VegetableKey = 'tomato' | 'cucumber' | 'pepper';
 
-const vegetables = {
+const vegetables: Record<VegetableKey, { name: string; weight: number; icon: string }> = {
     tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
     cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
     pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
@@ -121,7 +122,7 @@ export default function CargoValuatorPage() {
   const [showResults, setShowResults] = useState(false);
   
   const [errors, setErrors] = useState<{ grossWeight?: boolean; fullCrateWeight?: boolean }>({});
-  const [selectedVegetable, setSelectedVegetable] = useState<'tomato' | 'cucumber' | 'pepper' | null>(null);
+  const [selectedVegetable, setSelectedVegetable] = useState<VegetableKey | null>(null);
 
   const [editingEntry, setEditingEntry] = useState<HistoryEntry | null>(null);
 
@@ -289,11 +290,16 @@ export default function CargoValuatorPage() {
   }
   
   const handleSave = async () => {
+    if (!selectedVegetable) {
+      toast({ variant: "destructive", title: "Produit manquant", description: "Veuillez sélectionner un type de produit." });
+      return;
+    }
     setSaveDialogOpen(false);
     
     const newEntryData: Omit<CalculationDB, 'id' | 'uid'> = {
       date: new Date().toLocaleString('fr-FR'),
       createdAt: new Date().toISOString(),
+      productType: selectedVegetable,
       results: {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
@@ -492,17 +498,21 @@ export default function CargoValuatorPage() {
     doc.text("Historique des Calculs", 14, tableStartY);
 
     const head = [
-        ["Date", "Nom du client", "Poids Net (kg)", "Montant convenu", "Caisses restantes", "Argent restant (MAD)"]
+        ["Date", "Client", "Produit", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
     ];
 
-    const body = history.map(item => [
-        item.date,
-        item.clientName,
-        item.results.totalNetWeight?.toFixed(2) || 'N/A',
-        formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
-        item.remainingCrates,
-        item.remainingMoney.toFixed(2)
-    ]);
+    const body = history.map(item => {
+        const productInfo = item.productType ? `${vegetables[item.productType as VegetableKey]?.icon ?? ''} ${vegetables[item.productType as VegetableKey]?.name ?? 'N/A'}` : 'N/A';
+        return [
+            item.date,
+            item.clientName,
+            productInfo,
+            item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
+            formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
+            item.remainingCrates,
+            formatCurrency(item.remainingMoney)
+        ];
+    });
 
     autoTable(doc, {
         head: head,
@@ -513,10 +523,11 @@ export default function CargoValuatorPage() {
         columnStyles: {
             0: { halign: 'left' },
             1: { halign: 'left' },
-            2: { halign: 'right' },
+            2: { halign: 'center' },
             3: { halign: 'right' },
-            4: { halign: 'center' },
-            5: { halign: 'right' },
+            4: { halign: 'right' },
+            5: { halign: 'center' },
+            6: { halign: 'right' },
         },
     });
 
@@ -621,7 +632,7 @@ export default function CargoValuatorPage() {
                             <Scale className="w-4 h-4 text-primary" />
                             Type de Produit
                         </Label>
-                        <Select onValueChange={(value: 'tomato' | 'cucumber' | 'pepper') => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
+                        <Select onValueChange={(value: VegetableKey) => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
                           <SelectTrigger className={cn("text-base", errors.fullCrateWeight && "border-destructive ring-destructive ring-1")}>
                             <SelectValue placeholder="Sélectionner..." />
                           </SelectTrigger>
@@ -897,51 +908,62 @@ export default function CargoValuatorPage() {
                 <ScrollArea className="h-[420px] pr-3">
                 {history.length > 0 ? (
                     <div className="space-y-4">
-                      {history.map((item) => (
-                        <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
-                          <div className="flex justify-between items-start">
-                              <div>
-                                <p className="text-xs text-muted-foreground">{item.date}</p>
-                                <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
-                              </div>
-                              <div className="flex items-center gap-1 -mr-2 -mt-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
-                                  <ImageIcon className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                          </div>
-                          <Separator className="my-2" />
-                          <div className="flex justify-between items-center text-sm">
-                                <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>المبلغ الاجمالي:</p>
-                                <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
-                          </div>
-                          <div className="flex justify-between items-center text-sm mt-1">
-                                <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
-                                <p className="font-bold">{item.totalCrates}</p>
-                          </div>
-                          <Separator className="my-2" />
-                          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
-                                <div className="flex justify-between items-center">
-                                    <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
-                                    <span className="font-bold">{item.remainingCrates}</span>
+                      {history.map((item) => {
+                        const product = item.productType ? vegetables[item.productType as VegetableKey] : null;
+                        return (
+                          <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">{item.date}</p>
+                                  <div className="flex items-center gap-2">
+                                     <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                                     {product && (
+                                      <p className="text-sm flex items-center gap-1">
+                                        <span className="text-base">{product.icon}</span>
+                                        <span className="text-xs text-muted-foreground">{product.name}</span>
+                                      </p>
+                                     )}
+                                  </div>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
-                                    <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
+                                    <ImageIcon className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                                <div className="col-span-2 flex justify-between items-center">
-                                    <span className="font-bold">Poids net total (kg):</span>
-                                    <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
-                                </div>
+                            </div>
+                            <Separator className="my-2" />
+                            <div className="flex justify-between items-center text-sm">
+                                  <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>المبلغ الاجمالي:</p>
+                                  <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
+                            </div>
+                            <div className="flex justify-between items-center text-sm mt-1">
+                                  <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
+                                  <p className="font-bold">{item.totalCrates}</p>
+                            </div>
+                            <Separator className="my-2" />
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                  <div className="flex justify-between items-center">
+                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
+                                      <span className="font-bold">{item.remainingCrates}</span>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                      <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                  </div>
+                                  <div className="col-span-2 flex justify-between items-center">
+                                      <span className="font-bold">Poids net total (kg):</span>
+                                      <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
+                                  </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   ) : (
                     <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
@@ -970,6 +992,29 @@ export default function CargoValuatorPage() {
                                 value={editingEntry.clientName} 
                                 onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
                                 className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label className="text-right">Produit</Label>
+                          <div className="col-span-3">
+                             <Select 
+                                onValueChange={(value: VegetableKey) => setEditingEntry({ ...editingEntry, productType: value })} 
+                                value={editingEntry.productType as VegetableKey || undefined}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Sélectionner le produit..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(Object.keys(vegetables) as Array<keyof typeof vegetables>).map((key) => (
+                                    <SelectItem key={key} value={key}>
+                                      <div className="flex items-center gap-2">
+                                          <span className="text-xl">{vegetables[key].icon}</span>
+                                          <span>{vegetables[key].name}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                          </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editAgreedAmount" className="text-right font-bold">Montant convenu</Label>
