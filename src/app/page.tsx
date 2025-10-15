@@ -445,25 +445,19 @@ export default function CargoValuatorPage() {
     }
   };
 
-  const downloadHistory = async () => {
+ const downloadHistory = async () => {
     if (history.length === 0) {
         toast({ variant: "destructive", title: "L'historique est vide." });
         return;
     }
 
     const doc = new jsPDF();
-    
-    // The default font in jsPDF doesn't support Arabic characters.
-    // To support them, you would need to embed a font that does, like Amiri, Noto Sans Arabic, etc.
-    // This requires converting the .ttf file to a Base64 string and adding it to jsPDF,
-    // which is a more advanced setup. For now, Arabic text will not render correctly.
     doc.setFont("Helvetica"); 
 
     const title = "Rapport d'Activité Cargo";
     doc.setFontSize(22);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
 
-    // --- KPIs Section ---
     const totalCalculs = history.length;
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
@@ -488,8 +482,6 @@ export default function CargoValuatorPage() {
         columnStyles: { 0: { fontStyle: 'bold' } },
     });
 
-
-    // --- History Table Section ---
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
     doc.text("Historique des Calculs", 14, tableStartY);
@@ -499,7 +491,7 @@ export default function CargoValuatorPage() {
     ];
 
     const body = history.map(item => {
-        const productInfo = item.productType ? `${vegetables[item.productType as VegetableKey]?.name ?? 'N/A'}` : 'N/A';
+        const productInfo = item.productType ? vegetables[item.productType as VegetableKey]?.name ?? 'N/A' : 'N/A';
         return [
             item.date,
             item.clientName,
@@ -1026,7 +1018,7 @@ export default function CargoValuatorPage() {
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry({ ...editingEntry, agreedAmountCurrency: value })}>
                                     <SelectTrigger className="col-span-1">
                                         <SelectValue />
-                                    </Trigger>
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="MAD">MAD</SelectItem>
                                         <SelectItem value="Riyal">Riyal</SelectItem>
