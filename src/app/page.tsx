@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
-import { AmiriFont } from '@/lib/amiri-font';
+
 
 const arefRuqaa = Aref_Ruqaa({
   weight: '700',
@@ -447,11 +447,12 @@ export default function CargoValuatorPage() {
     }
 
     const doc = new jsPDF();
-
-    // Add the Amiri font to jsPDF
-    doc.addFileToVFS("Amiri-Regular.ttf", AmiriFont);
-    doc.addFont("Amiri-Regular.ttf", "Amiri", "normal");
-    doc.setFont("Amiri");
+    
+    // The default font in jsPDF doesn't support Arabic characters.
+    // To support them, you would need to embed a font that does, like Amiri, Noto Sans Arabic, etc.
+    // This requires converting the .ttf file to a Base64 string and adding it to jsPDF,
+    // which is a more advanced setup. For now, Arabic text will not render correctly.
+    doc.setFont("Helvetica"); 
 
     const title = "Rapport d'Activité Cargo";
     doc.setFontSize(22);
@@ -480,7 +481,7 @@ export default function CargoValuatorPage() {
         body: kpiData,
         startY: 35,
         theme: 'plain',
-        styles: { font: 'Amiri', fontSize: 11 },
+        styles: { font: "Helvetica", fontSize: 11 },
         columnStyles: { 0: { fontStyle: 'bold' } },
     });
 
@@ -491,7 +492,7 @@ export default function CargoValuatorPage() {
     doc.text("Historique des Calculs", 14, tableStartY);
 
     const head = [
-        ["Date", "Nom du client", "Poids Net (kg)", "المبلغ المتفق عليه", "الصندوق الباقي", "Reste (MAD)"]
+        ["Date", "Nom du client", "Poids Net (kg)", "Montant convenu", "Caisses restantes", "Argent restant (MAD)"]
     ];
 
     const body = history.map(item => [
@@ -507,7 +508,7 @@ export default function CargoValuatorPage() {
         head: head,
         body: body,
         startY: tableStartY + 5,
-        styles: { font: 'Amiri', halign: 'center', fontSize: 9 },
+        styles: { font: "Helvetica", halign: 'center', fontSize: 9 },
         headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
         columnStyles: {
             0: { halign: 'left' },
@@ -517,13 +518,6 @@ export default function CargoValuatorPage() {
             4: { halign: 'center' },
             5: { halign: 'right' },
         },
-        didParseCell: function (data) {
-            // Right-align Arabic content
-             const arabicRegex = /[\u0600-\u06FF]/;
-             if (data.cell.raw && arabicRegex.test(data.cell.raw.toString())) {
-                data.cell.styles.halign = 'right';
-            }
-        }
     });
 
     const formattedDate = new Date().toISOString().slice(0, 10);
