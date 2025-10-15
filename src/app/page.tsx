@@ -314,14 +314,15 @@ export default function CargoValuatorPage() {
     };
 
     if (user && navigator.onLine) {
-      try {
-        await saveCalculation(user.uid, newEntryData);
-        // No need to manually update history, onSnapshot will do it.
-        toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
-      } catch (error) {
-        console.error("Failed to save online", error);
-        toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Veuillez réessayer." });
-      }
+        try {
+            await saveCalculation(user.uid, newEntryData);
+            // No need to manually update history, onSnapshot will do it.
+            toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
+        } catch (error) {
+            console.error("Failed to save online", error);
+            // Don't save locally if online save fails to prevent duplicates
+            toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Veuillez vérifier votre connexion et réessayer." });
+        }
     } else {
         const localEntry: HistoryEntry = {
             ...newEntryData,
@@ -500,7 +501,7 @@ export default function CargoValuatorPage() {
     ];
 
     const body = history.map(item => {
-        const productInfo = item.productType ? `${vegetables[item.productType as VegetableKey]?.icon ?? ''} ${vegetables[item.productType as VegetableKey]?.name ?? 'N/A'}` : 'N/A';
+        const productInfo = item.productType ? `${vegetables[item.productType as VegetableKey]?.name ?? 'N/A'}` : 'N/A';
         return [
             item.date,
             item.clientName,
@@ -679,6 +680,7 @@ export default function CargoValuatorPage() {
                     step={5}
                     isBold
                   />
+
                   <InputField
                     id="dichiPrice"
                     label="Prix الديشي"
@@ -1064,5 +1066,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
