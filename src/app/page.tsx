@@ -541,7 +541,7 @@ export default function CargoValuatorPage() {
         <header className="flex justify-between items-center mb-4 md:mb-6">
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Image src="/logo.svg" alt="Cargo App Logo" width={36} height={36} className="text-primary" />
+              <Boxes className="w-9 h-9 text-primary" />
               Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
@@ -982,7 +982,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
