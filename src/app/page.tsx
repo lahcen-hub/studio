@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
-import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation } from '@/lib/firebase/firestore';
+import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -148,11 +148,15 @@ export default function CargoValuatorPage() {
               toast({ title: "Synchronisation...", description: "Synchronisation de l'historique local avec le cloud." });
               const syncPromises = localHistory.map(item => {
                 const { id, synced, ...dataToSave } = item;
+                // If the item has an ID, it might be one that failed to save before,
+                // or one that was just created offline. We'll use `saveCalculation`
+                // which handles `addDoc` to ensure a new document is created in Firestore.
+                // Firestore will generate a new unique ID.
                 return saveCalculation(user.uid, dataToSave as Omit<CalculationDB, 'id' | 'uid'>);
               });
               Promise.all(syncPromises)
                 .then(() => {
-                  localStorage.removeItem('cargoHistory');
+                  localStorage.removeItem('cargoHistory'); // Clear local data after successful sync
                   toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
                 })
                 .catch(err => {
@@ -189,15 +193,13 @@ export default function CargoValuatorPage() {
 
   // Save to localStorage when not logged in
   useEffect(() => {
-    if (!user && history.length > 0) {
-      try {
+    if (!user) {
         const localHistory = history.filter(item => !item.synced);
-        if (localHistory.length > 0) {
-          localStorage.setItem('cargoHistory', JSON.stringify(localHistory));
+        if (history.length > 0) { // Save the entire history if user logs out
+            localStorage.setItem('cargoHistory', JSON.stringify(history));
+        } else {
+             localStorage.removeItem('cargoHistory');
         }
-      } catch (error) {
-        console.error("Failed to save history to localStorage", error);
-      }
     }
   }, [history, user]);
 
@@ -324,7 +326,7 @@ export default function CargoValuatorPage() {
             ...newEntryData,
             id: Date.now().toString(),
             synced: false,
-            uid: 'local'
+            uid: user?.uid || 'local' // Keep uid if user is just offline
         };
       setHistory(prev => sortHistory([localEntry, ...prev]));
       toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
@@ -341,18 +343,30 @@ export default function CargoValuatorPage() {
     setSaveDialogOpen(true);
   }
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!editingEntry) return;
 
-    // Here you would also need to update the entry in Firestore if the user is logged in.
-    // This is not implemented for brevity.
-    console.log("Updating entry (Firestore update not implemented):", editingEntry);
+    const { id, synced, ...dataToUpdate } = editingEntry;
 
-    setHistory(history.map(entry => 
-        entry.id === editingEntry.id ? editingEntry : entry
-    ));
+    // Optimistically update UI
+    setHistory(history.map(entry => entry.id === id ? editingEntry : entry));
     setEditingEntry(null);
+
+    if (user && navigator.onLine) {
+        try {
+            await updateCalculation(id, dataToUpdate);
+            toast({ title: "Mise à jour réussie", description: "Le calcul a été mis à jour." });
+        } catch (error) {
+            console.error("Failed to update calculation", error);
+            toast({ variant: "destructive", title: "Erreur de mise à jour", description: "Impossible de mettre à jour sur le serveur." });
+            // Optionally revert UI change here
+        }
+    } else {
+        // If offline or not logged in, the optimistic update is saved to localStorage by the useEffect
+        toast({ title: "Mis à jour localement", description: "Les modifications seront synchronisées plus tard." });
+    }
   };
+
 
   const openEditDialog = (entry: HistoryEntry) => {
     setEditingEntry({ ...entry });
@@ -365,7 +379,7 @@ export default function CargoValuatorPage() {
     // Optimistically remove from UI
     setHistory(history.filter(entry => entry.id !== id));
 
-    if (user) {
+    if (user && navigator.onLine) {
       try {
         await deleteCalculation(id);
         toast({ title: "Supprimé", description: "Le calcul a été supprimé du cloud." });
@@ -380,7 +394,7 @@ export default function CargoValuatorPage() {
         setHistory(originalHistory);
       }
     } else {
-      // For local history, just filtering the state is enough, 
+      // For local/offline history, just filtering the state is enough, 
       // the useEffect for localStorage will handle persistence.
       toast({ title: "Supprimé localement", description: "Le calcul a été supprimé de cet appareil." });
     }
@@ -393,7 +407,7 @@ export default function CargoValuatorPage() {
     if (grossWeightNum <= 0) {
       newErrors.grossWeight = true;
     }
-    if (fullCrateWeight <= 0) {
+    if (!selectedVegetable) {
       newErrors.fullCrateWeight = true;
     }
 
@@ -407,12 +421,21 @@ export default function CargoValuatorPage() {
   };
   
   const clearHistory = () => {
-     if(user){
-      // Also clear firestore history if user is logged in. Not implemented for brevity.
-    }
-    setHistory([]);
-    if (!user) {
-      localStorage.removeItem('cargoHistory');
+     if(user && navigator.onLine){
+        // Batch delete all documents for the user
+        const deletePromises = history.map(item => deleteCalculation(item.id));
+        Promise.all(deletePromises)
+            .then(() => toast({ title: "Historique vidé", description: "Tous vos calculs ont été supprimés." }))
+            .catch(err => {
+                console.error("Failed to clear history from Firestore", err);
+                toast({ variant: "destructive", title: "Erreur", description: "Impossible de vider l'historique sur le cloud." });
+            });
+    } else {
+        setHistory([]);
+        if (!user) {
+            localStorage.removeItem('cargoHistory');
+        }
+        toast({ title: "Historique local vidé" });
     }
   };
 
@@ -958,7 +981,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    

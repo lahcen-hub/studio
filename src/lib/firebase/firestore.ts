@@ -1,6 +1,6 @@
 'use client';
 
-import { addDoc, collection, getFirestore, onSnapshot, query, where, orderBy, type DocumentData, type Unsubscribe, deleteDoc, doc } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, onSnapshot, query, where, orderBy, type DocumentData, type Unsubscribe, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { app } from './config';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
@@ -80,6 +80,9 @@ export function getCalculations(uid: string, onUpdate: (calculations: Calculatio
 }
 
 export async function deleteCalculation(id: string): Promise<void> {
+  if (!id || typeof id !== 'string') {
+    throw new Error("Invalid ID provided for deletion.");
+  }
   const docRef = doc(db, 'calculations', id);
   try {
     await deleteDoc(docRef);
@@ -92,4 +95,23 @@ export async function deleteCalculation(id: string): Promise<void> {
     errorEmitter.emit('permission-error', permissionError);
     throw new Error("Impossible de supprimer sur le serveur.");
   }
+}
+
+export async function updateCalculation(id: string, data: Partial<Omit<CalculationDB, 'id' | 'uid'>>): Promise<void> {
+    if (!id || typeof id !== 'string') {
+        throw new Error("Invalid ID provided for update.");
+    }
+    const docRef = doc(db, 'calculations', id);
+    try {
+        await updateDoc(docRef, data);
+    } catch (serverError) {
+        console.error('Original Firestore error:', serverError);
+        const permissionError = new FirestorePermissionError({
+            path: `calculations/${id}`,
+            operation: 'update',
+            requestResourceData: data,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw new Error("Impossible de mettre à jour sur le serveur.");
+    }
 }
