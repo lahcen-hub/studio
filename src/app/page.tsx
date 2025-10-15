@@ -347,6 +347,10 @@ export default function CargoValuatorPage() {
   };
   
   const handleOpenSaveDialog = () => {
+     if (!selectedVegetable) {
+      toast({ variant: "destructive", title: "Produit manquant", description: "Veuillez sélectionner un type de produit." });
+      return;
+    }
     setSaveDialogOpen(true);
   }
 
@@ -622,7 +626,7 @@ export default function CargoValuatorPage() {
                         value={grossWeight}
                         setValue={setGrossWeight}
                         unit="kg"
-                        icon={<Image src="/logo.svg" alt="Weight Icon" width={16} height={16} />}
+                        icon={<Truck className="w-4 h-4 text-primary" />}
                         step={10}
                         isBold
                         isError={errors.grossWeight}
