@@ -80,31 +80,6 @@ export function getCalculations(uid: string, onUpdate: (calculations: Calculatio
     return unsubscribe;
 }
 
-export function getAllCalculations(onUpdate: (calculations: CalculationDB[]) => void): Unsubscribe {
-  const q = query(
-      collection(db, 'calculations'),
-      orderBy('createdAt', 'desc')
-  );
-
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-      const calculations: CalculationDB[] = [];
-      snapshot.forEach(doc => {
-          calculations.push({ id: doc.id, ...doc.data() } as CalculationDB);
-      });
-      onUpdate(calculations);
-  }, (error) => {
-      console.error("Failed to fetch all calculations for admin:", error);
-      const permissionError = new FirestorePermissionError({
-          path: `calculations`,
-          operation: 'list',
-      });
-      errorEmitter.emit('permission-error', permissionError);
-  });
-
-  return unsubscribe;
-}
-
-
 export async function deleteCalculation(id: string): Promise<void> {
   if (!id || typeof id !== 'string') {
     throw new Error("Invalid ID provided for deletion.");

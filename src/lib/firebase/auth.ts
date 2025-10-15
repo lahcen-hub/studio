@@ -16,39 +16,23 @@ const provider = new GoogleAuthProvider();
 
 interface AuthState {
     user: User | null;
-    isAdmin: boolean;
     loading: boolean;
 }
 
 export function useAuth(): AuthState {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
-    isAdmin: false,
     loading: true,
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        try {
-          // Force a token refresh to get the latest custom claims.
-          const idTokenResult = await user.getIdTokenResult(true);
-          const isAdmin = !!idTokenResult.claims.admin;
-          setAuthState({ user, isAdmin, loading: false });
-        } catch (error) {
-          console.error("Error fetching user claims:", error);
-          // Still set the user, but assume not admin if claims fail.
-          setAuthState({ user, isAdmin: false, loading: false });
-        }
-      } else {
-        // User is not signed in.
-        setAuthState({ user: null, isAdmin: false, loading: false });
-      }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setAuthState({ user, loading: false });
     });
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
   return authState;
 }
