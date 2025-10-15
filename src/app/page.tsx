@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useMemo, type ChangeEvent, type FC, type ReactNode, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,7 +22,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
-import Logo from '../../../public/logo.svg';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -541,7 +541,7 @@ export default function CargoValuatorPage() {
         <header className="flex justify-between items-center mb-4 md:mb-6">
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Logo className="w-9 h-9 text-primary" />
+              <Image src="/logo.svg" alt="Cargo App Logo" width={36} height={36} className="text-primary" />
               Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
@@ -572,7 +572,7 @@ export default function CargoValuatorPage() {
                         value={grossWeight}
                         setValue={setGrossWeight}
                         unit="kg"
-                        icon={<Logo className="w-4 h-4 text-primary" />}
+                        icon={<Image src="/logo.svg" alt="Weight Icon" width={16} height={16} className="text-primary" />}
                         step={10}
                         isBold
                         isError={errors.grossWeight}
@@ -982,5 +982,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
