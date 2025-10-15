@@ -14,22 +14,23 @@ interface KPI {
 }
 
 export default function AdminPage() {
-  const { isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const router = useRouter();
   const [calculations, setCalculations] = useState<CalculationDB[]>([]);
   const [kpis, setKpis] = useState<KPI[]>([]);
 
   useEffect(() => {
-    // Only redirect if loading is finished and user is not an admin.
+    // Redirect non-admins once auth state is confirmed
     if (!loading && !isAdmin) {
       router.push('/');
     }
   }, [isAdmin, loading, router]);
 
   useEffect(() => {
-    // Only fetch data if user is confirmed to be an admin.
-    if (isAdmin) {
-      const unsubscribe = getAllCalculations((allCalculations) => {
+    let unsubscribe = () => {};
+    // Only fetch data if the user is an admin
+    if (isAdmin && user) {
+      unsubscribe = getAllCalculations((allCalculations) => {
         setCalculations(allCalculations);
 
         // Calculate KPIs
@@ -51,12 +52,12 @@ export default function AdminPage() {
             { title: 'Revenu Total (Riyal)', value: `${totalRevenueRiyal.toLocaleString('fr-MA')} Riyal`, icon: <BarChart className="h-6 w-6 text-red-500" /> },
         ]);
       });
-
-      return () => unsubscribe();
     }
-  }, [isAdmin]);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [isAdmin, user]); // Depend on isAdmin and user
 
-  // Show a loading screen while auth state is being determined.
+  // While loading, show a loading indicator
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -67,47 +68,46 @@ export default function AdminPage() {
     );
   }
 
-  // Once loading is complete, if the user is not an admin, they will be redirected.
-  // We can render null or a minimal component here as the redirect is happening.
-  if (!isAdmin) {
-    return null;
+  // If loading is finished and user is an admin, show the dashboard
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-8">
+        <header className="mb-8">
+          <h1 className="text-4xl font-bold">Tableau de Bord Administrateur</h1>
+          <p className="text-gray-600">Vue d'ensemble de l'activité de l'application.</p>
+        </header>
+
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold mb-4">Indicateurs Clés de Performance (KPIs)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {kpis.map(kpi => (
+              <Card key={kpi.title}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                  {kpi.icon}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{kpi.value}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Gestion des Utilisateurs</h2>
+          <Card>
+            <CardContent className="p-6">
+              <p className="text-gray-500">
+                La fonctionnalité de gestion des utilisateurs (attribution de permissions, etc.) sera implémentée ici.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+      </div>
+    );
   }
 
-  // If loading is complete AND user is an admin, show the dashboard.
-  return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <header className="mb-8">
-        <h1 className="text-4xl font-bold">Tableau de Bord Administrateur</h1>
-        <p className="text-gray-600">Vue d'ensemble de l'activité de l'application.</p>
-      </header>
-
-      <section className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Indicateurs Clés de Performance (KPIs)</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          {kpis.map(kpi => (
-            <Card key={kpi.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                {kpi.icon}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Gestion des Utilisateurs</h2>
-        <Card>
-          <CardContent className="p-6">
-            <p className="text-gray-500">
-              La fonctionnalité de gestion des utilisateurs (attribution de permissions, etc.) sera implémentée ici.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
-    </div>
-  );
+  // If not loading and not admin, user will be redirected. Render null while redirect happens.
+  return null;
 }
