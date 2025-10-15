@@ -20,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
-import { saveCalculation, getCalculations, type CalculationDB } from '@/lib/firebase/firestore';
+import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation } from '@/lib/firebase/firestore';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -358,11 +358,32 @@ export default function CargoValuatorPage() {
     setEditingEntry({ ...entry });
   };
 
-  const handleDelete = (id: string | number) => {
-     // Here you would also need to delete the entry from Firestore if the user is logged in.
-    // This is not implemented for brevity.
-    console.log("Deleting entry (Firestore delete not implemented):", id);
+  const handleDelete = async (id: string) => {
+    if (typeof id !== 'string' || id === '') return;
+
+    const originalHistory = [...history];
+    // Optimistically remove from UI
     setHistory(history.filter(entry => entry.id !== id));
+
+    if (user) {
+      try {
+        await deleteCalculation(id);
+        toast({ title: "Supprimé", description: "Le calcul a été supprimé du cloud." });
+      } catch (error) {
+        console.error("Failed to delete calculation from Firestore", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur de suppression",
+          description: "Impossible de supprimer le calcul. Restauration de l'affichage.",
+        });
+        // Revert UI if delete fails
+        setHistory(originalHistory);
+      }
+    } else {
+      // For local history, just filtering the state is enough, 
+      // the useEffect for localStorage will handle persistence.
+      toast({ title: "Supprimé localement", description: "Le calcul a été supprimé de cet appareil." });
+    }
   };
   
   const handleCalculate = () => {

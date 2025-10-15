@@ -1,6 +1,6 @@
 'use client';
 
-import { addDoc, collection, getFirestore, onSnapshot, query, where, orderBy, type DocumentData, type Unsubscribe } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, onSnapshot, query, where, orderBy, type DocumentData, type Unsubscribe, deleteDoc, doc } from 'firebase/firestore';
 import { app } from './config';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
@@ -77,4 +77,19 @@ export function getCalculations(uid: string, onUpdate: (calculations: Calculatio
     });
 
     return unsubscribe;
+}
+
+export async function deleteCalculation(id: string): Promise<void> {
+  const docRef = doc(db, 'calculations', id);
+  try {
+    await deleteDoc(docRef);
+  } catch (serverError) {
+    console.error('Original Firestore error:', serverError);
+    const permissionError = new FirestorePermissionError({
+      path: `calculations/${id}`,
+      operation: 'delete',
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    throw new Error("Impossible de supprimer sur le serveur.");
+  }
 }
