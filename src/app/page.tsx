@@ -463,7 +463,6 @@ export default function CargoValuatorPage() {
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
     const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
-    const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
   
     doc.setFontSize(16);
     doc.text("Indicateurs Clés (KPIs)", 14, 30);
@@ -474,7 +473,6 @@ export default function CargoValuatorPage() {
       ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
       ["Nombre total de caisses:", totalCaisses.toString()],
       ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
-      ["Montant total convenu (Riyal):", formatCurrency(totalAgreedRiyal, 'Riyal')],
     ];
   
     autoTable(doc, {
@@ -584,7 +582,7 @@ export default function CargoValuatorPage() {
         <header className="flex justify-between items-center mb-4 md:mb-6">
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Logo className="w-9 h-9 text-primary" />
+              <Truck className="w-9 h-9 text-primary" />
               Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
