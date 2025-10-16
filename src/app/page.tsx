@@ -451,30 +451,30 @@ export default function CargoValuatorPage() {
       toast({ variant: "destructive", title: "L'historique est vide." });
       return;
     }
-
+  
     const doc = new jsPDF();
     doc.setFont("Helvetica");
-
+  
     const title = "Rapport d'Activité Cargo";
     doc.setFontSize(22);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
-
+  
     const totalCalculs = history.length;
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
     const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
-
+  
     doc.setFontSize(16);
     doc.text("Indicateurs Clés (KPIs)", 14, 30);
     doc.setFontSize(11);
-
+  
     const kpiData = [
-        ["Nombre total de calculs:", totalCalculs.toString()],
-        ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
-        ["Nombre total de caisses:", totalCaisses.toString()],
-        ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
+      ["Nombre total de calculs:", totalCalculs.toString()],
+      ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
+      ["Nombre total de caisses:", totalCaisses.toString()],
+      ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
     ];
-
+  
     autoTable(doc, {
       body: kpiData,
       startY: 35,
@@ -482,29 +482,29 @@ export default function CargoValuatorPage() {
       styles: { font: "Helvetica", fontSize: 11 },
       columnStyles: { 0: { fontStyle: 'bold' } },
     });
-
-
+  
+  
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
     doc.text("Historique des Calculs", 14, tableStartY);
-
+  
     const head = [
       ["Date", "Client", "Produit", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
     ];
-
+  
     const body = history.map(item => {
-        const productInfo = item.productType ? vegetables[item.productType as VegetableKey]?.name ?? 'N/A' : 'N/A';
-        return [
-            item.date,
-            item.clientName,
-            productInfo,
-            item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
-            formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
-            item.remainingCrates,
-            formatCurrency(item.remainingMoney)
-        ];
+      const productInfo = item.productType ? vegetables[item.productType as VegetableKey]?.name ?? 'N/A' : 'N/A';
+      return [
+        item.date,
+        item.clientName,
+        productInfo,
+        item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
+        formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
+        item.remainingCrates,
+        formatCurrency(item.remainingMoney)
+      ];
     });
-
+  
     autoTable(doc, {
       head: head,
       body: body,
@@ -521,7 +521,7 @@ export default function CargoValuatorPage() {
         6: { halign: 'right' },
       },
     });
-
+  
     const formattedDate = new Date().toISOString().slice(0, 10);
     doc.save(`rapport_cargo_${formattedDate}.pdf`);
   };
@@ -1057,3 +1057,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
