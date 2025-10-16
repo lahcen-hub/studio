@@ -463,17 +463,22 @@ export default function CargoValuatorPage() {
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
     const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
+    const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
   
     doc.setFontSize(16);
     doc.text("Indicateurs Clés (KPIs)", 14, 30);
     doc.setFontSize(11);
   
-    const kpiData = [
+    const kpiData: string[][] = [
       ["Nombre total de calculs:", totalCalculs.toString()],
       ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
       ["Nombre total de caisses:", totalCaisses.toString()],
       ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
     ];
+
+    if (totalAgreedRiyal > 0) {
+        kpiData.push(["Montant total convenu (Riyal):", formatCurrency(totalAgreedRiyal, 'Riyal')]);
+    }
   
     autoTable(doc, {
       body: kpiData,
@@ -1057,5 +1062,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
