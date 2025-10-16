@@ -24,8 +24,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#000000" />
-        <link rel="apple-touch-icon" href="/logo.svg" />
-        <link rel="icon" href="/logo.svg" sizes="any" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/camionnette.svg" />
+        <link rel="icon" href="/camionnette.svg" sizes="any" type="image/svg+xml" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
