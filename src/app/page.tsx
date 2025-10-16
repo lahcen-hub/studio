@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
+import Logo from '@/components/icons/Logo';
 
 
 const arefRuqaa = Aref_Ruqaa({
@@ -445,14 +446,14 @@ export default function CargoValuatorPage() {
     }
   };
 
- const downloadHistory = async () => {
+  const downloadHistory = async () => {
     if (history.length === 0) {
-        toast({ variant: "destructive", title: "L'historique est vide." });
-        return;
+      toast({ variant: "destructive", title: "L'historique est vide." });
+      return;
     }
 
     const doc = new jsPDF();
-    doc.setFont("Helvetica"); 
+    doc.setFont("Helvetica");
 
     const title = "Rapport d'Activité Cargo";
     doc.setFontSize(22);
@@ -462,11 +463,11 @@ export default function CargoValuatorPage() {
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
     const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
     const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
-    
+
     doc.setFontSize(16);
     doc.text("Indicateurs Clés (KPIs)", 14, 30);
     doc.setFontSize(11);
-    
+
     const kpiData = [
         ["Nombre total de calculs:", totalCalculs.toString()],
         ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
@@ -475,19 +476,20 @@ export default function CargoValuatorPage() {
     ];
 
     autoTable(doc, {
-        body: kpiData,
-        startY: 35,
-        theme: 'plain',
-        styles: { font: "Helvetica", fontSize: 11 },
-        columnStyles: { 0: { fontStyle: 'bold' } },
+      body: kpiData,
+      startY: 35,
+      theme: 'plain',
+      styles: { font: "Helvetica", fontSize: 11 },
+      columnStyles: { 0: { fontStyle: 'bold' } },
     });
+
 
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
     doc.text("Historique des Calculs", 14, tableStartY);
 
     const head = [
-        ["Date", "Client", "Produit", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
+      ["Date", "Client", "Produit", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
     ];
 
     const body = history.map(item => {
@@ -504,20 +506,20 @@ export default function CargoValuatorPage() {
     });
 
     autoTable(doc, {
-        head: head,
-        body: body,
-        startY: tableStartY + 5,
-        styles: { font: "Helvetica", halign: 'center', fontSize: 9 },
-        headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
-        columnStyles: {
-            0: { halign: 'left' },
-            1: { halign: 'left' },
-            2: { halign: 'center' },
-            3: { halign: 'right' },
-            4: { halign: 'right' },
-            5: { halign: 'center' },
-            6: { halign: 'right' },
-        },
+      head: head,
+      body: body,
+      startY: tableStartY + 5,
+      styles: { font: "Helvetica", halign: 'center', fontSize: 9 },
+      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
+      columnStyles: {
+        0: { halign: 'left' },
+        1: { halign: 'left' },
+        2: { halign: 'center' },
+        3: { halign: 'right' },
+        4: { halign: 'right' },
+        5: { halign: 'center' },
+        6: { halign: 'right' },
+      },
     });
 
     const formattedDate = new Date().toISOString().slice(0, 10);
@@ -580,7 +582,7 @@ export default function CargoValuatorPage() {
         <header className="flex justify-between items-center mb-4 md:mb-6">
            <div className="flex-1 text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Truck className="w-9 h-9 text-primary" />
+              <Logo className="w-9 h-9 text-primary" />
               Cargo
             </h1>
             <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
@@ -922,7 +924,7 @@ export default function CargoValuatorPage() {
                                   <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm-w-9 text-destructive" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
@@ -1036,8 +1038,7 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>
-                            <Input 
+                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>                            <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
                                 value={editingEntry.remainingMoney} 
