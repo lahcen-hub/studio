@@ -1,15 +1,16 @@
 {
-  "name": "Cargo",
-  "short_name": "Cargo",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#b0f2b6",
-  "theme_color": "#b0f2b6",
-  "icons": [
-    {
-      "src": "/camionnette.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    }
-  ]
+    "name": "Cargo",
+    "short_name": "Cargo",
+    "description": "Calculates total price for two product types based on cargo data.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#4CAF50",
+    "theme_color": "#4CAF50",
+    "icons": [
+        {
+            "src": "/camionnette.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
 }
