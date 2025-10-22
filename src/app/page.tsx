@@ -828,7 +828,7 @@ export default function CargoValuatorPage() {
                           <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="clientName" className="text-right">Nom du client</Label>
-                              <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
+                              <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3 border-primary/30" />
                             </div>
                              <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="agreedAmount" className="text-right font-bold">المبلغ المتفق عليه</Label>
@@ -838,10 +838,10 @@ export default function CargoValuatorPage() {
                                         type="number" 
                                         value={agreedAmount}
                                         onChange={(e) => setAgreedAmount(e.target.value)} 
-                                        className="col-span-2"
+                                        className="col-span-2 border-primary/30"
                                     />
                                     <Select value={agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setAgreedAmountCurrency(value)}>
-                                        <SelectTrigger className="col-span-1">
+                                        <SelectTrigger className="col-span-1 border-primary/30">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -858,7 +858,7 @@ export default function CargoValuatorPage() {
                                     type="number" 
                                     value={remainingCrates}
                                     onChange={(e) => setRemainingCrates(e.target.value)}
-                                    className="col-span-3" 
+                                    className="col-span-3 border-primary/30" 
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -868,7 +868,7 @@ export default function CargoValuatorPage() {
                                     type="number" 
                                     value={remainingMoney}
                                     onChange={(e) => setRemainingMoney(e.target.value)} 
-                                    className="col-span-3" 
+                                    className="col-span-3 border-primary/30" 
                                 />
                             </div>
                           </div>
