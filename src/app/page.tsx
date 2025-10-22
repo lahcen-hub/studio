@@ -131,6 +131,7 @@ export default function CargoValuatorPage() {
   const [distributeVirtualCrates, setDistributeVirtualCrates] = useState<number | string>('');
 
   const hasSynced = useRef(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const sortHistory = useCallback((historyToSort: HistoryEntry[]) => {
     return historyToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -422,6 +423,12 @@ export default function CargoValuatorPage() {
 
     if (Object.keys(newErrors).length === 0) {
       setShowResults(true);
+      // Scroll to results on mobile
+      setTimeout(() => {
+        if (window.innerWidth < 768 && resultsRef.current) {
+            resultsRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     } else {
       setShowResults(false);
     }
@@ -698,7 +705,7 @@ export default function CargoValuatorPage() {
             </Card>
           </div>
           {showResults && (
-            <div className="md:col-span-3">
+            <div className="md:col-span-3" ref={resultsRef}>
               <Card className="shadow-lg h-full flex flex-col">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
@@ -929,7 +936,7 @@ export default function CargoValuatorPage() {
                                   <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm-w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
@@ -1062,3 +1069,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
