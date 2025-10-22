@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Calculation": {
@@ -16,7 +17,7 @@
         "productType": {
           "type": "string",
           "description": "The type of product for the calculation.",
-          "enum": ["tomato", "cucumber", "pepper"]
+          "enum": ["tomato", "cucumber", "pepper", "pepper_kwach"]
         },
         "results": {
           "type": "object",
@@ -78,3 +79,5 @@
     }
   }
 }
+
+    

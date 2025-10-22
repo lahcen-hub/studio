@@ -30,12 +30,13 @@ const arefRuqaa = Aref_Ruqaa({
   subsets: ['latin'],
 });
 
-type VegetableKey = 'tomato' | 'cucumber' | 'pepper';
+type VegetableKey = 'tomato' | 'cucumber' | 'pepper' | 'pepper_kwach';
 
 const vegetables: Record<VegetableKey, { name: string; weight: number; icon: string }> = {
     tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
     cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
     pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
+    pepper_kwach: { name: 'Poivron Kwach', weight: 14, icon: '🌶️' },
 };
 
 
@@ -1079,5 +1080,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
