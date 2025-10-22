@@ -36,7 +36,7 @@ const vegetables: Record<VegetableKey, { name: string; weight: number; icon: str
     tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
     cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
     pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
-    pepper_kwach: { name: 'Poivron Kwach', weight: 14, icon: '🌶️' },
+    pepper_kwach: { name: 'Poivron Kwach', weight: 14, icon: '🫑' },
 };
 
 
@@ -355,12 +355,14 @@ export default function CargoValuatorPage() {
   const handleUpdate = async () => {
     if (!editingEntry) return;
 
-    // Use a temporary variable and ensure numbers are properly handled
     const entryToUpdate: HistoryEntry = {
-      ...editingEntry,
-      agreedAmount: Number(editingEntry.agreedAmount) || 0,
-      remainingCrates: Number(editingEntry.remainingCrates) || 0,
-      remainingMoney: Number(editingEntry.remainingMoney) || 0,
+        ...editingEntry,
+        clientName: editingEntry.clientName,
+        productType: editingEntry.productType,
+        agreedAmount: Number(editingEntry.agreedAmount) || 0,
+        agreedAmountCurrency: editingEntry.agreedAmountCurrency,
+        remainingCrates: Number(editingEntry.remainingCrates) || 0,
+        remainingMoney: Number(editingEntry.remainingMoney) || 0,
     };
 
     const { id, synced, ...dataToUpdate } = entryToUpdate;
@@ -1034,10 +1036,9 @@ export default function CargoValuatorPage() {
                                     id="editAgreedAmount" 
                                     type="number" 
                                     value={editingEntry.agreedAmount} 
-                                    onChange={(e) => setEditingEntry({ ...editingEntry, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) })}
-                                    onBlur={() => setEditingEntry(prev => prev ? { ...prev, agreedAmount: Number(prev.agreedAmount) || 0 } : null)}
+                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value } : null)}
                                     className="col-span-2" />
-                                <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry({ ...editingEntry, agreedAmountCurrency: value })}>
+                                <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
                                     <SelectTrigger className="col-span-1">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -1054,8 +1055,7 @@ export default function CargoValuatorPage() {
                                 id="editRemainingCrates" 
                                 type="number" 
                                 value={editingEntry.remainingCrates} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) })}
-                                onBlur={() => setEditingEntry(prev => prev ? { ...prev, remainingCrates: Number(prev.remainingCrates) || 0 } : null)}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -1064,8 +1064,7 @@ export default function CargoValuatorPage() {
                                 id="editRemainingMoney" 
                                 type="number" 
                                 value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) })}
-                                onBlur={() => setEditingEntry(prev => prev ? { ...prev, remainingMoney: Number(prev.remainingMoney) || 0 } : null)}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
@@ -1080,6 +1079,8 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
 
