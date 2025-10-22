@@ -354,10 +354,17 @@ export default function CargoValuatorPage() {
   const handleUpdate = async () => {
     if (!editingEntry) return;
 
-    const { id, synced, ...dataToUpdate } = editingEntry;
+    // Use a temporary variable and ensure numbers are properly handled
+    const entryToUpdate: HistoryEntry = {
+      ...editingEntry,
+      agreedAmount: Number(editingEntry.agreedAmount) || 0,
+      remainingCrates: Number(editingEntry.remainingCrates) || 0,
+      remainingMoney: Number(editingEntry.remainingMoney) || 0,
+    };
 
-    // Optimistically update UI
-    setHistory(history.map(entry => entry.id === id ? editingEntry : entry));
+    const { id, synced, ...dataToUpdate } = entryToUpdate;
+
+    setHistory(history.map(entry => entry.id === id ? entryToUpdate : entry));
     setEditingEntry(null);
 
     if (user && navigator.onLine) {
@@ -367,10 +374,9 @@ export default function CargoValuatorPage() {
         } catch (error) {
             console.error("Failed to update calculation", error);
             toast({ variant: "destructive", title: "Erreur de mise à jour", description: "Impossible de mettre à jour sur le serveur." });
-            // Optionally revert UI change here
+            // Optionally revert UI change here by refetching or restoring a backup
         }
     } else {
-        // If offline or not logged in, the optimistic update is saved to localStorage by the useEffect
         toast({ title: "Mis à jour localement", description: "Les modifications seront synchronisées plus tard." });
     }
   };
@@ -1027,7 +1033,8 @@ export default function CargoValuatorPage() {
                                     id="editAgreedAmount" 
                                     type="number" 
                                     value={editingEntry.agreedAmount} 
-                                    onChange={(e) => setEditingEntry({ ...editingEntry, agreedAmount: Number(e.target.value) })}
+                                    onChange={(e) => setEditingEntry({ ...editingEntry, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                                    onBlur={() => setEditingEntry(prev => prev ? { ...prev, agreedAmount: Number(prev.agreedAmount) || 0 } : null)}
                                     className="col-span-2" />
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry({ ...editingEntry, agreedAmountCurrency: value })}>
                                     <SelectTrigger className="col-span-1">
@@ -1046,15 +1053,18 @@ export default function CargoValuatorPage() {
                                 id="editRemainingCrates" 
                                 type="number" 
                                 value={editingEntry.remainingCrates} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: Number(e.target.value) })}
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) })}
+                                onBlur={() => setEditingEntry(prev => prev ? { ...prev, remainingCrates: Number(prev.remainingCrates) || 0 } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>                            <Input 
+                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>                            
+                            <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
                                 value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: Number(e.target.value) })}
+                                onChange={(e) => setEditingEntry({ ...editingEntry, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) })}
+                                onBlur={() => setEditingEntry(prev => prev ? { ...prev, remainingMoney: Number(prev.remainingMoney) || 0 } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
