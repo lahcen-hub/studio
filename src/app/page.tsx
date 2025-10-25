@@ -364,11 +364,22 @@ export default function CargoValuatorPage() {
   const formatCurrency = (value: number, currency = 'MAD') => {
     if (isNaN(value)) value = 0;
     let localeString = locale === 'ar' ? 'ar-SA' : 'fr-MA';
+
+    // Options to force Latin numerals
+    const commonOptions: Intl.NumberFormatOptions = {
+      numberingSystem: 'latn'
+    };
+
     if (currency === 'Riyal') {
-        const numberPart = new Intl.NumberFormat(localeString).format(value);
+        const numberPart = new Intl.NumberFormat(localeString, commonOptions).format(value);
         return `${numberPart} ${t('currency_riyal')}`;
     }
-    const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
+    const options: Intl.NumberFormatOptions = { 
+        style: 'currency', 
+        currency, 
+        currencyDisplay: 'code',
+        ...commonOptions 
+    };
 
     return new Intl.NumberFormat(localeString, options).format(value);
   }
