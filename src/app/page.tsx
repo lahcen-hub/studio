@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Aref_Ruqaa } from 'next/font/google';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -23,20 +22,29 @@ import { useToast } from '@/hooks/use-toast';
 import * as htmlToImage from 'html-to-image';
 import { saveCalculation, getCalculations, type CalculationDB, deleteCalculation, updateCalculation } from '@/lib/firebase/firestore';
 import Logo from '@/components/icons/Logo';
+import { useI18n, type Locale } from '@/lib/i18n/i18n';
+import { Cairo } from 'next/font/google';
 
-
-const arefRuqaa = Aref_Ruqaa({
+const cairo = Cairo({
   weight: '700',
-  subsets: ['latin'],
+  subsets: ['arabic'],
 });
 
 type VegetableKey = 'tomato' | 'cucumber' | 'pepper' | 'pepper_kwach';
 
-const vegetables: Record<VegetableKey, { name: string; weight: number; icon: string }> = {
-    tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
-    cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
-    pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
-    pepper_kwach: { name: 'Poivron Coach', weight: 14, icon: '🌶️' },
+interface Vegetable {
+    name: string;
+    name_ar: string;
+    name_en: string;
+    weight: number;
+    icon: string;
+}
+
+const vegetables: Record<VegetableKey, Vegetable> = {
+    tomato: { name: 'Tomate', name_ar: 'طماطم', name_en: 'Tomato', weight: 31, icon: '🍅' },
+    cucumber: { name: 'Concombre', name_ar: 'خيار', name_en: 'Cucumber', weight: 27, icon: '🥒' },
+    pepper: { name: 'Poivron Ramos', name_ar: 'فلفل راموس', name_en: 'Ramos Pepper', weight: 15, icon: '🌶️' },
+    pepper_kwach: { name: 'Poivron Coach', name_ar: 'فلفل كواتش', name_en: 'Coach Pepper', weight: 14, icon: '🌶️' },
 };
 
 
@@ -53,6 +61,7 @@ interface InputFieldProps {
 }
 
 const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, icon, step = 1, isBold = false, isError = false }) => {
+  const { direction } = useI18n();
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value === '' ? '' : Number(e.target.value));
   };
@@ -87,9 +96,12 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="0"
-          className={cn("pr-16", isError && "border-destructive ring-destructive ring-1")}
+          className={cn(direction === 'rtl' ? 'pr-8 pl-12' : 'pl-8 pr-12', isError && "border-destructive ring-destructive ring-1")}
         />
-        <div className="absolute right-0 flex items-center pr-3">
+        <div className={cn("absolute flex items-center", direction === 'rtl' ? 'right-3' : 'left-3')}>
+             {icon}
+        </div>
+        <div className={cn("absolute flex items-center", direction === 'rtl' ? 'left-3' : 'right-3')}>
           <span className="text-sm text-muted-foreground">{unit}</span>
         </div>
       </div>
@@ -101,9 +113,36 @@ interface HistoryEntry extends CalculationDB {
   synced?: boolean;
 }
 
+const LanguageSwitcher = () => {
+    const { locale, setLocale, direction } = useI18n();
+    const languages: { code: Locale; name: string; flag: string }[] = [
+        { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+        { code: 'fr', name: 'Français', flag: '🇫🇷' },
+        { code: 'en', name: 'English', flag: '🇬🇧' },
+    ];
+
+    return (
+        <div className="flex gap-1 rounded-full bg-secondary p-1">
+            {languages.map((lang) => (
+                <Button
+                    key={lang.code}
+                    variant={locale === lang.code ? 'default' : 'ghost'}
+                    size="sm"
+                    className="rounded-full px-3 py-1 h-auto text-sm"
+                    onClick={() => setLocale(lang.code)}
+                >
+                    {lang.flag}
+                    <span className="hidden sm:inline ml-2">{lang.name}</span>
+                </Button>
+            ))}
+        </div>
+    );
+};
+
 
 export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
+  const { t, locale, direction } = useI18n();
   const { toast } = useToast();
   const [mlihCrates, setMlihCrates] = useState<number | string>(0);
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
@@ -155,7 +194,7 @@ export default function CargoValuatorPage() {
             const itemsToSync = localHistory.filter(item => !item.synced);
 
             if (itemsToSync.length > 0) {
-              toast({ title: "Synchronisation...", description: `Synchronisation de ${itemsToSync.length} calcul(s) local(aux) avec le cloud.` });
+              toast({ title: t('syncing_title'), description: t('syncing_desc', { count: itemsToSync.length }) });
               
               const syncPromises = itemsToSync.map(item => {
                 const { id, synced, ...dataToSave } = item;
@@ -165,11 +204,11 @@ export default function CargoValuatorPage() {
               Promise.all(syncPromises)
                 .then(() => {
                   localStorage.removeItem('cargoHistory_local');
-                  toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
+                  toast({ title: t('sync_complete_title'), description: t('sync_complete_desc') });
                 })
                 .catch(err => {
                    console.error("Failed to sync history", err);
-                   toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser l'historique local. Vos données sont toujours sur cet appareil." });
+                   toast({ variant: "destructive", title: t('sync_error_title'), description: t('sync_error_desc') });
                 });
             }
           } catch (e) {
@@ -181,14 +220,8 @@ export default function CargoValuatorPage() {
       // Listen for real-time updates from Firestore
       unsubscribe = getCalculations(user.uid, (firestoreHistory) => {
         setHistory(prevHistory => {
-          // This merge logic is tricky. We want to respect Firestore as the source of truth,
-          // but keep any local-only items that haven't been synced yet.
           const firestoreMap = new Map(firestoreHistory.map(h => [h.id, {...h, synced: true}]));
-          
-          // Get local items that are NOT in firestore yet.
-          // These could be new items created offline.
           const localOnlyItems = prevHistory.filter(h => !h.synced && !firestoreMap.has(h.id));
-
           const merged = [...firestoreMap.values(), ...localOnlyItems];
           return sortHistory(merged);
         });
@@ -200,7 +233,6 @@ export default function CargoValuatorPage() {
         const savedHistory = localStorage.getItem('cargoHistory_local');
         if (savedHistory) {
           const parsedHistory: HistoryEntry[] = JSON.parse(savedHistory);
-          // Mark all items as unsynced for a logged-out user
           const historyToSet = parsedHistory.map(item => ({...item, synced: false}));
           setHistory(sortHistory(historyToSet));
         } else {
@@ -214,22 +246,23 @@ export default function CargoValuatorPage() {
 
     // Cleanup listener on unmount or user change
     return () => unsubscribe();
-  }, [user, loading, toast, sortHistory]);
+  }, [user, loading, toast, sortHistory, t]);
 
 
   // Save to localStorage when not logged in OR when there are unsynced items
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        // User logged out, save everything to a new local storage key
         if(history.length > 0) {
-            const historyToSave = history.map(item => ({...item, synced: false}));
+            const historyToSave = history.map(({ ...item }) => {
+              delete item.synced; // remove synced flag for local storage
+              return item;
+            });
             localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
         } else {
             localStorage.removeItem('cargoHistory_local');
         }
       } else {
-        // User is logged in, only save unsynced items
         const unsyncedHistory = history.filter(item => !item.synced);
         if (unsyncedHistory.length > 0) {
           localStorage.setItem('cargoHistory_local', JSON.stringify(unsyncedHistory));
@@ -314,19 +347,19 @@ export default function CargoValuatorPage() {
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     if (isNaN(value)) value = 0;
+    let localeString = locale === 'ar' ? 'ar-SA' : 'fr-MA';
     if (currency === 'Riyal') {
-        const numberPart = new Intl.NumberFormat('fr-MA').format(value);
-        return `${numberPart} Riyal`;
+        const numberPart = new Intl.NumberFormat(localeString).format(value);
+        return `${numberPart} ${t('currency_riyal')}`;
     }
     const options: Intl.NumberFormatOptions = { style: 'currency', currency, currencyDisplay: 'code' };
-    let locale = 'fr-MA';
 
-    return new Intl.NumberFormat(locale, options).format(value);
+    return new Intl.NumberFormat(localeString, options).format(value);
   }
   
   const handleSave = async () => {
     if (!selectedVegetable) {
-      toast({ variant: "destructive", title: "Produit manquant", description: "Veuillez sélectionner un type de produit." });
+      toast({ variant: "destructive", title: t('product_missing_title'), description: t('product_missing_desc') });
       return;
     }
     setSaveDialogOpen(false);
@@ -353,22 +386,20 @@ export default function CargoValuatorPage() {
     if (user && navigator.onLine) {
         try {
             await saveCalculation(user.uid, newEntryData);
-            // No need to manually update history, onSnapshot will do it.
-            toast({ title: "Succès", description: "Le calcul a été enregistré et synchronisé." });
+            toast({ title: t('save_success_title'), description: t('save_success_desc') });
         } catch (error) {
             console.error("Failed to save online", error);
-            // Don't save locally if online save fails to prevent duplicates
-            toast({ variant: "destructive", title: "Échec de la sauvegarde", description: "Impossible d'enregistrer sur le serveur. Veuillez vérifier votre connexion et réessayer." });
+            toast({ variant: "destructive", title: t('save_fail_title'), description: t('save_fail_desc') });
         }
     } else {
         const localEntry: HistoryEntry = {
             ...newEntryData,
             id: Date.now().toString(),
             synced: false,
-            uid: user?.uid || 'local' // Keep uid if user is just offline
+            uid: user?.uid || 'local'
         };
       setHistory(prev => sortHistory([localEntry, ...prev]));
-      toast({ title: "Sauvegardé localement", description: user ? "Vous êtes hors ligne. Le calcul sera synchronisé plus tard." : "Connectez-vous pour synchroniser." });
+      toast({ title: t('saved_locally_title'), description: user ? t('saved_locally_offline_desc') : t('saved_locally_guest_desc') });
     }
     
     setClientName('');
@@ -380,7 +411,7 @@ export default function CargoValuatorPage() {
   
   const handleOpenSaveDialog = () => {
      if (!selectedVegetable) {
-      toast({ variant: "destructive", title: "Produit manquant", description: "Veuillez sélectionner un type de produit." });
+      toast({ variant: "destructive", title: t('product_missing_title'), description: t('product_missing_desc') });
       return;
     }
     setSaveDialogOpen(true);
@@ -406,17 +437,16 @@ export default function CargoValuatorPage() {
     setHistory(history.map(entry => entry.id === id ? entryToUpdate : entry));
     setEditingEntry(null);
 
-    if (user && navigator.onLine && synced) { // Only update if it's already in Firestore
+    if (user && navigator.onLine && synced) {
         try {
             await updateCalculation(id, dataToUpdate);
-            toast({ title: "Mise à jour réussie", description: "Le calcul a été mis à jour." });
+            toast({ title: t('update_success_title'), description: t('update_success_desc') });
         } catch (error) {
             console.error("Failed to update calculation", error);
-            toast({ variant: "destructive", title: "Erreur de mise à jour", description: "Impossible de mettre à jour sur le serveur." });
-            // Optionally revert UI change here by refetching or restoring a backup
+            toast({ variant: "destructive", title: t('update_fail_title'), description: t('update_fail_desc') });
         }
     } else {
-        toast({ title: "Mis à jour localement", description: "Les modifications seront synchronisées plus tard." });
+        toast({ title: t('updated_locally_title'), description: t('updated_locally_desc') });
     }
   };
 
@@ -432,27 +462,23 @@ export default function CargoValuatorPage() {
     if (!entryToDelete) return;
 
     const originalHistory = [...history];
-    // Optimistically remove from UI
     setHistory(history.filter(entry => entry.id !== id));
 
     if (user && navigator.onLine && entryToDelete.synced) {
       try {
         await deleteCalculation(id);
-        toast({ title: "Supprimé", description: "Le calcul a été supprimé du cloud." });
+        toast({ title: t('delete_success_title'), description: t('delete_success_desc') });
       } catch (error) {
         console.error("Failed to delete calculation from Firestore", error);
         toast({
           variant: "destructive",
-          title: "Erreur de suppression",
-          description: "Impossible de supprimer le calcul. Restauration de l'affichage.",
+          title: t('delete_fail_title'),
+          description: t('delete_fail_desc'),
         });
-        // Revert UI if delete fails
         setHistory(originalHistory);
       }
     } else {
-      // For local/offline history, just filtering the state is enough, 
-      // the useEffect for localStorage will handle persistence.
-      toast({ title: "Supprimé localement", description: "Le calcul a été supprimé de cet appareil." });
+      toast({ title: t('deleted_locally_title'), description: t('deleted_locally_desc') });
     }
   };
   
@@ -471,7 +497,6 @@ export default function CargoValuatorPage() {
 
     if (Object.keys(newErrors).length === 0) {
       setShowResults(true);
-      // Scroll to results on mobile
       setTimeout(() => {
         if (window.innerWidth < 768 && resultsRef.current) {
             resultsRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -484,35 +509,34 @@ export default function CargoValuatorPage() {
   
   const clearHistory = () => {
      if(user && navigator.onLine){
-        // Batch delete all documents for the user
         const syncedIds = history.filter(h => h.synced).map(h => h.id);
         if (syncedIds.length > 0) {
             const deletePromises = syncedIds.map(id => deleteCalculation(id));
             Promise.all(deletePromises)
-                .then(() => toast({ title: "Historique cloud vidé", description: "Tous vos calculs synchronisés ont été supprimés." }))
+                .then(() => toast({ title: t('clear_history_cloud_success_title'), description: t('clear_history_cloud_success_desc') }))
                 .catch(err => {
                     console.error("Failed to clear history from Firestore", err);
-                    toast({ variant: "destructive", title: "Erreur", description: "Impossible de vider l'historique sur le cloud." });
+                    toast({ variant: "destructive", title: t('clear_history_cloud_fail_title'), description: t('clear_history_cloud_fail_desc') });
                 });
         }
     } 
     
-    // Clear local unsynced data regardless of connection
-    setHistory(history.filter(h => !user || h.synced)); // Keep synced items if user is logged in
+    setHistory(history.filter(h => !user || h.synced));
     localStorage.removeItem('cargoHistory_local');
-    toast({ title: "Historique local vidé" });
+    toast({ title: t('clear_history_local_title') });
   };
 
   const downloadHistory = async () => {
     if (history.length === 0) {
-      toast({ variant: "destructive", title: "L'historique est vide." });
+      toast({ variant: "destructive", title: t('history_empty') });
       return;
     }
   
     const doc = new jsPDF();
-    doc.setFont("Helvetica");
+    doc.addFont('/js-pdf-fonts/Cairo-Regular.ttf', 'Cairo', 'normal');
+    doc.setFont('Cairo');
   
-    const title = "Rapport d'Activité Cargo";
+    const title = t('pdf_report_title');
     doc.setFontSize(22);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
   
@@ -523,39 +547,39 @@ export default function CargoValuatorPage() {
     const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
   
     doc.setFontSize(16);
-    doc.text("Indicateurs Clés (KPIs)", 14, 30);
+    doc.text(t('pdf_kpi_title'), 14, 30);
     doc.setFontSize(11);
   
     const kpiData: string[][] = [
-      ["Nombre total de calculs:", totalCalculs.toString()],
-      ["Poids net total transporté:", `${totalPoidsNet.toFixed(2)} kg`],
-      ["Nombre total de caisses:", totalCaisses.toString()],
-      ["Montant total convenu (MAD):", formatCurrency(totalAgreedMAD, 'MAD')],
+      [t('pdf_kpi_total_calcs'), totalCalculs.toString()],
+      [t('pdf_kpi_total_net_weight'), `${totalPoidsNet.toFixed(2)} kg`],
+      [t('pdf_kpi_total_crates'), totalCaisses.toString()],
+      [t('pdf_kpi_total_agreed_mad'), formatCurrency(totalAgreedMAD, 'MAD')],
     ];
 
     if (totalAgreedRiyal > 0) {
-        kpiData.push(["Montant total convenu (Riyal):", formatCurrency(totalAgreedRiyal, 'Riyal')]);
+        kpiData.push([t('pdf_kpi_total_agreed_riyal'), formatCurrency(totalAgreedRiyal, 'Riyal')]);
     }
   
     autoTable(doc, {
       body: kpiData,
       startY: 35,
       theme: 'plain',
-      styles: { font: "Helvetica", fontSize: 11 },
+      styles: { font: "Cairo", fontSize: 11 },
       columnStyles: { 0: { fontStyle: 'bold' } },
     });
   
   
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
-    doc.text("Historique des Calculs", 14, tableStartY);
+    doc.text(t('pdf_history_title'), 14, tableStartY);
   
     const head = [
-      ["Date", "Client", "Produit", "Prix de vente", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
+      [t('pdf_col_date'), t('pdf_col_client'), t('pdf_col_product'), t('pdf_col_selling_price'), t('pdf_col_net_weight'), t('pdf_col_agreed_amount'), t('pdf_col_remaining_crates'), t('pdf_col_remaining_money')]
     ];
   
     const body = history.map(item => {
-      const productInfo = item.productType ? vegetables[item.productType as VegetableKey]?.name ?? 'N/A' : 'N/A';
+      const productInfo = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
       return [
         item.date,
         item.clientName,
@@ -572,17 +596,11 @@ export default function CargoValuatorPage() {
       head: head,
       body: body,
       startY: tableStartY + 5,
-      styles: { font: "Helvetica", halign: 'center', fontSize: 8 },
+      styles: { font: "Cairo", halign: 'center', fontSize: 8 },
       headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
       columnStyles: {
-        0: { halign: 'left' },
-        1: { halign: 'left' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'right' },
-        5: { halign: 'right' },
-        6: { halign: 'center' },
-        7: { halign: 'right' },
+        0: { halign: 'left' }, 1: { halign: 'left' }, 2: { halign: 'center' }, 3: { halign: 'center' },
+        4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'center' }, 7: { halign: 'right' },
       },
     });
   
@@ -596,7 +614,7 @@ export default function CargoValuatorPage() {
         htmlToImage.toPng(element, { 
           backgroundColor: '#F0F4F0',
           fontEmbedCSS: `
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap');
           `
         })
             .then((dataUrl) => {
@@ -607,7 +625,7 @@ export default function CargoValuatorPage() {
             })
             .catch((error) => {
                 console.error('oops, something went wrong!', error);
-                toast({ variant: "destructive", title: "Erreur", description: "Impossible de générer l'image." });
+                toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
             });
     }
   };
@@ -641,23 +659,23 @@ export default function CargoValuatorPage() {
 
 
   return (
-    <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6">
+    <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-4 md:mb-6">
+          <div className="flex-shrink-0">
+             <AuthArea />
+          </div>
            <div className="flex-1 text-center">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
+            <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
               <Truck className="w-9 h-9 text-primary" />
-              Cargo
+              {t('app_title')}
             </h1>
-            <p className={`mt-1 text-xs text-foreground ${arefRuqaa.className}`}>
-              الحساب كيطول الشركة، وكيطور الخدمة
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Calcule le prix total pour deux types de produits en fonction des données de la cargaison.
+            <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
+                {t('app_subtitle')}
             </p>
           </div>
           <div className="flex-shrink-0">
-             <AuthArea />
+             <LanguageSwitcher />
           </div>
         </header>
 
@@ -666,14 +684,14 @@ export default function CargoValuatorPage() {
           <div className="md:col-span-2 space-y-4 md:space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg sm:text-xl font-bold">Données de la Cargaison</CardTitle>
-                <CardDescription>Entrez les détails ci-dessous.</CardDescription>
+                <CardTitle className={cn("text-lg sm:text-xl font-bold", locale === 'ar' && cairo.className)}>{t('cargo_data_title')}</CardTitle>
+                <CardDescription>{t('cargo_data_desc')}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:gap-5">
                 <div className="grid grid-cols-2 gap-4">
                     <InputField
                         id="grossWeight"
-                        label="Poids total brut"
+                        label={t('gross_weight_label')}
                         value={grossWeight}
                         setValue={setGrossWeight}
                         unit="kg"
@@ -685,42 +703,42 @@ export default function CargoValuatorPage() {
                     <div className="grid gap-2">
                         <Label className={cn("flex items-center gap-2 text-sm font-bold", errors.fullCrateWeight && "text-destructive")}>
                             <Scale className="w-4 h-4 text-primary" />
-                            Type de Produit
+                            {t('product_type_label')}
                         </Label>
                         <Select onValueChange={(value: VegetableKey) => setSelectedVegetable(value)} value={selectedVegetable || undefined}>
                           <SelectTrigger className={cn("text-base", errors.fullCrateWeight && "border-destructive ring-destructive ring-1")}>
-                            <SelectValue placeholder="Sélectionner..." />
+                            <SelectValue placeholder={t('product_type_placeholder')} />
                           </SelectTrigger>
                           <SelectContent>
                             {(Object.keys(vegetables) as Array<keyof typeof vegetables>).map((key) => (
                               <SelectItem key={key} value={key}>
                                 <div className="flex items-center gap-2">
                                     <span className="text-xl">{vegetables[key].icon}</span>
-                                    <span>{vegetables[key].name}</span>
+                                    <span>{vegetables[key][`name_${locale}` as keyof Vegetable] ?? vegetables[key].name}</span>
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        {errors.fullCrateWeight && <p className="text-xs text-destructive">Obligatoire.</p>}
+                        {errors.fullCrateWeight && <p className="text-xs text-destructive">{t('required_field')}</p>}
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihCrates"
-                    label="مليح"
+                    label={t('mlih_crates_label')}
                     value={mlihCrates}
                     setValue={setMlihCrates}
-                    unit="caisses"
+                    unit={t('crates_unit')}
                     icon={<Package className="w-4 h-4 text-primary" />}
                     isBold
                   />
                   <InputField
                     id="dichiCrates"
-                    label="ديشي"
+                    label={t('dichi_crates_label')}
                     value={dichiCrates}
                     setValue={setDichiCrates}
-                    unit="caisses"
+                    unit={t('crates_unit')}
                     icon={<Package className="w-4 h-4 text-primary" />}
                     isBold
                   />
@@ -728,10 +746,10 @@ export default function CargoValuatorPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <InputField
                     id="mlihPrice"
-                    label="Prix المليح"
+                    label={t('mlih_price_label')}
                     value={mlihPrice}
                     setValue={setMlihPrice}
-                    unit="DH"
+                    unit={t('currency_dh')}
                     icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
                     step={5}
                     isBold
@@ -739,10 +757,10 @@ export default function CargoValuatorPage() {
 
                   <InputField
                     id="dichiPrice"
-                    label="Prix الديشي"
+                    label={t('dichi_price_label')}
                     value={dichiPrice}
                     setValue={setDichiPrice}
-                    unit="DH"
+                    unit={t('currency_dh')}
                     icon={<CircleDollarSign className="w-4 h-4 text-primary" />}
                     step={5}
                     isBold
@@ -751,7 +769,7 @@ export default function CargoValuatorPage() {
               </CardContent>
               <CardFooter>
                 <Button className="w-full" onClick={handleCalculate}>
-                  <Calculator className="mr-2 h-4 w-4" /> Calculer
+                  <Calculator className="mr-2 h-4 w-4" /> {t('calculate_button')}
                 </Button>
               </CardFooter>
             </Card>
@@ -761,49 +779,49 @@ export default function CargoValuatorPage() {
               <Card className="shadow-lg h-full flex flex-col">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg sm:text-xl">Résumé du Calcul</CardTitle>
-                    <CardDescription>Voici la répartition détaillée des poids et des prix.</CardDescription>
+                    <CardTitle className={cn("text-lg sm:text-xl", locale === 'ar' && cairo.className)}>{t('calculation_summary_title')}</CardTitle>
+                    <CardDescription>{t('calculation_summary_desc')}</CardDescription>
                   </div>
                   <Dialog open={isDistributeDialogOpen} onOpenChange={setDistributeDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="default" className="font-bold">
-                        <Share className="mr-2 h-4 w-4" /> توزيع
+                      <Button variant="default" className={cn("font-bold", locale === 'ar' && cairo.className)}>
+                        <Share className="mr-2 h-4 w-4" /> {t('distribute_button')}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Calcul de Distribution</DialogTitle>
+                        <DialogTitle className={cn(locale === 'ar' && cairo.className)}>{t('distribute_dialog_title')}</DialogTitle>
                         <DialogDescription>
-                          Entrez le nombre de "صندوق حرة" pour calculer les caisses et le poids brut.
+                          {t('distribute_dialog_desc')}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="distributeVirtualCrates" className="text-right font-bold">صندوق حرة</Label>
+                            <Label htmlFor="distributeVirtualCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('virtual_crates_label')}</Label>
                             <Input
                                 id="distributeVirtualCrates"
                                 type="number"
                                 value={distributeVirtualCrates}
                                 onChange={(e) => setDistributeVirtualCrates(e.target.value)}
                                 className="col-span-3"
-                                placeholder="ex: 20"
+                                placeholder={t('example_placeholder', {value: 20})}
                             />
                         </div>
                         <Separator />
                         <div className="space-y-4 text-center">
                             <div>
-                                <p className="text-sm text-muted-foreground">Caisses brutes à donner</p>
+                                <p className="text-sm text-muted-foreground">{t('gross_crates_to_give')}</p>
                                 <p className="text-2xl font-bold">{distributionCalculations.grossCrates.toFixed(2)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-muted-foreground">Poids total correspondant (kg)</p>
+                                <p className="text-sm text-muted-foreground">{t('corresponding_total_weight')}</p>
                                 <p className="text-2xl font-bold">{distributionCalculations.totalWeight.toFixed(2)} kg</p>
                             </div>
                         </div>
                       </div>
                       <DialogFooter>
                         <DialogClose asChild>
-                          <Button variant="outline">Fermer</Button>
+                          <Button variant="outline">{t('close_button')}</Button>
                         </DialogClose>
                       </DialogFooter>
                     </DialogContent>
@@ -812,15 +830,15 @@ export default function CargoValuatorPage() {
                 <CardContent className="flex-grow">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-center">
                       <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
-                          <p className="text-xs text-muted-foreground font-bold">صندوق حرة</p>
+                          <p className={cn("text-xs text-muted-foreground font-bold", locale === 'ar' && cairo.className)}>{t('virtual_crates_label')}</p>
                           <p className="text-base sm:text-lg font-bold">{calculations.totalVirtualCrates.toFixed(2)}</p>
                       </div>
                       <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
-                          <p className="text-xs text-muted-foreground font-bold">المليح حر</p>
+                          <p className={cn("text-xs text-muted-foreground font-bold", locale === 'ar' && cairo.className)}>{t('mlih_free_label')}</p>
                           <p className="text-base sm:text-lg font-bold">{calculations.virtualCratesMlih.toFixed(2)}</p>
                       </div>
                       <div className="bg-secondary/50 p-2 sm:p-3 rounded-lg">
-                          <p className="text-xs text-muted-foreground font-bold">الديشي حر</p>
+                          <p className={cn("text-xs text-muted-foreground font-bold", locale === 'ar' && cairo.className)}>{t('dichi_free_label')}</p>
                           <p className="text-base sm:text-lg font-bold">{calculations.virtualCratesDichi.toFixed(2)}</p>
                       </div>
                   </div>
@@ -829,24 +847,24 @@ export default function CargoValuatorPage() {
                       <Table>
                           <TableHeader>
                               <TableRow>
-                                  <TableHead className="w-[150px] sm:w-[200px] font-bold">Catégorie</TableHead>
-                                  <TableHead className="text-center font-bold">المليح (Mlih)</TableHead>
-                                  <TableHead className="text-center font-bold">الديشي (Dichi)</TableHead>
+                                  <TableHead className="w-[150px] sm:w-[200px] font-bold">{t('category_label')}</TableHead>
+                                  <TableHead className={cn("text-center font-bold", locale === 'ar' && cairo.className)}>{t('mlih_label')}</TableHead>
+                                  <TableHead className={cn("text-center font-bold", locale === 'ar' && cairo.className)}>{t('dichi_label')}</TableHead>
                               </TableRow>
                           </TableHeader>
                           <TableBody>
                               <TableRow>
-                                  <TableCell className="font-medium flex items-center gap-2 text-xs sm:text-sm"><Scale className="w-4 h-4 text-primary"/>Poids net (kg)</TableCell>
+                                  <TableCell className="font-medium flex items-center gap-2 text-xs sm:text-sm"><Scale className="w-4 h-4 text-primary"/>{t('net_weight_label')} (kg)</TableCell>
                                   <TableCell className="text-center text-xs sm:text-sm">{calculations.netWeightMlih.toFixed(2)}</TableCell>
                                   <TableCell className="text-center text-xs sm:text-sm">{calculations.netWeightDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow>
-                                  <TableCell className="font-bold flex items-center gap-2 text-xs sm:text-sm"><Calculator className="w-4 h-4 text-primary"/>صندوق حرة</TableCell>
+                                  <TableCell className={cn("font-bold flex items-center gap-2 text-xs sm:text-sm", locale === 'ar' && cairo.className)}><Calculator className="w-4 h-4 text-primary"/>{t('virtual_crates_label')}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesMlih.toFixed(2)}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow className="bg-primary/10">
-                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>Prix total (DH)</TableCell>
+                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('total_price_label')} ({t('currency_dh')})</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
                               </TableRow>
@@ -856,34 +874,34 @@ export default function CargoValuatorPage() {
                 </CardContent>
                 <CardFooter className="mt-auto flex flex-col gap-3">
                   <div className="w-full bg-accent text-accent-foreground p-3 rounded-lg flex justify-between items-center">
-                      <span className="text-base sm:text-lg font-bold">Prix Total Général</span>
+                      <span className="text-base sm:text-lg font-bold">{t('grand_total_price_label')}</span>
                       <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPrice)}</span>
                   </div>
                   <div className="w-full bg-secondary text-secondary-foreground p-3 rounded-lg flex justify-between items-center">
-                      <span className="text-base sm:text-lg font-bold">Prix Total (Riyal)</span>
+                      <span className="text-base sm:text-lg font-bold">{t('total_price_riyal_label')}</span>
                       <span className="text-lg sm:text-xl font-extrabold">{formatCurrency(calculations.grandTotalPriceRiyal, 'Riyal')}</span>
                   </div>
                      <Dialog open={isSaveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
                            <Button className="w-full" onClick={handleOpenSaveDialog}>
-                            <Save className="mr-2 h-4 w-4" /> Enregistrer
+                            <Save className="mr-2 h-4 w-4" /> {t('save_button')}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Enregistrer les détails</DialogTitle>
+                            <DialogTitle className={cn(locale === 'ar' && cairo.className)}>{t('save_details_title')}</DialogTitle>
                             <DialogDescription>
-                              Ajoutez des informations supplémentaires pour ce calcul.
-                              { !user && " Connectez-vous pour synchroniser avec le serveur."}
+                              {t('save_details_desc')}
+                              { !user && ` ${t('login_to_sync')}`}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="clientName" className="text-right">Nom du client</Label>
+                              <Label htmlFor="clientName" className="text-right">{t('client_name_label')}</Label>
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="agreedAmount" className="text-right font-bold">المبلغ المتفق عليه</Label>
+                                <Label htmlFor="agreedAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_amount_label')}</Label>
                                 <div className="col-span-3 grid grid-cols-3 gap-2">
                                     <Input 
                                         id="agreedAmount" 
@@ -897,14 +915,14 @@ export default function CargoValuatorPage() {
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="MAD">MAD</SelectItem>
-                                            <SelectItem value="Riyal">Riyal</SelectItem>
+                                            <SelectItem value="MAD">{t('currency_mad')}</SelectItem>
+                                            <SelectItem value="Riyal">{t('currency_riyal')}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="remainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                              <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                                <Input 
                                     id="remainingCrates" 
                                     type="number" 
@@ -914,7 +932,7 @@ export default function CargoValuatorPage() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="remainingMoney" className="text-right">Reste d'argent</Label>
+                              <Label htmlFor="remainingMoney" className="text-right">{t('remaining_money_label')}</Label>
                                <Input 
                                     id="remainingMoney" 
                                     type="number" 
@@ -926,9 +944,9 @@ export default function CargoValuatorPage() {
                           </div>
                           <DialogFooter>
                             <DialogClose asChild>
-                              <Button variant="outline">Annuler</Button>
+                              <Button variant="outline">{t('cancel_button')}</Button>
                             </DialogClose>
-                            <Button onClick={handleSave}>Enregistrer</Button>
+                            <Button onClick={handleSave}>{t('save_button')}</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
@@ -941,12 +959,12 @@ export default function CargoValuatorPage() {
             <Card className="shadow-lg">
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="space-y-1.5">
-                  <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                  <CardTitle className={cn("text-lg sm:text-xl font-bold flex items-center gap-2", locale === 'ar' && cairo.className)}>
                     <History className="w-5 h-5" />
-                    Historique
+                    {t('history_title')}
                   </CardTitle>
                   <CardDescription>
-                    {user ? "Vos calculs enregistrés et synchronisés en temps réel." : "Vos calculs sont sauvegardés localement. Connectez-vous pour les synchroniser."}
+                    {user ? t('history_desc_online') : t('history_desc_offline')}
                   </CardDescription>
                 </div>
                 {history.length > 0 && (
@@ -954,14 +972,14 @@ export default function CargoValuatorPage() {
                      {!user && !loading && history.some(item => !item.synced) && (
                         <div className="flex items-center gap-1 text-xs text-amber-600">
                             <RefreshCw className="w-3 h-3 animate-spin" />
-                            <span>Non synchronisé</span>
+                            <span>{t('unsynced_label')}</span>
                         </div>
                     )}
                     <Button variant="outline" size="sm" onClick={downloadHistory}>
-                      <Download className="mr-1 h-3 w-3" /> Télécharger
+                      <Download className="mr-1 h-3 w-3" /> {t('download_button')}
                     </Button>
                     <Button variant="destructive" size="sm" onClick={clearHistory}>
-                      <Trash2 className="mr-1 h-3 w-3" /> Vider
+                      <Trash2 className="mr-1 h-3 w-3" /> {t('clear_button')}
                     </Button>
                   </div>
                 )}
@@ -978,14 +996,14 @@ export default function CargoValuatorPage() {
                                 <div>
                                   <div className="flex items-center gap-2">
                                      <p className="text-xs text-muted-foreground">{item.date}</p>
-                                     {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title="Non synchronisé"/>}
+                                     {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
                                   <div className="flex items-center gap-2">
                                      <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                                      {product && (
                                       <p className="text-sm flex items-center gap-1">
                                         <span className="text-base">{product.icon}</span>
-                                        <span className="text-xs text-muted-foreground">{product.name}</span>
+                                        <span className="text-xs text-muted-foreground">{product[`name_${locale}` as keyof Vegetable] ?? product.name}</span>
                                       </p>
                                      )}
                                   </div>
@@ -1005,30 +1023,30 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_amount_label')}:</p>
                                       <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>Prix de vente (Mlih/Dichi):</p>
-                                      <p className="font-bold">{item.mlihPrice || 0} DH / {item.dichiPrice || 0} DH</p>
+                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
+                                      <p className="font-bold">{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
-                                      <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>Poids net total (kg):</span>
+                                      <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
                                       <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                   </div>
                                    <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>Total caisses:</p>
+                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
                                       <p className="font-bold">{item.totalCrates}</p>
                                   </div>
                                   <div className="col-span-2">
                                     <Separator className="my-1" />
                                   </div>
                                   <div className="flex justify-between items-center">
-                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Caisses restantes:</span>
+                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
                                       <span className="font-bold">{item.remainingCrates}</span>
                                   </div>
                                   <div className="flex justify-between items-center">
-                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Argent restant:</span>
+                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                   </div>
                             </div>
@@ -1037,7 +1055,7 @@ export default function CargoValuatorPage() {
                       })}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-center pt-10">Aucun calcul enregistré.</p>
+                    <p className="text-muted-foreground text-center pt-10">{t('no_calculations_saved')}</p>
                   )}
                 </ScrollArea>
               </CardContent>
@@ -1049,15 +1067,15 @@ export default function CargoValuatorPage() {
         <Dialog open={!!editingEntry} onOpenChange={(isOpen) => !isOpen && setEditingEntry(null)}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Modifier l'entrée de l'historique</DialogTitle>
+                    <DialogTitle className={cn(locale === 'ar' && cairo.className)}>{t('edit_history_entry_title')}</DialogTitle>
                     <DialogDescription>
-                        Mettez à jour les informations pour cette entrée.
+                        {t('edit_history_entry_desc')}
                     </DialogDescription>
                 </DialogHeader>
                 {editingEntry && (
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editClientName" className="text-right">Nom du client</Label>
+                            <Label htmlFor="editClientName" className="text-right">{t('client_name_label')}</Label>
                             <Input 
                                 id="editClientName" 
                                 value={editingEntry.clientName} 
@@ -1065,21 +1083,21 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label className="text-right">Produit</Label>
+                          <Label className="text-right">{t('product_type_label')}</Label>
                           <div className="col-span-3">
                              <Select 
                                 onValueChange={(value: VegetableKey) => setEditingEntry({ ...editingEntry, productType: value })} 
                                 value={editingEntry.productType as VegetableKey || undefined}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Sélectionner le produit..." />
+                                  <SelectValue placeholder={t('product_type_placeholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {(Object.keys(vegetables) as Array<keyof typeof vegetables>).map((key) => (
                                     <SelectItem key={key} value={key}>
                                       <div className="flex items-center gap-2">
                                           <span className="text-xl">{vegetables[key].icon}</span>
-                                          <span>{vegetables[key].name}</span>
+                                          <span>{vegetables[key][`name_${locale}` as keyof Vegetable] ?? vegetables[key].name}</span>
                                       </div>
                                     </SelectItem>
                                   ))}
@@ -1088,30 +1106,30 @@ export default function CargoValuatorPage() {
                           </div>
                         </div>
                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editMlihPrice" className="text-right">Prix Mlih</Label>
+                            <Label htmlFor="editMlihPrice" className="text-right">{t('mlih_price_label')}</Label>
                             <Input 
                                 id="editMlihPrice" 
                                 type="number" 
-                                value={editingEntry.mlihPrice || ''} 
+                                value={editingEntry.mlihPrice} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editDichiPrice" className="text-right">Prix Dichi</Label>
+                            <Label htmlFor="editDichiPrice" className="text-right">{t('dichi_price_label')}</Label>
                             <Input 
                                 id="editDichiPrice" 
                                 type="number" 
-                                value={editingEntry.dichiPrice || ''} 
+                                value={editingEntry.dichiPrice} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editAgreedAmount" className="text-right font-bold">Montant convenu</Label>
+                            <Label htmlFor="editAgreedAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_amount_label')}</Label>
                              <div className="col-span-3 grid grid-cols-3 gap-2">
                                 <Input 
                                     id="editAgreedAmount" 
                                     type="number" 
-                                    value={editingEntry.agreedAmount || ''} 
+                                    value={editingEntry.agreedAmount} 
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     className="col-span-2" />
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
@@ -1119,35 +1137,35 @@ export default function CargoValuatorPage() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="MAD">MAD</SelectItem>
-                                        <SelectItem value="Riyal">Riyal</SelectItem>
+                                        <SelectItem value="MAD">{t('currency_mad')}</SelectItem>
+                                        <SelectItem value="Riyal">{t('currency_riyal')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingCrates" className="text-right font-bold">الصندوق الباقي</Label>
+                            <Label htmlFor="editRemainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
-                                value={editingEntry.remainingCrates || ''} 
+                                value={editingEntry.remainingCrates} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingMoney" className="text-right">Reste d'argent</Label>                            
+                            <Label htmlFor="editRemainingMoney" className="text-right">{t('remaining_money_label')}</Label>                            
                             <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
-                                value={editingEntry.remainingMoney || ''} 
+                                value={editingEntry.remainingMoney} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
                 )}
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setEditingEntry(null)}>Annuler</Button>
-                    <Button onClick={handleUpdate}>Sauvegarder</Button>
+                    <Button variant="outline" onClick={() => setEditingEntry(null)}>{t('cancel_button')}</Button>
+                    <Button onClick={handleUpdate}>{t('save_changes_button')}</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

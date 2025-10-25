@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Analytics } from '@vercel/analytics/react';
 import { FirebaseErrorListener } from '@/lib/firebase/FirebaseErrorListener';
+import { I18nProvider } from '@/lib/i18n/i18n';
 
 export const metadata: Metadata = {
   title: 'Cargo',
@@ -18,11 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#b0f2b6" />
         <link rel="apple-touch-icon" href="/camionnette-192.png" />
         <link rel="icon" href="/camionnette.svg" sizes="any" type="image/svg+xml" />
@@ -44,11 +45,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased h-full bg-background">
-        {children}
-        <Toaster />
-        <SpeedInsights />
-        <Analytics />
-        <FirebaseErrorListener />
+        <I18nProvider>
+          {children}
+          <Toaster />
+          <SpeedInsights />
+          <Analytics />
+          <FirebaseErrorListener />
+        </I18nProvider>
       </body>
     </html>
   );
