@@ -215,7 +215,7 @@ export default function CargoValuatorPage() {
     if (!loading) {
       if (!user) {
         // User logged out, save everything to a new local storage key
-        localStorage.setItem('cargoHistory_local', JSON.stringify(history));
+        if(history.length > 0) localStorage.setItem('cargoHistory_local', JSON.stringify(history));
       } else {
         // User is logged in, only save unsynced items
         const unsyncedHistory = history.filter(item => !item.synced);
@@ -993,15 +993,15 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
+                                      <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
+                                  </div>
+                                  <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>Prix de vente (Mlih/Dichi):</p>
                                       <p className="font-bold">{item.mlihPrice || 0} DH / {item.dichiPrice || 0} DH</p>
                                   </div>
                                   <div className="col-span-2">
                                     <Separator className="my-1" />
-                                  </div>
-                                  <div className="flex justify-between items-center">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
-                                      <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
                                   </div>
                                   <div className="flex justify-between items-center">
                                       <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>Total caisses:</p>
