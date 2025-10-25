@@ -26,6 +26,7 @@ import Logo from '@/components/icons/Logo';
 import { useI18n, type Locale } from '@/lib/i18n/i18n';
 import { Cairo } from 'next/font/google';
 
+
 const cairo = Cairo({
   weight: '700',
   subsets: ['arabic'],
@@ -97,7 +98,7 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="0"
-          className={cn(direction === 'rtl' ? 'pr-2 pl-12' : 'pl-2 pr-12', isError && "border-destructive ring-destructive ring-1")}
+          className={cn(direction === 'rtl' ? 'pr-2' : 'pl-2', isError && "border-destructive ring-destructive ring-1")}
         />
         <div className={cn("absolute flex items-center", direction === 'rtl' ? 'left-3' : 'right-3')}>
           <span className="text-sm text-muted-foreground">{unit}</span>
@@ -144,6 +145,7 @@ export default function CargoValuatorPage() {
   const { user, loading } = useAuth();
   const { t, locale, direction } = useI18n();
   const { toast } = useToast();
+
   const [mlihCrates, setMlihCrates] = useState<number | string>(0);
   const [dichiCrates, setDichiCrates] = useState<number | string>(0);
   const [grossWeight, setGrossWeight] = useState<number | string>(0);
@@ -555,13 +557,38 @@ export default function CargoValuatorPage() {
       toast({ variant: "destructive", title: t('history_empty') });
       return;
     }
-  
+    
+    // Dynamically import the font assets for jsPDF
+    const { ArefRuqaa_400Regular, ArefRuqaa_700Bold } = await import('@expo-google-fonts/aref-ruqaa');
+
     const doc = new jsPDF();
-    doc.setFont('Helvetica', 'normal');
+    const isArabic = locale === 'ar';
+    
+    // Set font for Arabic
+    if (isArabic) {
+      doc.addFileToVFS('ArefRuqaa-Regular.ttf', ArefRuqaa_400Regular);
+      doc.addFileToVFS('ArefRuqaa-Bold.ttf', ArefRuqaa_700Bold);
+      doc.addFont('ArefRuqaa-Regular.ttf', 'ArefRuqaa', 'normal');
+      doc.addFont('ArefRuqaa-Bold.ttf', 'ArefRuqaa', 'bold');
+      doc.setFont('ArefRuqaa');
+    } else {
+      doc.setFont('Helvetica', 'normal');
+    }
+
+    // Helper to handle RTL text
+    const rtlText = (text: string, x: number, y: number, options?: any) => {
+        if (isArabic) {
+            // jsPDF doesn't natively support RTL, so we align right
+            doc.text(text, x, y, { ...options, align: 'right' });
+        } else {
+            doc.text(text, x, y, options);
+        }
+    };
   
     const title = t('pdf_report_title');
     doc.setFontSize(22);
-    doc.text(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+    doc.setFont('ArefRuqaa', 'bold');
+    rtlText(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
   
     const totalCalculs = history.length;
     const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
@@ -570,9 +597,11 @@ export default function CargoValuatorPage() {
     const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
   
     doc.setFontSize(16);
-    doc.text(t('pdf_kpi_title'), 14, 30);
+    doc.setFont('ArefRuqaa', 'bold');
+    rtlText(t('pdf_kpi_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, 30);
     doc.setFontSize(11);
-  
+    doc.setFont('ArefRuqaa', 'normal');
+
     const kpiData: string[][] = [
       [t('pdf_kpi_total_calcs'), totalCalculs.toString()],
       [t('pdf_kpi_total_net_weight'), `${totalPoidsNet.toFixed(2)} kg`],
@@ -583,45 +612,59 @@ export default function CargoValuatorPage() {
     if (totalAgreedRiyal > 0) {
         kpiData.push([t('pdf_kpi_total_agreed_riyal'), formatCurrency(totalAgreedRiyal, 'Riyal')]);
     }
+
+    if (isArabic) {
+      kpiData.forEach(row => row.reverse());
+    }
   
     autoTable(doc, {
       body: kpiData,
       startY: 35,
       theme: 'plain',
-      styles: { font: "Helvetica", fontSize: 11 },
-      columnStyles: { 0: { fontStyle: 'bold' } },
+      styles: { font: isArabic ? "ArefRuqaa" : "Helvetica", fontSize: 11 },
+      columnStyles: { 
+        0: { fontStyle: 'bold', halign: isArabic ? 'right' : 'left' },
+        1: { halign: isArabic ? 'right' : 'left' }
+      },
     });
   
   
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
-    doc.text(t('pdf_history_title'), 14, tableStartY);
+    doc.setFont('ArefRuqaa', 'bold');
+    rtlText(t('pdf_history_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, tableStartY);
   
     const head = [
       [t('pdf_col_date'), t('pdf_col_client'), t('pdf_col_product'), t('pdf_col_selling_price'), t('pdf_col_net_weight'), t('pdf_col_agreed_amount'), t('pdf_col_remaining_crates'), t('pdf_col_remaining_money')]
     ];
+    if(isArabic) head[0].reverse();
   
     const body = history.map(item => {
       const productInfo = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
-      return [
+      const row = [
         item.date,
         item.clientName,
         productInfo,
         `${item.mlihPrice || 0} / ${item.dichiPrice || 0}`,
         item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
         formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
-        item.remainingCrates,
+        item.remainingCrates.toString(),
         formatCurrency(item.remainingMoney)
       ];
+      if (isArabic) row.reverse();
+      return row;
     });
   
     autoTable(doc, {
       head: head,
       body: body,
       startY: tableStartY + 5,
-      styles: { font: "Helvetica", halign: 'center', fontSize: 8 },
-      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
-      columnStyles: {
+      styles: { font: isArabic ? "ArefRuqaa" : "Helvetica", halign: 'center', fontSize: 8 },
+      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49], font: isArabic ? "ArefRuqaa" : "Helvetica" },
+      columnStyles: isArabic ? {
+        7: { halign: 'right' }, 6: { halign: 'right' }, 5: { halign: 'center' }, 4: { halign: 'center' },
+        3: { halign: 'left' }, 2: { halign: 'left' }, 1: { halign: 'center' }, 0: { halign: 'left' },
+      } : {
         0: { halign: 'left' }, 1: { halign: 'left' }, 2: { halign: 'center' }, 3: { halign: 'center' },
         4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'center' }, 7: { halign: 'right' },
       },
@@ -685,8 +728,10 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-4 md:mb-6">
-          <LanguageSwitcher />
-          <div className="text-center">
+          <div className="flex w-1/3 justify-start">
+            <LanguageSwitcher />
+          </div>
+          <div className="flex w-1/3 flex-grow flex-col items-center justify-center text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
               <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
@@ -695,7 +740,9 @@ export default function CargoValuatorPage() {
                 {t('app_subtitle')}
             </p>
           </div>
-          <AuthArea />
+          <div className="flex w-1/3 justify-end">
+            <AuthArea />
+          </div>
         </header>
 
 
@@ -1177,7 +1224,7 @@ export default function CargoValuatorPage() {
                                 id="editRemainingMoney" 
                                 type="number" 
                                 value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
@@ -1192,11 +1239,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
-
-
-
-    

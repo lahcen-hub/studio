@@ -109,7 +109,8 @@
     "image_generation_fail": "Could not generate the image.",
     "error": "Error",
     "example_placeholder": "ex: {{value}}",
-    "change_language_button": "Change language"
+    "change_language_button": "Change language",
+    "font_loading_error": "Font not ready. Please try again."
 }
 
     

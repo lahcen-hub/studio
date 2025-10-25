@@ -109,7 +109,8 @@
     "image_generation_fail": "Impossible de générer l'image.",
     "error": "Erreur",
     "example_placeholder": "ex: {{value}}",
-    "change_language_button": "Changer de langue"
+    "change_language_button": "Changer de langue",
+    "font_loading_error": "La police n'est pas prête. Réessayez."
 }
 
     

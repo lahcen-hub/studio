@@ -109,5 +109,8 @@
     "image_generation_fail": "تعذر إنشاء الصورة.",
     "error": "خطأ",
     "example_placeholder": "مثال: {{value}}",
-    "change_language_button": "تغيير اللغة"
+    "change_language_button": "تغيير اللغة",
+    "font_loading_error": "الخط العربي غير جاهز. حاول مرة أخرى."
 }
+
+    
