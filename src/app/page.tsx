@@ -97,11 +97,8 @@ const InputField: FC<InputFieldProps> = ({ id, label, value, setValue, unit, ico
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="0"
-          className={cn(direction === 'rtl' ? 'pr-8 pl-12' : 'pl-8 pr-12', isError && "border-destructive ring-destructive ring-1")}
+          className={cn(direction === 'rtl' ? 'pr-2 pl-12' : 'pl-2 pr-12', isError && "border-destructive ring-destructive ring-1")}
         />
-        <div className={cn("absolute flex items-center", direction === 'rtl' ? 'right-3' : 'left-3')}>
-             {icon}
-        </div>
         <div className={cn("absolute flex items-center", direction === 'rtl' ? 'left-3' : 'right-3')}>
           <span className="text-sm text-muted-foreground">{unit}</span>
         </div>
@@ -691,8 +688,8 @@ export default function CargoValuatorPage() {
           <LanguageSwitcher />
           <div className="text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              {t('app_title')}
               <Truck className="w-9 h-9 text-primary" />
+              {t('app_title')}
             </h1>
             <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
                 {t('app_subtitle')}
@@ -1200,3 +1197,6 @@ export default function CargoValuatorPage() {
 
     
 
+
+
+    
