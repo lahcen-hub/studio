@@ -7,12 +7,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf, Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
@@ -114,7 +115,7 @@ interface HistoryEntry extends CalculationDB {
 }
 
 const LanguageSwitcher = () => {
-    const { locale, setLocale, direction } = useI18n();
+    const { locale, setLocale } = useI18n();
     const languages: { code: Locale; name: string; flag: string }[] = [
         { code: 'ar', name: 'العربية', flag: '🇸🇦' },
         { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -122,20 +123,22 @@ const LanguageSwitcher = () => {
     ];
 
     return (
-        <div className="flex gap-1 rounded-full bg-secondary p-1">
-            {languages.map((lang) => (
-                <Button
-                    key={lang.code}
-                    variant={locale === lang.code ? 'default' : 'ghost'}
-                    size="sm"
-                    className="rounded-full px-3 py-1 h-auto text-sm"
-                    onClick={() => setLocale(lang.code)}
-                >
-                    {lang.flag}
-                    <span className="hidden sm:inline ml-2">{lang.name}</span>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                    <Languages className="h-[1.2rem] w-[1.2rem]" />
+                    <span className="sr-only">Changer de langue</span>
                 </Button>
-            ))}
-        </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {languages.map((lang) => (
+                    <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn(locale === lang.code && 'bg-accent')}>
+                        <span className="mr-2">{lang.flag}</span>
+                        {lang.name}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 };
 
@@ -221,6 +224,7 @@ export default function CargoValuatorPage() {
         setHistory(prevHistory => {
           const syncedFirestoreHistory = firestoreHistory.map(h => ({ ...h, synced: true }));
           
+          // Filter local history to only include items not yet synced or without a definitive firestore id
           const localUnsynced = prevHistory.filter(h => !h.synced);
           
           const firestoreMap = new Map(syncedFirestoreHistory.map(h => [h.id, h]));
@@ -228,16 +232,23 @@ export default function CargoValuatorPage() {
           
           // Add local items that are not in firestore yet
           localUnsynced.forEach(localItem => {
+            // A truly new local item might not have its final firestore ID yet.
+            // A simple check is to see if an item with its temporary ID exists on the server map.
+            // This logic assumes temporary IDs are unique enough (e.g. timestamp)
             if (!firestoreMap.has(localItem.id)) {
               merged.push(localItem);
             }
           });
 
-          // Once synced, local storage for unsynced items can be cleared if all items have an id (meaning they are from firestore or being processed)
-          const allSyncedOrProcessing = merged.every(item => item.id && typeof item.id === 'string');
-          if (allSyncedOrProcessing) {
-             localStorage.removeItem('cargoHistory_local');
+          // After successful sync, we should clear the local storage.
+          // This should ideally happen after we confirm that all items in `itemsToSync` are now in `firestoreHistory`.
+          // For simplicity, we'll clear it when the first firestore update comes in after a sync attempt.
+          if (itemsToSync.length > 0) {
+             const syncedIds = new Set(itemsToSync.map(i => i.id));
+             const allSyncedNow = itemsToSync.every(localItem => firestoreHistory.some(fsItem => fsItem.date === localItem.date && fsItem.clientName === localItem.clientName)); // Imperfect but better
+             if(allSyncedNow) localStorage.removeItem('cargoHistory_local');
           }
+
 
           return sortHistory(merged);
         });
@@ -267,25 +278,23 @@ export default function CargoValuatorPage() {
 
   // Save to localStorage when not logged in OR when there are unsynced items
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        if(history.length > 0) {
-            const historyToSave = history.map(({ ...item }) => {
-              delete item.synced; // remove synced flag for local storage
-              return item;
-            });
-            localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
-        } else {
-            localStorage.removeItem('cargoHistory_local');
-        }
-      } else {
-        const unsyncedHistory = history.filter(item => !item.synced);
-        if (unsyncedHistory.length > 0) {
-          localStorage.setItem('cargoHistory_local', JSON.stringify(unsyncedHistory));
-        } else {
-          localStorage.removeItem('cargoHistory_local');
-        }
-      }
+    if (loading) return;
+    
+    const itemsToSave = history.filter(item => {
+        // If not logged in, save everything.
+        if (!user) return true;
+        // If logged in, only save unsynced items.
+        return !item.synced;
+    });
+
+    if (itemsToSave.length > 0) {
+        const historyToSave = itemsToSave.map(({ ...item }) => {
+          delete item.synced; // remove synced flag for local storage
+          return item;
+        });
+        localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
+    } else {
+        localStorage.removeItem('cargoHistory_local');
     }
   }, [history, user, loading]);
 
@@ -473,7 +482,9 @@ export default function CargoValuatorPage() {
             toast({ variant: "destructive", title: t('update_fail_title'), description: t('update_fail_desc') });
         }
     } else {
-        toast({ title: t('updated_locally_title'), description: t('updated_locally_desc') });
+      const updatedWithFlag = { ...entryToUpdate, synced: false };
+      setHistory(history.map(entry => (entry.id === id ? updatedWithFlag : entry)));
+      toast({ title: t('updated_locally_title'), description: t('updated_locally_desc') });
     }
   };
 
@@ -548,7 +559,7 @@ export default function CargoValuatorPage() {
         }
     } 
     
-    setHistory(history.filter(h => !user || h.synced));
+    setHistory(history.filter(h => !h.synced)); // Keep unsynced items if any
     localStorage.removeItem('cargoHistory_local');
     toast({ title: t('clear_history_local_title') });
   };
@@ -995,7 +1006,7 @@ export default function CargoValuatorPage() {
                 </div>
                 {history.length > 0 && (
                   <div className="flex items-center gap-2 self-end sm:self-center">
-                     {!user && !loading && history.some(item => !item.synced) && (
+                     {history.some(item => !item.synced) && (
                         <div className="flex items-center gap-1 text-xs text-amber-600">
                             <RefreshCw className="w-3 h-3 animate-spin" />
                             <span>{t('unsynced_label')}</span>
@@ -1199,3 +1210,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
