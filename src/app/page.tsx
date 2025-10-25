@@ -15,7 +15,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -174,6 +173,7 @@ export default function CargoValuatorPage() {
 
   const hasSynced = useRef(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const sortHistory = useCallback((historyToSort: HistoryEntry[]) => {
     return historyToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -553,121 +553,63 @@ export default function CargoValuatorPage() {
   };
 
   const downloadHistory = async () => {
-    if (history.length === 0) {
-      toast({ variant: "destructive", title: t('history_empty') });
+    const historyNode = historyRef.current;
+    if (!historyNode || history.length === 0) {
+      toast({ variant: 'destructive', title: t('history_empty') });
       return;
     }
-    
-    const doc = new jsPDF();
-    const isArabic = locale === 'ar';
-    
-    // Set font for Arabic
-    if (isArabic) {
-      doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
-      doc.addFont('ArefRuqaa-Bold.ttf', 'Aref Ruqaa', 'bold');
-      doc.setFont('Aref Ruqaa');
-    } else {
-      doc.setFont('Helvetica', 'normal');
-    }
 
-    // Helper to handle RTL text
-    const rtlText = (text: string, x: number, y: number, options?: any) => {
-        if (isArabic) {
-            // jsPDF doesn't natively support RTL, so we align right
-            doc.text(text, x, y, { ...options, align: 'right' });
+    try {
+      const dataUrl = await htmlToImage.toPng(historyNode, {
+        quality: 1.0,
+        pixelRatio: 2,
+        backgroundColor: '#F0F4F0',
+        fontEmbedCSS: `
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap');
+          `
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'px',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const img = new window.Image();
+      img.src = dataUrl;
+      
+      img.onload = () => {
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+        const ratio = imgWidth / imgHeight;
+        
+        let finalImgWidth, finalImgHeight;
+
+        if(imgWidth > imgHeight) {
+            finalImgWidth = pdfWidth - 20;
+            finalImgHeight = finalImgWidth / ratio;
         } else {
-            doc.text(text, x, y, options);
+            finalImgHeight = pdfHeight - 20;
+            finalImgWidth = finalImgHeight * ratio;
         }
-    };
-  
-    const title = t('pdf_report_title');
-    doc.setFontSize(22);
-    doc.setFont('Aref Ruqaa', 'bold');
-    rtlText(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
-  
-    const totalCalculs = history.length;
-    const totalPoidsNet = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
-    const totalCaisses = history.reduce((sum, item) => sum + item.totalCrates, 0);
-    const totalAgreedMAD = history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((sum, item) => sum + item.agreedAmount, 0);
-    const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
-  
-    doc.setFontSize(16);
-    doc.setFont('Aref Ruqaa', 'bold');
-    rtlText(t('pdf_kpi_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, 30);
-    doc.setFontSize(11);
-    doc.setFont('Aref Ruqaa', 'normal');
+        
+        const x = (pdfWidth - finalImgWidth) / 2;
+        const y = 10;
 
-    const kpiData: string[][] = [
-      [t('pdf_kpi_total_calcs'), totalCalculs.toString()],
-      [t('pdf_kpi_total_net_weight'), `${totalPoidsNet.toFixed(2)} kg`],
-      [t('pdf_kpi_total_crates'), totalCaisses.toString()],
-      [t('pdf_kpi_total_agreed_mad'), formatCurrency(totalAgreedMAD, 'MAD')],
-    ];
+        pdf.addImage(dataUrl, 'PNG', x, y, finalImgWidth, finalImgHeight);
+        
+        const formattedDate = new Date().toISOString().slice(0, 10);
+        pdf.save(`rapport_cargo_${formattedDate}.pdf`);
+      }
 
-    if (totalAgreedRiyal > 0) {
-        kpiData.push([t('pdf_kpi_total_agreed_riyal'), formatCurrency(totalAgreedRiyal, 'Riyal')]);
+    } catch (error) {
+      console.error('oops, something went wrong!', error);
+      toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
     }
-
-    if (isArabic) {
-      kpiData.forEach(row => row.reverse());
-    }
-  
-    autoTable(doc, {
-      body: kpiData,
-      startY: 35,
-      theme: 'plain',
-      styles: { font: isArabic ? "Aref Ruqaa" : "Helvetica", fontSize: 11 },
-      columnStyles: { 
-        0: { fontStyle: 'bold', halign: isArabic ? 'right' : 'left' },
-        1: { halign: isArabic ? 'right' : 'left' }
-      },
-    });
-  
-  
-    const tableStartY = (doc as any).lastAutoTable.finalY + 15;
-    doc.setFontSize(16);
-    doc.setFont('Aref Ruqaa', 'bold');
-    rtlText(t('pdf_history_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, tableStartY);
-  
-    const head = [
-      [t('pdf_col_date'), t('pdf_col_client'), t('pdf_col_product'), t('pdf_col_selling_price'), t('pdf_col_net_weight'), t('pdf_col_agreed_amount'), t('pdf_col_remaining_crates'), t('pdf_col_remaining_money')]
-    ];
-    if(isArabic) head[0].reverse();
-  
-    const body = history.map(item => {
-      const productInfo = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
-      const row = [
-        item.date,
-        item.clientName,
-        productInfo,
-        `${item.mlihPrice || 0} / ${item.dichiPrice || 0}`,
-        item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
-        formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
-        item.remainingCrates.toString(),
-        formatCurrency(item.remainingMoney)
-      ];
-      if (isArabic) row.reverse();
-      return row;
-    });
-  
-    autoTable(doc, {
-      head: head,
-      body: body,
-      startY: tableStartY + 5,
-      styles: { font: isArabic ? "Aref Ruqaa" : "Helvetica", halign: 'center', fontSize: 8 },
-      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49], font: isArabic ? "Aref Ruqaa" : "Helvetica" },
-      columnStyles: isArabic ? {
-        7: { halign: 'right' }, 6: { halign: 'right' }, 5: { halign: 'center' }, 4: { halign: 'center' },
-        3: { halign: 'left' }, 2: { halign: 'left' }, 1: { halign: 'center' }, 0: { halign: 'left' },
-      } : {
-        0: { halign: 'left' }, 1: { halign: 'left' }, 2: { halign: 'center' }, 3: { halign: 'center' },
-        4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'center' }, 7: { halign: 'right' },
-      },
-    });
-  
-    const formattedDate = new Date().toISOString().slice(0, 10);
-    doc.save(`rapport_cargo_${formattedDate}.pdf`);
   };
+
 
   const downloadHistoryItemAsImage = (id: string | number, clientName: string) => {
     const element = document.getElementById(`history-item-${id}`);
@@ -1045,7 +987,7 @@ export default function CargoValuatorPage() {
                   </div>
                 )}
               </CardHeader>
-              <CardContent>
+              <CardContent ref={historyRef}>
                 <ScrollArea className="h-[420px] pr-3">
                 {history.length > 0 ? (
                     <div className="space-y-4">
