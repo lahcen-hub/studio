@@ -115,7 +115,7 @@ interface HistoryEntry extends CalculationDB {
 }
 
 const LanguageSwitcher = () => {
-    const { locale, setLocale } = useI18n();
+    const { locale, setLocale, direction } = useI18n();
     const languages: { code: Locale; name: string; flag: string }[] = [
         { code: 'ar', name: 'العربية', flag: '🇸🇦' },
         { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -130,7 +130,7 @@ const LanguageSwitcher = () => {
                     <span className="sr-only">Changer de langue</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'}>
                 {languages.map((lang) => (
                     <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn(locale === lang.code && 'bg-accent')}>
                         <span className="mr-2">{lang.flag}</span>
@@ -242,8 +242,6 @@ export default function CargoValuatorPage() {
           });
 
           // After successful sync, we should clear the local storage.
-          // This should ideally happen after we confirm that all items in `itemsToSync` are now in `firestoreHistory`.
-          // For simplicity, we'll clear it when the first firestore update comes in after a sync attempt.
           if (itemsToSync.length > 0) {
              const allSyncedNow = itemsToSync.every(localItem => firestoreHistory.some(fsItem => fsItem.date === localItem.date && fsItem.clientName === localItem.clientName)); // Imperfect but better
              if(allSyncedNow) localStorage.removeItem('cargoHistory_local');
@@ -692,11 +690,11 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-4 md:mb-6">
-          <div className="flex-shrink-0">
+        <header className="grid grid-cols-3 items-center mb-4 md:mb-6">
+          <div className="justify-self-start">
              <AuthArea />
           </div>
-           <div className="flex-1 text-center">
+           <div className="text-center col-start-2">
             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
               <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
@@ -705,7 +703,7 @@ export default function CargoValuatorPage() {
                 {t('app_subtitle')}
             </p>
           </div>
-          <div className="flex-shrink-0">
+          <div className="justify-self-end">
              <LanguageSwitcher />
           </div>
         </header>
@@ -1160,7 +1158,7 @@ export default function CargoValuatorPage() {
                                 <Input 
                                     id="editAgreedAmount" 
                                     type="number" 
-                                    value={editingEntry.agreedAmount} G
+                                    value={editingEntry.agreedAmount} 
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     className="col-span-2" />
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
@@ -1204,7 +1202,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
 
     

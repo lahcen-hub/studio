@@ -31,6 +31,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setDirection(storedLocale === 'ar' ? 'rtl' : 'ltr');
       document.documentElement.lang = storedLocale;
       document.documentElement.dir = storedLocale === 'ar' ? 'rtl' : 'ltr';
+    } else {
+      document.documentElement.lang = 'ar';
+      document.documentElement.dir = 'rtl';
     }
   }, []);
 
@@ -69,3 +72,5 @@ export function useI18n() {
   }
   return context;
 }
+
+    
