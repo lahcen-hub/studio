@@ -687,11 +687,9 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="flex items-center mb-4 md:mb-6">
-          <div className="w-1/3 flex justify-start">
-            <LanguageSwitcher />
-          </div>
-          <div className="w-1/3 text-center">
+        <header className="flex items-center justify-between mb-4 md:mb-6">
+          <LanguageSwitcher />
+          <div className="text-center">
             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
               <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
@@ -700,9 +698,7 @@ export default function CargoValuatorPage() {
                 {t('app_subtitle')}
             </p>
           </div>
-          <div className="w-1/3 flex justify-end">
-            <AuthArea />
-          </div>
+          <AuthArea />
         </header>
 
 
@@ -875,7 +871,7 @@ export default function CargoValuatorPage() {
                               <TableRow>
                                   <TableHead className="w-[150px] sm:w-[200px] font-bold">{t('category_label')}</TableHead>
                                   <TableHead className={cn("text-center font-bold", locale === 'ar' && cairo.className)}>{t('mlih_label')}</TableHead>
-                                  <TableHead className={cn("text-center font-bold", locale === 'ar' && cairo.className)}>{t('dichi_label')}</TableHead>
+                                  <TableHead className={cn("text-center font-bold", locale === 'ar' && cairoclassName)}>{t('dichi_label')}</TableHead>
                               </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -1199,7 +1195,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
 
     
