@@ -110,7 +110,7 @@
     "error": "Error",
     "example_placeholder": "ex: {{value}}",
     "change_language_button": "Change language",
-    "font_loading_error": "Font not ready. Please try again."
+    "font_loading_error": "Font not ready. Please try again.",
+    "report_gen_error_desc": "Report container not found.",
+    "pdf_generation_fail": "Could not generate PDF."
 }
-
-    

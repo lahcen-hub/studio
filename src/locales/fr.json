@@ -110,7 +110,7 @@
     "error": "Erreur",
     "example_placeholder": "ex: {{value}}",
     "change_language_button": "Changer de langue",
-    "font_loading_error": "La police n'est pas prête. Réessayez."
+    "font_loading_error": "La police n'est pas prête. Réessayez.",
+    "report_gen_error_desc": "Le conteneur du rapport n'a pas été trouvé.",
+    "pdf_generation_fail": "Impossible de générer le PDF."
 }
-
-    

@@ -110,7 +110,7 @@
     "error": "خطأ",
     "example_placeholder": "مثال: {{value}}",
     "change_language_button": "تغيير اللغة",
-    "font_loading_error": "الخط العربي غير جاهز. حاول مرة أخرى."
+    "font_loading_error": "الخط العربي غير جاهز. حاول مرة أخرى.",
+    "report_gen_error_desc": "لم يتم العثور على حاوية التقرير.",
+    "pdf_generation_fail": "تعذر إنشاء ملف PDF."
 }
-
-    
