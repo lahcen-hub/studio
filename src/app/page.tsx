@@ -733,18 +733,22 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-4 md:mb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
-              <Truck className="w-8 h-8 text-primary" />
-              <span>{t('app_title')}</span>
-            </h1>
-            <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
-                {t('app_subtitle')}
-            </p>
+          <div className="flex-1 flex justify-start">
+              <AuthArea />
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <AuthArea />
+
+          <div className="flex flex-col items-center">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
+                  <Truck className="w-8 h-8 text-primary" />
+                  <span>{t('app_title')}</span>
+              </h1>
+              <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
+                  {t('app_subtitle')}
+              </p>
+          </div>
+
+          <div className="flex-1 flex justify-end">
+              <LanguageSwitcher />
           </div>
         </header>
 
