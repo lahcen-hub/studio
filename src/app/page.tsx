@@ -141,32 +141,35 @@ export default function CargoValuatorPage() {
   // Fetch data from Firestore in real-time or load from localStorage
   useEffect(() => {
     let unsubscribe = () => {};
+    
+    if (loading) return; // Wait until auth state is determined
 
     if (user) {
+      // User is logged in, sync local data and listen to Firestore
       if (!hasSynced.current) {
         hasSynced.current = true;
-        const localHistoryString = localStorage.getItem('cargoHistory');
+        const localHistoryString = localStorage.getItem('cargoHistory_local');
         if (localHistoryString) {
           try {
             const localHistory: HistoryEntry[] = JSON.parse(localHistoryString);
-            if (localHistory.length > 0) {
-              toast({ title: "Synchronisation...", description: "Synchronisation de l'historique local avec le cloud." });
-              const syncPromises = localHistory.map(item => {
+            const itemsToSync = localHistory.filter(item => !item.synced);
+
+            if (itemsToSync.length > 0) {
+              toast({ title: "Synchronisation...", description: `Synchronisation de ${itemsToSync.length} calcul(s) local(aux) avec le cloud.` });
+              
+              const syncPromises = itemsToSync.map(item => {
                 const { id, synced, ...dataToSave } = item;
-                // If the item has an ID, it might be one that failed to save before,
-                // or one that was just created offline. We'll use `saveCalculation`
-                // which handles `addDoc` to ensure a new document is created in Firestore.
-                // Firestore will generate a new unique ID.
                 return saveCalculation(user.uid, dataToSave as Omit<CalculationDB, 'id' | 'uid'>);
               });
+
               Promise.all(syncPromises)
                 .then(() => {
-                  localStorage.removeItem('cargoHistory'); // Clear local data after successful sync
+                  localStorage.removeItem('cargoHistory_local');
                   toast({ title: "Synchronisation terminée", description: "L'historique local a été sauvegardé sur le cloud." });
                 })
                 .catch(err => {
                    console.error("Failed to sync history", err);
-                   toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser l'historique local." });
+                   toast({ variant: "destructive", title: "Erreur de synchronisation", description: "Impossible de synchroniser l'historique local. Vos données sont toujours sur cet appareil." });
                 });
             }
           } catch (e) {
@@ -177,13 +180,18 @@ export default function CargoValuatorPage() {
 
       // Listen for real-time updates from Firestore
       unsubscribe = getCalculations(user.uid, (firestoreHistory) => {
-        setHistory(sortHistory(firestoreHistory.map(h => ({...h, synced: true}))));
+        setHistory(prevHistory => {
+          const localUnsynced = prevHistory.filter(h => !h.synced);
+          const firestoreIds = new Set(firestoreHistory.map(h => h.id));
+          const merged = [...firestoreHistory.map(h => ({...h, synced: true})), ...localUnsynced.filter(h => !firestoreIds.has(h.id))];
+          return sortHistory(merged);
+        });
       });
 
     } else { // Not logged in
       hasSynced.current = false;
       try {
-        const savedHistory = localStorage.getItem('cargoHistory');
+        const savedHistory = localStorage.getItem('cargoHistory_local');
         setHistory(savedHistory ? sortHistory(JSON.parse(savedHistory)) : []);
       } catch (error) {
         console.error("Failed to load history from localStorage", error);
@@ -196,17 +204,23 @@ export default function CargoValuatorPage() {
   }, [user, loading, toast, sortHistory]);
 
 
-  // Save to localStorage when not logged in
+  // Save to localStorage when not logged in OR when there are unsynced items
   useEffect(() => {
-    if (!user) {
-        const localHistory = history.filter(item => !item.synced);
-        if (history.length > 0) { // Save the entire history if user logs out
-            localStorage.setItem('cargoHistory', JSON.stringify(history));
+    if (!loading) {
+      if (!user) {
+        // User logged out, save everything to a new local storage key
+        localStorage.setItem('cargoHistory_local', JSON.stringify(history));
+      } else {
+        // User is logged in, only save unsynced items
+        const unsyncedHistory = history.filter(item => !item.synced);
+        if (unsyncedHistory.length > 0) {
+          localStorage.setItem('cargoHistory_local', JSON.stringify(unsyncedHistory));
         } else {
-             localStorage.removeItem('cargoHistory');
+          localStorage.removeItem('cargoHistory_local');
         }
+      }
     }
-  }, [history, user]);
+  }, [history, user, loading]);
 
   useEffect(() => {
     if (selectedVegetable) {
@@ -370,7 +384,7 @@ export default function CargoValuatorPage() {
     setHistory(history.map(entry => entry.id === id ? entryToUpdate : entry));
     setEditingEntry(null);
 
-    if (user && navigator.onLine) {
+    if (user && navigator.onLine && synced) { // Only update if it's already in Firestore
         try {
             await updateCalculation(id, dataToUpdate);
             toast({ title: "Mise à jour réussie", description: "Le calcul a été mis à jour." });
@@ -391,12 +405,15 @@ export default function CargoValuatorPage() {
 
   const handleDelete = async (id: string) => {
     if (typeof id !== 'string' || id === '') return;
+  
+    const entryToDelete = history.find(entry => entry.id === id);
+    if (!entryToDelete) return;
 
     const originalHistory = [...history];
     // Optimistically remove from UI
     setHistory(history.filter(entry => entry.id !== id));
 
-    if (user && navigator.onLine) {
+    if (user && navigator.onLine && entryToDelete.synced) {
       try {
         await deleteCalculation(id);
         toast({ title: "Supprimé", description: "Le calcul a été supprimé du cloud." });
@@ -446,20 +463,22 @@ export default function CargoValuatorPage() {
   const clearHistory = () => {
      if(user && navigator.onLine){
         // Batch delete all documents for the user
-        const deletePromises = history.map(item => deleteCalculation(item.id));
-        Promise.all(deletePromises)
-            .then(() => toast({ title: "Historique vidé", description: "Tous vos calculs ont été supprimés." }))
-            .catch(err => {
-                console.error("Failed to clear history from Firestore", err);
-                toast({ variant: "destructive", title: "Erreur", description: "Impossible de vider l'historique sur le cloud." });
-            });
-    } else {
-        setHistory([]);
-        if (!user) {
-            localStorage.removeItem('cargoHistory');
+        const syncedIds = history.filter(h => h.synced).map(h => h.id);
+        if (syncedIds.length > 0) {
+            const deletePromises = syncedIds.map(id => deleteCalculation(id));
+            Promise.all(deletePromises)
+                .then(() => toast({ title: "Historique cloud vidé", description: "Tous vos calculs synchronisés ont été supprimés." }))
+                .catch(err => {
+                    console.error("Failed to clear history from Firestore", err);
+                    toast({ variant: "destructive", title: "Erreur", description: "Impossible de vider l'historique sur le cloud." });
+                });
         }
-        toast({ title: "Historique local vidé" });
-    }
+    } 
+    
+    // Clear local unsynced data regardless of connection
+    setHistory(history.filter(h => h.synced && user)); // Keep synced items if user is logged in
+    localStorage.removeItem('cargoHistory_local');
+    toast({ title: "Historique local vidé" });
   };
 
   const downloadHistory = async () => {
@@ -908,6 +927,12 @@ export default function CargoValuatorPage() {
                 </div>
                 {history.length > 0 && (
                   <div className="flex items-center gap-2 self-end sm:self-center">
+                     {!user && !loading && history.some(item => !item.synced) && (
+                        <div className="flex items-center gap-1 text-xs text-amber-600">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Non synchronisé</span>
+                        </div>
+                    )}
                     <Button variant="outline" size="sm" onClick={downloadHistory}>
                       <Download className="mr-1 h-3 w-3" /> Télécharger
                     </Button>
@@ -927,7 +952,10 @@ export default function CargoValuatorPage() {
                           <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
                             <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="text-xs text-muted-foreground">{item.date}</p>
+                                  <div className="flex items-center gap-2">
+                                     <p className="text-xs text-muted-foreground">{item.date}</p>
+                                     {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title="Non synchronisé"/>}
+                                  </div>
                                   <div className="flex items-center gap-2">
                                      <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                                      {product && (
@@ -1079,13 +1107,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
-
-    
-
-    
-
-    
-
-    
