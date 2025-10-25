@@ -215,7 +215,10 @@ export default function CargoValuatorPage() {
     if (!loading) {
       if (!user) {
         // User logged out, save everything to a new local storage key
-        if(history.length > 0) localStorage.setItem('cargoHistory_local', JSON.stringify(history));
+        if(history.length > 0) {
+            const historyToSave = history.map(item => ({...item, synced: false}));
+            localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
+        }
       } else {
         // User is logged in, only save unsynced items
         const unsyncedHistory = history.filter(item => !item.synced);
@@ -486,7 +489,7 @@ export default function CargoValuatorPage() {
     } 
     
     // Clear local unsynced data regardless of connection
-    setHistory(history.filter(h => h.synced && user)); // Keep synced items if user is logged in
+    setHistory(history.filter(h => !user || h.synced)); // Keep synced items if user is logged in
     localStorage.removeItem('cargoHistory_local');
     toast({ title: "Historique local vidé" });
   };
@@ -1000,6 +1003,10 @@ export default function CargoValuatorPage() {
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>Prix de vente (Mlih/Dichi):</p>
                                       <p className="font-bold">{item.mlihPrice || 0} DH / {item.dichiPrice || 0} DH</p>
                                   </div>
+                                  <div className="flex justify-between items-center col-span-2">
+                                      <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>Poids net total (kg):</span>
+                                      <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
+                                  </div>
                                   <div className="col-span-2">
                                     <Separator className="my-1" />
                                   </div>
@@ -1014,10 +1021,6 @@ export default function CargoValuatorPage() {
                                   <div className="flex justify-between items-center">
                                       <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Argent restant:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
-                                  </div>
-                                  <div className="col-span-2 flex justify-between items-center">
-                                      <span className="font-bold">Poids net total (kg):</span>
-                                      <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                   </div>
                             </div>
                           </div>
