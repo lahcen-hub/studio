@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -553,60 +554,117 @@ export default function CargoValuatorPage() {
   };
 
   const downloadHistory = async () => {
-    const historyNode = historyRef.current;
-    if (!historyNode || history.length === 0) {
-      toast({ variant: 'destructive', title: t('history_empty') });
-      return;
+    if (history.length === 0) {
+        toast({ variant: 'destructive', title: t('history_empty') });
+        return;
     }
 
     try {
-      const dataUrl = await htmlToImage.toPng(historyNode, {
-        quality: 1.0,
-        pixelRatio: 2,
-        backgroundColor: '#F0F4F0',
-        fontEmbedCSS: `
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap');
-          `
-      });
+        const doc = new jsPDF() as jsPDF & { autoTable: (options: any) => void };
+        const isArabic = locale === 'ar';
 
-      const pdf = new jsPDF({
-        orientation: 'p',
-        unit: 'px',
-        format: 'a4',
-      });
+        if (isArabic) {
+            try {
+                const fontResponse = await fetch('/ArefRuqaa-Regular.ttf');
+                const font = await fontResponse.arrayBuffer();
+                const fontBase64 = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(font))));
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const img = new window.Image();
-      img.src = dataUrl;
-      
-      img.onload = () => {
-        const imgWidth = img.width;
-        const imgHeight = img.height;
-        const ratio = imgWidth / imgHeight;
-        
-        let finalImgWidth, finalImgHeight;
+                doc.addFileToVFS('ArefRuqaa-Regular.ttf', fontBase64);
+                doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
+                doc.setFont('Aref Ruqaa');
 
-        if(imgWidth > imgHeight) {
-            finalImgWidth = pdfWidth - 20;
-            finalImgHeight = finalImgWidth / ratio;
-        } else {
-            finalImgHeight = pdfHeight - 20;
-            finalImgWidth = finalImgHeight * ratio;
+            } catch (e) {
+                 toast({ variant: "destructive", title: t('error'), description: t('font_loading_error') });
+                 console.error("Font loading error:", e);
+                 // Fallback to default font if loading fails
+            }
         }
         
-        const x = (pdfWidth - finalImgWidth) / 2;
-        const y = 10;
+        doc.text(t('pdf_report_title'), 14, 22);
 
-        pdf.addImage(dataUrl, 'PNG', x, y, finalImgWidth, finalImgHeight);
+        // KPI Section
+        doc.setFontSize(12);
+        doc.text(t('pdf_kpi_title'), 14, 32);
+
+        const kpis = [
+            [t('pdf_kpi_total_calcs'), history.length.toString()],
+            [t('pdf_kpi_total_net_weight'), `${history.reduce((acc, item) => acc + item.results.totalNetWeight, 0).toFixed(2)} kg`],
+            [t('pdf_kpi_total_crates'), history.reduce((acc, item) => acc + item.totalCrates, 0).toString()],
+            [t('pdf_kpi_total_agreed_mad'), formatCurrency(history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((acc, item) => acc + item.agreedAmount, 0), 'MAD')],
+            [t('pdf_kpi_total_agreed_riyal'), formatCurrency(history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((acc, item) => acc + item.agreedAmount, 0), 'Riyal')],
+        ];
         
+        doc.autoTable({
+            startY: 36,
+            head: [],
+            body: kpis,
+            theme: 'plain',
+            styles: {
+                font: isArabic ? 'Aref Ruqaa' : 'helvetica',
+                halign: isArabic ? 'right' : 'left',
+            },
+            columnStyles: {
+              0: {fontStyle: 'bold'},
+            }
+        });
+
+
+        // History Table
+        doc.setFontSize(12);
+        doc.text(t('pdf_history_title'), 14, (doc as any).lastAutoTable.finalY + 15);
+        
+        const head = [[
+            t('pdf_col_date'), 
+            t('pdf_col_client'), 
+            t('pdf_col_product'), 
+            t('pdf_col_selling_price'),
+            t('pdf_col_net_weight'),
+            t('pdf_col_agreed_amount'),
+            t('pdf_col_remaining_crates'),
+            t('pdf_col_remaining_money')
+        ]];
+        
+        const body = history.map(item => {
+            const product = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
+            return [
+                item.date.split(' ')[0], // Just date part
+                item.clientName,
+                product,
+                `${item.mlihPrice}/${item.dichiPrice}`,
+                item.results.totalNetWeight.toFixed(2),
+                formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
+                item.remainingCrates,
+                formatCurrency(item.remainingMoney),
+            ];
+        });
+
+        // Reverse for RTL display
+        if (isArabic) {
+            head[0].reverse();
+            body.forEach(row => row.reverse());
+        }
+
+        doc.autoTable({
+            startY: (doc as any).lastAutoTable.finalY + 20,
+            head: head,
+            body: body,
+            styles: {
+                font: isArabic ? 'Aref Ruqaa' : 'helvetica',
+                halign: isArabic ? 'right' : 'left',
+            },
+            headStyles: {
+                fillColor: [38, 105, 43], // primary color
+                textColor: 255,
+                fontStyle: 'bold',
+            },
+        });
+
         const formattedDate = new Date().toISOString().slice(0, 10);
-        pdf.save(`rapport_cargo_${formattedDate}.pdf`);
-      }
+        doc.save(`rapport_cargo_${formattedDate}.pdf`);
 
     } catch (error) {
-      console.error('oops, something went wrong!', error);
-      toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
+        console.error('oops, something went wrong!', error);
+        toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
     }
   };
 
