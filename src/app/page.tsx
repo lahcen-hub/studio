@@ -36,7 +36,7 @@ const vegetables: Record<VegetableKey, { name: string; weight: number; icon: str
     tomato: { name: 'Tomate', weight: 31, icon: '🍅' },
     cucumber: { name: 'Concombre', weight: 27, icon: '🥒' },
     pepper: { name: 'Poivron Ramos', weight: 15, icon: '🌶️' },
-    pepper_kwach: { name: 'Poivron Coach', weight: 14, icon: '🫑' },
+    pepper_kwach: { name: 'Poivron Coach', weight: 14, icon: '🌶️' },
 };
 
 
@@ -1079,6 +1079,8 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
 
