@@ -38,10 +38,10 @@
     "save_details_desc": "Ajoutez des informations supplémentaires pour ce calcul.",
     "login_to_sync": "Connectez-vous pour synchroniser avec le serveur.",
     "client_name_label": "Nom du client",
-    "agreed_amount_label": "المبلغ المتفق عليه",
+    "agreed_amount_label": "Montant convenu",
     "currency_mad": "MAD",
     "currency_riyal": "Riyal",
-    "remaining_crates_label": "الصندوق الباقي",
+    "remaining_crates_label": "Caisses restantes",
     "remaining_money_label": "Reste d'argent",
     "cancel_button": "Annuler",
     "history_title": "Historique",
@@ -108,5 +108,8 @@
     "pdf_col_remaining_money": "Argent restant",
     "image_generation_fail": "Impossible de générer l'image.",
     "error": "Erreur",
-    "example_placeholder": "ex: {{value}}"
+    "example_placeholder": "ex: {{value}}",
+    "change_language_button": "Changer de langue"
 }
+
+    

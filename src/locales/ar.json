@@ -108,5 +108,8 @@
     "pdf_col_remaining_money": "المبلغ المتبقي",
     "image_generation_fail": "تعذر إنشاء الصورة.",
     "error": "خطأ",
-    "example_placeholder": "مثال: {{value}}"
+    "example_placeholder": "مثال: {{value}}",
+    "change_language_button": "تغيير اللغة"
 }
+
+    

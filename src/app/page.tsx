@@ -115,7 +115,7 @@ interface HistoryEntry extends CalculationDB {
 }
 
 const LanguageSwitcher = () => {
-    const { locale, setLocale, direction } = useI18n();
+    const { locale, setLocale, direction, t } = useI18n();
     const languages: { code: Locale; name: string; flag: string }[] = [
         { code: 'ar', name: 'العربية', flag: '🇸🇦' },
         { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -127,7 +127,7 @@ const LanguageSwitcher = () => {
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
                     <Languages className="h-[1.2rem] w-[1.2rem]" />
-                    <span className="sr-only">Changer de langue</span>
+                    <span className="sr-only">{t('change_language_button')}</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'}>
@@ -233,9 +233,6 @@ export default function CargoValuatorPage() {
           
           // Add local items that are not in firestore yet
           localUnsynced.forEach(localItem => {
-            // A truly new local item might not have its final firestore ID yet.
-            // A simple check is to see if an item with its temporary ID exists on the server map.
-            // This logic assumes temporary IDs are unique enough (e.g. timestamp)
             if (!firestoreMap.has(localItem.id)) {
               merged.push(localItem);
             }
@@ -694,7 +691,7 @@ export default function CargoValuatorPage() {
           <div>
             <LanguageSwitcher />
           </div>
-           <div className="text-center">
+          <div className="text-center flex-grow">
             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
               <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
@@ -1202,7 +1199,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
 
     

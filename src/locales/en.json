@@ -108,5 +108,8 @@
     "pdf_col_remaining_money": "Remaining Money",
     "image_generation_fail": "Could not generate the image.",
     "error": "Error",
-    "example_placeholder": "ex: {{value}}"
+    "example_placeholder": "ex: {{value}}",
+    "change_language_button": "Change language"
 }
+
+    
