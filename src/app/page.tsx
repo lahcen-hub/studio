@@ -691,8 +691,8 @@ export default function CargoValuatorPage() {
           <LanguageSwitcher />
           <div className="text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3">
-              <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
+              <Truck className="w-9 h-9 text-primary" />
             </h1>
             <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
                 {t('app_subtitle')}
@@ -1180,7 +1180,7 @@ export default function CargoValuatorPage() {
                                 id="editRemainingMoney" 
                                 type="number" 
                                 value={editingEntry.remainingMoney} 
-                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
@@ -1199,3 +1199,4 @@ export default function CargoValuatorPage() {
     
 
     
+
