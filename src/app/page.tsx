@@ -183,6 +183,7 @@ export default function CargoValuatorPage() {
   // Fetch data from Firestore in real-time or load from localStorage
   useEffect(() => {
     let unsubscribe = () => {};
+    let itemsToSync: HistoryEntry[] = [];
     
     if (loading) return; // Wait until auth state is determined
 
@@ -194,7 +195,7 @@ export default function CargoValuatorPage() {
         if (localHistoryString) {
           try {
             const localHistory: HistoryEntry[] = JSON.parse(localHistoryString);
-            const itemsToSync = localHistory.filter(item => !item.synced);
+            itemsToSync = localHistory.filter(item => !item.synced);
 
             if (itemsToSync.length > 0) {
               toast({ title: t('syncing_title'), description: t('syncing_desc', { count: itemsToSync.length }) });
@@ -244,7 +245,6 @@ export default function CargoValuatorPage() {
           // This should ideally happen after we confirm that all items in `itemsToSync` are now in `firestoreHistory`.
           // For simplicity, we'll clear it when the first firestore update comes in after a sync attempt.
           if (itemsToSync.length > 0) {
-             const syncedIds = new Set(itemsToSync.map(i => i.id));
              const allSyncedNow = itemsToSync.every(localItem => firestoreHistory.some(fsItem => fsItem.date === localItem.date && fsItem.clientName === localItem.clientName)); // Imperfect but better
              if(allSyncedNow) localStorage.removeItem('cargoHistory_local');
           }
@@ -280,21 +280,15 @@ export default function CargoValuatorPage() {
   useEffect(() => {
     if (loading) return;
     
-    const itemsToSave = history.filter(item => {
-        // If not logged in, save everything.
-        if (!user) return true;
-        // If logged in, only save unsynced items.
-        return !item.synced;
-    });
-
-    if (itemsToSave.length > 0) {
-        const historyToSave = itemsToSave.map(({ ...item }) => {
-          delete item.synced; // remove synced flag for local storage
-          return item;
-        });
-        localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
+    if (!user) {
+        localStorage.setItem('cargoHistory_local', JSON.stringify(history));
     } else {
-        localStorage.removeItem('cargoHistory_local');
+        const unsyncedItems = history.filter(item => !item.synced);
+        if (unsyncedItems.length > 0) {
+            localStorage.setItem('cargoHistory_local', JSON.stringify(unsyncedItems));
+        } else {
+            localStorage.removeItem('cargoHistory_local');
+        }
     }
   }, [history, user, loading]);
 
@@ -1166,7 +1160,7 @@ export default function CargoValuatorPage() {
                                 <Input 
                                     id="editAgreedAmount" 
                                     type="number" 
-                                    value={editingEntry.agreedAmount} 
+                                    value={editingEntry.agreedAmount} G
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     className="col-span-2" />
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
@@ -1210,5 +1204,7 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
 
     
