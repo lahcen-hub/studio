@@ -1,6 +1,6 @@
 
 {
-    "app_title": "كارغو",
+    "app_title": "Cargo",
     "app_subtitle": "يحسب السعر الإجمالي لنوعين من المنتجات بناءً على بيانات الشحنة.",
     "cargo_data_title": "بيانات الشحنة",
     "cargo_data_desc": "أدخل التفاصيل أدناه.",
@@ -111,5 +111,3 @@
     "example_placeholder": "مثال: {{value}}",
     "change_language_button": "تغيير اللغة"
 }
-
-    
