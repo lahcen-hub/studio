@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import type { UserOptions } from 'jspdf-autotable';
 import { useAuth, signInWithGoogle, signOut } from '@/lib/firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -174,7 +176,6 @@ export default function CargoValuatorPage() {
   const hasSynced = useRef(false);
   const resultsRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<HTMLDivElement>(null);
-  const reportRef = useRef<HTMLDivElement>(null);
 
   const sortHistory = useCallback((historyToSort: HistoryEntry[]) => {
     return historyToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -553,88 +554,84 @@ export default function CargoValuatorPage() {
     toast({ title: t('clear_history_local_title') });
   };
 
+  interface jsPDFWithAutoTable extends jsPDF {
+    autoTable: (options: UserOptions) => jsPDF;
+  }
+
   const downloadHistory = async () => {
     if (history.length === 0) {
-      toast({ variant: 'destructive', title: t('history_empty') });
-      return;
-    }
-
-    const element = reportRef.current;
-    if (!element) {
-        toast({ variant: "destructive", title: t('error'), description: t('report_gen_error_desc') });
+        toast({ variant: 'destructive', title: t('history_empty') });
         return;
     }
 
-    const formattedDate = new Date().toISOString().slice(0, 10);
+    const doc = new jsPDF() as jsPDFWithAutoTable;
+    const isArabic = locale === 'ar';
 
-    if (locale === 'ar') {
-        try {
-            const dataUrl = await htmlToImage.toPng(element, { 
-                backgroundColor: '#F0F4F0',
-                fontEmbedCSS: `
-                    @import url('https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&display=swap');
-                `,
-                style: {
-                    direction: 'rtl'
-                }
-            });
-            const link = document.createElement('a');
-            link.download = `rapport_cargo_${formattedDate}.png`;
-            link.href = dataUrl;
-            link.click();
-        } catch (error) {
-            console.error('Oops, something went wrong!', error);
-            toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
-        }
-        return;
-    }
-
-    // For FR and EN, generate text PDF
     try {
-        const doc = new jsPDF();
-        
-        doc.text(t('pdf_report_title'), 14, 22);
+        if (isArabic) {
+            // Fetch font, convert to base64
+            const fontUrl = 'https://fonts.gstatic.com/s/arefruqaa/v26/W_h3E2_66G8J-kI9v-u_8w_SJw.ttf';
+            const response = await fetch(fontUrl);
+            if (!response.ok) throw new Error('Font fetch failed');
+            const fontBuffer = await response.arrayBuffer();
+            const fontBase64 = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(fontBuffer))));
 
-        // KPI Section
-        doc.setFontSize(12);
-        doc.text(t('pdf_kpi_title'), 14, 32);
+            // Add font to jsPDF
+            doc.addFileToVFS('ArefRuqaa-Regular.ttf', fontBase64);
+            doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
+            doc.setFont('Aref Ruqaa');
+        }
 
-        let kpiText = `
-            ${t('pdf_kpi_total_calcs')} ${history.length}
-            ${t('pdf_kpi_total_net_weight')} ${history.reduce((acc, item) => acc + item.results.totalNetWeight, 0).toFixed(2)} kg
-            ${t('pdf_kpi_total_crates')} ${history.reduce((acc, item) => acc + item.totalCrates, 0)}
-            ${t('pdf_kpi_total_agreed_mad')} ${formatCurrency(history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((acc, item) => acc + item.agreedAmount, 0), 'MAD')}
-            ${t('pdf_kpi_total_agreed_riyal')} ${formatCurrency(history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((acc, item) => acc + item.agreedAmount, 0), 'Riyal')}
-        `;
-        doc.text(kpiText, 14, 38);
+        const head = [[
+            t('pdf_col_date'),
+            t('pdf_col_client'),
+            t('pdf_col_product'),
+            t('pdf_col_selling_price'),
+            t('pdf_col_net_weight'),
+            t('pdf_col_agreed_amount')
+        ]];
 
-
-        // History Table (simplified)
-        doc.addPage();
-        doc.text(t('pdf_history_title'), 14, 22);
-        
-        let y = 30;
-        history.forEach((item, index) => {
-            if (y > 270) { // New page if content is too long
-              doc.addPage();
-              y = 22;
-            }
+        const body = history.map(item => {
             const product = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
-            const itemText = `
-                ----------------------------------------------------
-                ${t('pdf_col_date')}: ${item.date.split(' ')[0]}
-                ${t('pdf_col_client')}: ${item.clientName}
-                ${t('pdf_col_product')}: ${product}
-                ${t('pdf_col_selling_price')}: ${item.mlihPrice}/${item.dichiPrice}
-                ${t('pdf_col_net_weight')}: ${item.results.totalNetWeight.toFixed(2)} kg
-                ${t('pdf_col_agreed_amount')}: ${formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}
-                ${t('pdf_col_remaining_crates')}: ${item.remainingCrates}
-                ${t('pdf_col_remaining_money')}: ${formatCurrency(item.remainingMoney)}
-            `;
-            doc.text(itemText, 14, y);
-            y += 60; 
+            return [
+                item.date.split(' ')[0],
+                item.clientName,
+                product,
+                `${item.mlihPrice}/${item.dichiPrice}`,
+                item.results.totalNetWeight.toFixed(2),
+                formatCurrency(item.agreedAmount, item.agreedAmountCurrency)
+            ];
         });
 
+        // Reverse for RTL display in PDF
+        if (isArabic) {
+            head[0].reverse();
+            body.forEach(row => row.reverse());
+        }
+
+        doc.autoTable({
+            head: head,
+            body: body,
+            startY: 20,
+            styles: {
+                font: isArabic ? 'Aref Ruqaa' : 'Helvetica',
+                halign: isArabic ? 'right' : 'left',
+            },
+            headStyles: {
+                fontStyle: 'bold',
+                fillColor: [3, 169, 115] // A shade of green
+            },
+            didDrawPage: (data) => {
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(40);
+                const title = t('pdf_report_title');
+                const titleX = isArabic ? (doc.internal.pageSize.getWidth() - doc.getTextWidth(title) - 14) : 14;
+                doc.text(title, titleX, 15);
+            },
+        });
+
+        const formattedDate = new Date().toISOString().slice(0, 10);
         doc.save(`rapport_cargo_${formattedDate}.pdf`);
 
     } catch (error) {
@@ -992,43 +989,6 @@ export default function CargoValuatorPage() {
           )}
 
           <div className="md:col-span-5 mt-4 md:mt-6">
-             {/* This div is for report generation. It's hidden from view. */}
-            <div ref={reportRef} className={cn("bg-white p-4 -z-10 absolute", {"opacity-0": locale !== 'ar'})}>
-                <h2 className="text-xl font-bold mb-2">{t('pdf_report_title')}</h2>
-                <div className="mb-4">
-                    <h3 className="font-bold">{t('pdf_kpi_title')}</h3>
-                    <p>{t('pdf_kpi_total_calcs')} {history.length}</p>
-                    <p>{t('pdf_kpi_total_net_weight')} {history.reduce((acc, item) => acc + item.results.totalNetWeight, 0).toFixed(2)} kg</p>
-                    <p>{t('pdf_kpi_total_crates')} {history.reduce((acc, item) => acc + item.totalCrates, 0)}</p>
-                    <p>{t('pdf_kpi_total_agreed_mad')} {formatCurrency(history.filter(i => i.agreedAmountCurrency === 'MAD').reduce((acc, item) => acc + item.agreedAmount, 0), 'MAD')}</p>
-                    <p>{t('pdf_kpi_total_agreed_riyal')} {formatCurrency(history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((acc, item) => acc + item.agreedAmount, 0), 'Riyal')}</p>
-                </div>
-                <h3 className="font-bold mt-4">{t('pdf_history_title')}</h3>
-                <table className="w-full text-left border-collapse mt-2">
-                    <thead>
-                        <tr className="bg-gray-200">
-                            <th className="border p-2">{t('pdf_col_date')}</th>
-                            <th className="border p-2">{t('pdf_col_client')}</th>
-                            <th className="border p-2">{t('pdf_col_product')}</th>
-                            <th className="border p-2">{t('pdf_col_selling_price')}</th>
-                            <th className="border p-2">{t('pdf_col_net_weight')}</th>
-                            <th className="border p-2">{t('pdf_col_agreed_amount')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {history.map(item => (
-                            <tr key={item.id}>
-                                <td className="border p-2">{item.date.split(' ')[0]}</td>
-                                <td className="border p-2">{item.clientName}</td>
-                                <td className="border p-2">{item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A'}</td>
-                                <td className="border p-2">{item.mlihPrice}/{item.dichiPrice}</td>
-                                <td className="border p-2">{item.results.totalNetWeight.toFixed(2)}</td>
-                                <td className="border p-2">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
             <Card className="shadow-lg">
               <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div className="space-y-1.5">
