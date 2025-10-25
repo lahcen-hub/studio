@@ -692,7 +692,7 @@ export default function CargoValuatorPage() {
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-4 md:mb-6">
           <div>
-             <AuthArea />
+            <LanguageSwitcher />
           </div>
            <div className="text-center">
             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
@@ -704,7 +704,7 @@ export default function CargoValuatorPage() {
             </p>
           </div>
           <div>
-             <LanguageSwitcher />
+            <AuthArea />
           </div>
         </header>
 
