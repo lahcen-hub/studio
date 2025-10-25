@@ -203,8 +203,7 @@ export default function CargoValuatorPage() {
 
               Promise.all(syncPromises)
                 .then(() => {
-                  localStorage.removeItem('cargoHistory_local');
-                  toast({ title: t('sync_complete_title'), description: t('sync_complete_desc') });
+                  // Wait for Firestore listener to update history before removing local
                 })
                 .catch(err => {
                    console.error("Failed to sync history", err);
@@ -220,9 +219,26 @@ export default function CargoValuatorPage() {
       // Listen for real-time updates from Firestore
       unsubscribe = getCalculations(user.uid, (firestoreHistory) => {
         setHistory(prevHistory => {
-          const firestoreMap = new Map(firestoreHistory.map(h => [h.id, {...h, synced: true}]));
-          const localOnlyItems = prevHistory.filter(h => !h.synced && !firestoreMap.has(h.id));
-          const merged = [...firestoreMap.values(), ...localOnlyItems];
+          const syncedFirestoreHistory = firestoreHistory.map(h => ({ ...h, synced: true }));
+          
+          const localUnsynced = prevHistory.filter(h => !h.synced);
+          
+          const firestoreMap = new Map(syncedFirestoreHistory.map(h => [h.id, h]));
+          const merged = [...syncedFirestoreHistory];
+          
+          // Add local items that are not in firestore yet
+          localUnsynced.forEach(localItem => {
+            if (!firestoreMap.has(localItem.id)) {
+              merged.push(localItem);
+            }
+          });
+
+          // Once synced, local storage for unsynced items can be cleared if all items have an id (meaning they are from firestore or being processed)
+          const allSyncedOrProcessing = merged.every(item => item.id && typeof item.id === 'string');
+          if (allSyncedOrProcessing) {
+             localStorage.removeItem('cargoHistory_local');
+          }
+
           return sortHistory(merged);
         });
       });
@@ -533,8 +549,7 @@ export default function CargoValuatorPage() {
     }
   
     const doc = new jsPDF();
-    doc.addFont('/js-pdf-fonts/Cairo-Regular.ttf', 'Cairo', 'normal');
-    doc.setFont('Cairo');
+    doc.setFont('Helvetica', 'normal');
   
     const title = t('pdf_report_title');
     doc.setFontSize(22);
@@ -565,7 +580,7 @@ export default function CargoValuatorPage() {
       body: kpiData,
       startY: 35,
       theme: 'plain',
-      styles: { font: "Cairo", fontSize: 11 },
+      styles: { font: "Helvetica", fontSize: 11 },
       columnStyles: { 0: { fontStyle: 'bold' } },
     });
   
@@ -596,7 +611,7 @@ export default function CargoValuatorPage() {
       head: head,
       body: body,
       startY: tableStartY + 5,
-      styles: { font: "Cairo", halign: 'center', fontSize: 8 },
+      styles: { font: "Helvetica", halign: 'center', fontSize: 8 },
       headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
       columnStyles: {
         0: { halign: 'left' }, 1: { halign: 'left' }, 2: { halign: 'center' }, 3: { halign: 'center' },
