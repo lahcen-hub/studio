@@ -198,7 +198,14 @@ export default function CargoValuatorPage() {
       hasSynced.current = false;
       try {
         const savedHistory = localStorage.getItem('cargoHistory_local');
-        setHistory(savedHistory ? sortHistory(JSON.parse(savedHistory)) : []);
+        if (savedHistory) {
+          const parsedHistory: HistoryEntry[] = JSON.parse(savedHistory);
+          // Mark all items as unsynced for a logged-out user
+          const historyToSet = parsedHistory.map(item => ({...item, synced: false}));
+          setHistory(sortHistory(historyToSet));
+        } else {
+          setHistory([]);
+        }
       } catch (error) {
         console.error("Failed to load history from localStorage", error);
         setHistory([]);
@@ -218,6 +225,8 @@ export default function CargoValuatorPage() {
         if(history.length > 0) {
             const historyToSave = history.map(item => ({...item, synced: false}));
             localStorage.setItem('cargoHistory_local', JSON.stringify(historyToSave));
+        } else {
+            localStorage.removeItem('cargoHistory_local');
         }
       } else {
         // User is logged in, only save unsynced items
@@ -1007,12 +1016,12 @@ export default function CargoValuatorPage() {
                                       <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>Poids net total (kg):</span>
                                       <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                   </div>
-                                  <div className="col-span-2">
-                                    <Separator className="my-1" />
-                                  </div>
-                                  <div className="flex justify-between items-center">
+                                   <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>Total caisses:</p>
                                       <p className="font-bold">{item.totalCrates}</p>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <Separator className="my-1" />
                                   </div>
                                   <div className="flex justify-between items-center">
                                       <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Caisses restantes:</span>
