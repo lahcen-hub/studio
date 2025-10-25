@@ -690,11 +690,11 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="grid grid-cols-3 items-center mb-4 md:mb-6">
-          <div className="justify-self-start">
+        <header className="flex items-center justify-between mb-4 md:mb-6">
+          <div>
              <AuthArea />
           </div>
-           <div className="text-center col-start-2">
+           <div className="text-center">
             <h1 className={cn("text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center justify-center gap-3", locale === 'ar' && cairo.className)}>
               <Truck className="w-9 h-9 text-primary" />
               {t('app_title')}
@@ -703,7 +703,7 @@ export default function CargoValuatorPage() {
                 {t('app_subtitle')}
             </p>
           </div>
-          <div className="justify-self-end">
+          <div>
              <LanguageSwitcher />
           </div>
         </header>
