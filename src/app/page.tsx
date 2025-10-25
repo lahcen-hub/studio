@@ -558,19 +558,14 @@ export default function CargoValuatorPage() {
       return;
     }
     
-    // Dynamically import the font assets for jsPDF
-    const { ArefRuqaa_400Regular, ArefRuqaa_700Bold } = await import('@expo-google-fonts/aref-ruqaa');
-
     const doc = new jsPDF();
     const isArabic = locale === 'ar';
     
     // Set font for Arabic
     if (isArabic) {
-      doc.addFileToVFS('ArefRuqaa-Regular.ttf', ArefRuqaa_400Regular);
-      doc.addFileToVFS('ArefRuqaa-Bold.ttf', ArefRuqaa_700Bold);
-      doc.addFont('ArefRuqaa-Regular.ttf', 'ArefRuqaa', 'normal');
-      doc.addFont('ArefRuqaa-Bold.ttf', 'ArefRuqaa', 'bold');
-      doc.setFont('ArefRuqaa');
+      doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
+      doc.addFont('ArefRuqaa-Bold.ttf', 'Aref Ruqaa', 'bold');
+      doc.setFont('Aref Ruqaa');
     } else {
       doc.setFont('Helvetica', 'normal');
     }
@@ -587,7 +582,7 @@ export default function CargoValuatorPage() {
   
     const title = t('pdf_report_title');
     doc.setFontSize(22);
-    doc.setFont('ArefRuqaa', 'bold');
+    doc.setFont('Aref Ruqaa', 'bold');
     rtlText(title, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
   
     const totalCalculs = history.length;
@@ -597,10 +592,10 @@ export default function CargoValuatorPage() {
     const totalAgreedRiyal = history.filter(i => i.agreedAmountCurrency === 'Riyal').reduce((sum, item) => sum + item.agreedAmount, 0);
   
     doc.setFontSize(16);
-    doc.setFont('ArefRuqaa', 'bold');
+    doc.setFont('Aref Ruqaa', 'bold');
     rtlText(t('pdf_kpi_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, 30);
     doc.setFontSize(11);
-    doc.setFont('ArefRuqaa', 'normal');
+    doc.setFont('Aref Ruqaa', 'normal');
 
     const kpiData: string[][] = [
       [t('pdf_kpi_total_calcs'), totalCalculs.toString()],
@@ -621,7 +616,7 @@ export default function CargoValuatorPage() {
       body: kpiData,
       startY: 35,
       theme: 'plain',
-      styles: { font: isArabic ? "ArefRuqaa" : "Helvetica", fontSize: 11 },
+      styles: { font: isArabic ? "Aref Ruqaa" : "Helvetica", fontSize: 11 },
       columnStyles: { 
         0: { fontStyle: 'bold', halign: isArabic ? 'right' : 'left' },
         1: { halign: isArabic ? 'right' : 'left' }
@@ -631,7 +626,7 @@ export default function CargoValuatorPage() {
   
     const tableStartY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(16);
-    doc.setFont('ArefRuqaa', 'bold');
+    doc.setFont('Aref Ruqaa', 'bold');
     rtlText(t('pdf_history_title'), isArabic ? doc.internal.pageSize.getWidth() - 14 : 14, tableStartY);
   
     const head = [
@@ -659,8 +654,8 @@ export default function CargoValuatorPage() {
       head: head,
       body: body,
       startY: tableStartY + 5,
-      styles: { font: isArabic ? "ArefRuqaa" : "Helvetica", halign: 'center', fontSize: 8 },
-      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49], font: isArabic ? "ArefRuqaa" : "Helvetica" },
+      styles: { font: isArabic ? "Aref Ruqaa" : "Helvetica", halign: 'center', fontSize: 8 },
+      headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49], font: isArabic ? "Aref Ruqaa" : "Helvetica" },
       columnStyles: isArabic ? {
         7: { halign: 'right' }, 6: { halign: 'right' }, 5: { halign: 'center' }, 4: { halign: 'center' },
         3: { halign: 'left' }, 2: { halign: 'left' }, 1: { halign: 'center' }, 0: { halign: 'left' },
@@ -728,7 +723,7 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-4 md:mb-6">
-          <div className="flex w-1/3 justify-start">
+          <div className="w-1/3 flex justify-start">
             <LanguageSwitcher />
           </div>
           <div className="flex w-1/3 flex-grow flex-col items-center justify-center text-center">
@@ -740,7 +735,7 @@ export default function CargoValuatorPage() {
                 {t('app_subtitle')}
             </p>
           </div>
-          <div className="flex w-1/3 justify-end">
+          <div className="w-1/3 flex justify-end">
             <AuthArea />
           </div>
         </header>
