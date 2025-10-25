@@ -555,7 +555,7 @@ export default function CargoValuatorPage() {
   };
 
   interface jsPDFWithAutoTable extends jsPDF {
-    autoTable: (options: UserOptions) => jsPDF;
+    autoTable: (options: UserOptions) => jsPDFWithAutoTable;
   }
 
   const downloadHistory = async () => {
@@ -581,6 +581,52 @@ export default function CargoValuatorPage() {
             doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
             doc.setFont('Aref Ruqaa');
         }
+        
+        // --- HEADER ---
+        doc.setFontSize(20);
+        doc.setTextColor(40);
+        const title = t('pdf_report_title');
+        const titleX = isArabic ? (doc.internal.pageSize.getWidth() - doc.getTextWidth(title) - 14) : 14;
+        doc.text(title, titleX, 15);
+        
+        // --- KPIs ---
+        const totalCalculations = history.length;
+        const totalNetWeight = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
+        const totalCrates = history.reduce((sum, item) => sum + item.totalCrates, 0);
+        const totalAgreedMAD = history.reduce((sum, item) => item.agreedAmountCurrency === 'MAD' ? sum + item.agreedAmount : sum, 0);
+        const totalAgreedRiyal = history.reduce((sum, item) => item.agreedAmountCurrency === 'Riyal' ? sum + item.agreedAmount : sum, 0);
+
+        const kpiBody = [
+            [t('pdf_kpi_total_calcs'), totalCalculations.toString()],
+            [t('pdf_kpi_total_net_weight'), `${totalNetWeight.toFixed(2)} kg`],
+            [t('pdf_kpi_total_crates'), totalCrates.toString()],
+            [t('pdf_kpi_total_agreed_mad'), formatCurrency(totalAgreedMAD, 'MAD')],
+            [t('pdf_kpi_total_agreed_riyal'), formatCurrency(totalAgreedRiyal, 'Riyal')],
+        ];
+        if (isArabic) {
+          kpiBody.forEach(row => row.reverse());
+        }
+
+        doc.autoTable({
+            body: kpiBody,
+            startY: 25,
+            theme: 'plain',
+            styles: {
+                font: isArabic ? 'Aref Ruqaa' : 'Helvetica',
+                halign: isArabic ? 'right' : 'left',
+                fontSize: 10,
+            },
+            columnStyles: {
+                0: { fontStyle: 'bold' }
+            },
+        });
+
+        // --- HISTORY TABLE ---
+        const finalY = doc.autoTable.previous.finalY;
+        doc.setFontSize(14);
+        const historyTitle = t('pdf_history_title');
+        const historyTitleX = isArabic ? (doc.internal.pageSize.getWidth() - doc.getTextWidth(historyTitle) - 14) : 14;
+        doc.text(historyTitle, historyTitleX, finalY + 15);
 
         const head = [[
             t('pdf_col_date'),
@@ -612,7 +658,7 @@ export default function CargoValuatorPage() {
         doc.autoTable({
             head: head,
             body: body,
-            startY: 20,
+            startY: finalY + 20,
             styles: {
                 font: isArabic ? 'Aref Ruqaa' : 'Helvetica',
                 halign: isArabic ? 'right' : 'left',
@@ -620,14 +666,6 @@ export default function CargoValuatorPage() {
             headStyles: {
                 fontStyle: 'bold',
                 fillColor: [3, 169, 115] // A shade of green
-            },
-            didDrawPage: (data) => {
-                // Header
-                doc.setFontSize(20);
-                doc.setTextColor(40);
-                const title = t('pdf_report_title');
-                const titleX = isArabic ? (doc.internal.pageSize.getWidth() - doc.getTextWidth(title) - 14) : 14;
-                doc.text(title, titleX, 15);
             },
         });
 
