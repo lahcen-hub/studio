@@ -19,6 +19,14 @@
           "description": "The type of product for the calculation.",
           "enum": ["tomato", "cucumber", "pepper", "pepper_kwach"]
         },
+        "mlihPrice": {
+          "type": "number",
+          "description": "The selling price for the 'mlih' category."
+        },
+        "dichiPrice": {
+          "type": "number",
+          "description": "The selling price for the 'dichi' category."
+        },
         "results": {
           "type": "object",
           "properties": {
@@ -62,6 +70,8 @@
         "uid",
         "date",
         "productType",
+        "mlihPrice",
+        "dichiPrice",
         "results",
         "clientName",
         "totalCrates",
@@ -79,5 +89,3 @@
     }
   }
 }
-
-    

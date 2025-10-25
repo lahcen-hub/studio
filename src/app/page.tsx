@@ -181,9 +181,15 @@ export default function CargoValuatorPage() {
       // Listen for real-time updates from Firestore
       unsubscribe = getCalculations(user.uid, (firestoreHistory) => {
         setHistory(prevHistory => {
-          const localUnsynced = prevHistory.filter(h => !h.synced);
-          const firestoreIds = new Set(firestoreHistory.map(h => h.id));
-          const merged = [...firestoreHistory.map(h => ({...h, synced: true})), ...localUnsynced.filter(h => !firestoreIds.has(h.id))];
+          // This merge logic is tricky. We want to respect Firestore as the source of truth,
+          // but keep any local-only items that haven't been synced yet.
+          const firestoreMap = new Map(firestoreHistory.map(h => [h.id, {...h, synced: true}]));
+          
+          // Get local items that are NOT in firestore yet.
+          // These could be new items created offline.
+          const localOnlyItems = prevHistory.filter(h => !h.synced && !firestoreMap.has(h.id));
+
+          const merged = [...firestoreMap.values(), ...localOnlyItems];
           return sortHistory(merged);
         });
       });
@@ -317,6 +323,8 @@ export default function CargoValuatorPage() {
       date: new Date().toLocaleString('fr-FR'),
       createdAt: new Date().toISOString(),
       productType: selectedVegetable,
+      mlihPrice: Number(mlihPrice) || 0,
+      dichiPrice: Number(dichiPrice) || 0,
       results: {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
@@ -373,6 +381,8 @@ export default function CargoValuatorPage() {
         ...editingEntry,
         clientName: editingEntry.clientName,
         productType: editingEntry.productType,
+        mlihPrice: Number(editingEntry.mlihPrice) || 0,
+        dichiPrice: Number(editingEntry.dichiPrice) || 0,
         agreedAmount: Number(editingEntry.agreedAmount) || 0,
         agreedAmountCurrency: editingEntry.agreedAmountCurrency,
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
@@ -529,7 +539,7 @@ export default function CargoValuatorPage() {
     doc.text("Historique des Calculs", 14, tableStartY);
   
     const head = [
-      ["Date", "Client", "Produit", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
+      ["Date", "Client", "Produit", "Prix de vente", "Poids Net", "Montant convenu", "Caisses restantes", "Argent restant"]
     ];
   
     const body = history.map(item => {
@@ -538,6 +548,7 @@ export default function CargoValuatorPage() {
         item.date,
         item.clientName,
         productInfo,
+        `${item.mlihPrice || 0} / ${item.dichiPrice || 0}`,
         item.results.totalNetWeight?.toFixed(2) + ' kg' || 'N/A',
         formatCurrency(item.agreedAmount, item.agreedAmountCurrency),
         item.remainingCrates,
@@ -549,16 +560,17 @@ export default function CargoValuatorPage() {
       head: head,
       body: body,
       startY: tableStartY + 5,
-      styles: { font: "Helvetica", halign: 'center', fontSize: 9 },
+      styles: { font: "Helvetica", halign: 'center', fontSize: 8 },
       headStyles: { halign: 'center', fontStyle: 'bold', fillColor: [122, 39, 49] },
       columnStyles: {
         0: { halign: 'left' },
         1: { halign: 'left' },
         2: { halign: 'center' },
-        3: { halign: 'right' },
+        3: { halign: 'center' },
         4: { halign: 'right' },
-        5: { halign: 'center' },
-        6: { halign: 'right' },
+        5: { halign: 'right' },
+        6: { halign: 'center' },
+        7: { halign: 'right' },
       },
     });
   
@@ -979,22 +991,28 @@ export default function CargoValuatorPage() {
                                 </div>
                             </div>
                             <Separator className="my-2" />
-                            <div className="flex justify-between items-center text-sm">
-                                  <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>المبلغ الاجمالي:</p>
-                                  <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
-                            </div>
-                            <div className="flex justify-between items-center text-sm mt-1">
-                                  <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>مجموع الصندوق:</p>
-                                  <p className="font-bold">{item.totalCrates}</p>
-                            </div>
-                            <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                  <div className="flex justify-between items-center col-span-2">
+                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>Prix de vente (Mlih/Dichi):</p>
+                                      <p className="font-bold">{item.mlihPrice || 0} DH / {item.dichiPrice || 0} DH</p>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <Separator className="my-1" />
+                                  </div>
                                   <div className="flex justify-between items-center">
-                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>الصندوق الباقي:</span>
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>Montant convenu:</p>
+                                      <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>Total caisses:</p>
+                                      <p className="font-bold">{item.totalCrates}</p>
+                                  </div>
+                                  <div className="flex justify-between items-center">
+                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>Caisses restantes:</span>
                                       <span className="font-bold">{item.remainingCrates}</span>
                                   </div>
                                   <div className="flex justify-between items-center">
-                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Reste argent:</span>
+                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>Argent restant:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                   </div>
                                   <div className="col-span-2 flex justify-between items-center">
@@ -1057,13 +1075,31 @@ export default function CargoValuatorPage() {
                               </Select>
                           </div>
                         </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editMlihPrice" className="text-right">Prix Mlih</Label>
+                            <Input 
+                                id="editMlihPrice" 
+                                type="number" 
+                                value={editingEntry.mlihPrice || ''} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editDichiPrice" className="text-right">Prix Dichi</Label>
+                            <Input 
+                                id="editDichiPrice" 
+                                type="number" 
+                                value={editingEntry.dichiPrice || ''} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editAgreedAmount" className="text-right font-bold">Montant convenu</Label>
                              <div className="col-span-3 grid grid-cols-3 gap-2">
                                 <Input 
                                     id="editAgreedAmount" 
                                     type="number" 
-                                    value={editingEntry.agreedAmount} 
+                                    value={editingEntry.agreedAmount || ''} 
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     className="col-span-2" />
                                 <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
@@ -1082,7 +1118,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
-                                value={editingEntry.remainingCrates} 
+                                value={editingEntry.remainingCrates || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1091,7 +1127,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
-                                value={editingEntry.remainingMoney} 
+                                value={editingEntry.remainingMoney || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>

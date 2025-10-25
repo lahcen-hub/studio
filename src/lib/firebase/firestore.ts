@@ -1,3 +1,4 @@
+
 'use client';
 
 import { addDoc, collection, getFirestore, onSnapshot, query, where, orderBy, type DocumentData, type Unsubscribe, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
@@ -13,7 +14,9 @@ export interface CalculationDB extends DocumentData {
   uid: string;
   date: string;
   createdAt: string;
-  productType: 'tomato' | 'cucumber' | 'pepper';
+  productType: 'tomato' | 'cucumber' | 'pepper' | 'pepper_kwach';
+  mlihPrice: number;
+  dichiPrice: number;
   results: {
     grandTotalPrice: number;
     grandTotalPriceRiyal: number;
