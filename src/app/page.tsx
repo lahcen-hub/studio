@@ -1088,11 +1088,11 @@ export default function CargoValuatorPage() {
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button variant="outline" size="sm" onClick={downloadHistory}>
-                      <Download className="mr-1 h-3 w-3" /> {t('download_button')}
+                    <Button variant="outline" size="icon" onClick={downloadHistory} className="rounded-full">
+                      <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={clearHistory}>
-                      <Trash2 className="mr-1 h-3 w-3" /> {t('clear_button')}
+                    <Button variant="destructive" size="icon" onClick={clearHistory} className="rounded-full">
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 )}
