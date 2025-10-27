@@ -40,6 +40,10 @@
           "type": "string",
           "description": "Name of the client."
         },
+        "farm": {
+            "type": "string",
+            "description": "Name of the farm."
+        },
         "remainingCrates": {
           "type": "number",
           "description": "Number of remaining crates."

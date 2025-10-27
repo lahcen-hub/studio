@@ -23,6 +23,7 @@ export interface CalculationDB extends DocumentData {
     totalNetWeight: number;
   };
   clientName: string;
+  farm?: string;
   remainingCrates: number;
   remainingMoney: number;
   totalCrates: number;

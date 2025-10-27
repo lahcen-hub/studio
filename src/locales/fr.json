@@ -38,6 +38,7 @@
     "save_details_desc": "Ajoutez des informations supplémentaires pour ce calcul.",
     "login_to_sync": "Connectez-vous pour synchroniser avec le serveur.",
     "client_name_label": "Nom du client",
+    "farm_name_label": "Ferme",
     "agreed_amount_label": "Montant convenu",
     "currency_mad": "MAD",
     "currency_riyal": "Riyal",
@@ -112,5 +113,8 @@
     "change_language_button": "Changer de langue",
     "font_loading_error": "La police n'est pas prête. Réessayez.",
     "report_gen_error_desc": "Le conteneur du rapport n'a pas été trouvé.",
-    "pdf_generation_fail": "Impossible de générer le PDF."
+    "pdf_generation_fail": "Impossible de générer le PDF.",
+    "filter_by_farm_label": "Filtrer par ferme",
+    "all_farms_label": "Toutes les fermes",
+    "filtering_by_label": "Filtre"
 }

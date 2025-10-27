@@ -38,6 +38,7 @@
     "save_details_desc": "أضف معلومات إضافية لهذا الحساب.",
     "login_to_sync": "سجل الدخول للمزامنة مع الخادم.",
     "client_name_label": "اسم العميل",
+    "farm_name_label": "مزرعة",
     "agreed_amount_label": "المبلغ المتفق عليه",
     "currency_mad": "د.م.",
     "currency_riyal": "ريال",
@@ -112,5 +113,8 @@
     "change_language_button": "تغيير اللغة",
     "font_loading_error": "الخط العربي غير جاهز. حاول مرة أخرى.",
     "report_gen_error_desc": "لم يتم العثور على حاوية التقرير.",
-    "pdf_generation_fail": "تعذر إنشاء ملف PDF."
+    "pdf_generation_fail": "تعذر إنشاء ملف PDF.",
+    "filter_by_farm_label": "تصفية حسب المزرعة",
+    "all_farms_label": "جميع المزارع",
+    "filtering_by_label": "تصفية"
 }

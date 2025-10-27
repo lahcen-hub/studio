@@ -38,6 +38,7 @@
     "save_details_desc": "Add supplementary information for this calculation.",
     "login_to_sync": "Log in to sync with the server.",
     "client_name_label": "Client name",
+    "farm_name_label": "Farm",
     "agreed_amount_label": "Agreed amount",
     "currency_mad": "MAD",
     "currency_riyal": "Riyal",
@@ -112,5 +113,8 @@
     "change_language_button": "Change language",
     "font_loading_error": "Font not ready. Please try again.",
     "report_gen_error_desc": "Report container not found.",
-    "pdf_generation_fail": "Could not generate PDF."
+    "pdf_generation_fail": "Could not generate PDF.",
+    "filter_by_farm_label": "Filter by farm",
+    "all_farms_label": "All farms",
+    "filtering_by_label": "Filtering by"
 }

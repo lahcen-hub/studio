@@ -7,13 +7,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf, Languages } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf, Languages, Tractor, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { UserOptions } from 'jspdf-autotable';
@@ -156,6 +156,7 @@ export default function CargoValuatorPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   
   const [clientName, setClientName] = useState('');
+  const [farmName, setFarmName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
   const [agreedAmount, setAgreedAmount] = useState<number | string>('');
@@ -171,6 +172,8 @@ export default function CargoValuatorPage() {
 
   const [isDistributeDialogOpen, setDistributeDialogOpen] = useState(false);
   const [distributeVirtualCrates, setDistributeVirtualCrates] = useState<number | string>('');
+
+  const [farmFilter, setFarmFilter] = useState<string | null>(null);
 
   const hasSynced = useRef(false);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -421,6 +424,7 @@ export default function CargoValuatorPage() {
         totalNetWeight: calculations.totalNetProductWeight,
       },
       clientName: clientName,
+      farm: farmName,
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates,
@@ -448,6 +452,7 @@ export default function CargoValuatorPage() {
     }
     
     setClientName('');
+    setFarmName('');
     setRemainingCrates('');
     setRemainingMoney('');
     setAgreedAmount('');
@@ -468,6 +473,7 @@ export default function CargoValuatorPage() {
     const entryToUpdate: HistoryEntry = {
         ...editingEntry,
         clientName: editingEntry.clientName,
+        farm: editingEntry.farm,
         productType: editingEntry.productType,
         mlihPrice: Number(editingEntry.mlihPrice) || 0,
         dichiPrice: Number(editingEntry.dichiPrice) || 0,
@@ -695,6 +701,18 @@ export default function CargoValuatorPage() {
     }
   };
 
+  const farmNames = useMemo(() => {
+    const names = new Set(history.map(item => item.farm).filter(Boolean));
+    return Array.from(names);
+  }, [history]);
+
+  const filteredHistory = useMemo(() => {
+    if (!farmFilter) {
+      return history;
+    }
+    return history.filter(item => item.farm === farmFilter);
+  }, [history, farmFilter]);
+
 
   const AuthArea = () => {
     if (loading) {
@@ -726,17 +744,17 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="relative flex items-center justify-center mb-4 md:mb-6 pt-2 pb-2">
+        <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
             <div className="absolute top-2 left-2">
                 <LanguageSwitcher />
             </div>
 
-            <div className="flex flex-col items-center text-center">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
+            <div className="flex-1 flex flex-col items-center text-center px-12">
+                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                     {locale === 'ar' ? (
                         <>
-                            <span>{t('app_title')}</span>
-                            <Truck className="w-8 h-8 text-primary" />
+                             <span>{t('app_title')}</span>
+                             <Truck className="w-8 h-8 text-primary" />
                         </>
                     ) : (
                         <>
@@ -976,6 +994,10 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="clientName" className="text-right">{t('client_name_label')}</Label>
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
+                              <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
+                            </div>
                              <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="agreedAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_amount_label')}</Label>
                                 <div className="col-span-3 grid grid-cols-3 gap-2">
@@ -1051,6 +1073,23 @@ export default function CargoValuatorPage() {
                             <span>{t('unsynced_label')}</span>
                         </div>
                     )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Filter className="mr-1 h-3 w-3" />
+                          {farmFilter ? `${t('filtering_by_label')}: ${farmFilter}` : t('filter_by_farm_label')}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setFarmFilter(null)}>{t('all_farms_label')}</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {farmNames.map(name => (
+                          <DropdownMenuItem key={name} onClick={() => setFarmFilter(name)}>
+                            {name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" size="sm" onClick={downloadHistory}>
                       <Download className="mr-1 h-3 w-3" /> {t('download_button')}
                     </Button>
@@ -1062,9 +1101,9 @@ export default function CargoValuatorPage() {
               </CardHeader>
               <CardContent ref={historyRef}>
                 <ScrollArea className="h-[420px] pr-3">
-                {history.length > 0 ? (
+                {filteredHistory.length > 0 ? (
                     <div className="space-y-4">
-                      {history.map((item) => {
+                      {filteredHistory.map((item) => {
                         const product = item.productType ? vegetables[item.productType as VegetableKey] : null;
                         return (
                           <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
@@ -1076,6 +1115,7 @@ export default function CargoValuatorPage() {
                                   </div>
                                   <div className="flex items-center gap-2">
                                      <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                                     {item.farm && <p className="text-sm flex items-center gap-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                      {product && (
                                       <p className="text-sm flex items-center gap-1">
                                         <span className="text-base">{product.icon}</span>
@@ -1156,6 +1196,14 @@ export default function CargoValuatorPage() {
                                 id="editClientName" 
                                 value={editingEntry.clientName} 
                                 onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editFarmName" className="text-right">{t('farm_name_label')}</Label>
+                            <Input 
+                                id="editFarmName" 
+                                value={editingEntry.farm} 
+                                onChange={(e) => setEditingEntry({ ...editingEntry, farm: e.target.value })}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -1249,5 +1297,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    
