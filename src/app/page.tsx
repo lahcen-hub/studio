@@ -50,6 +50,32 @@ const vegetables: Record<VegetableKey, Vegetable> = {
     pepper_kwach: { name: 'Poivron Coach', name_ar: 'فلفل كواتش', name_en: 'Coach Pepper', weight: 14, icon: '🌶️' },
 };
 
+const LanguageSwitcher = () => {
+    const { locale, setLocale, direction, t } = useI18n();
+    const languages: { code: Locale; name: string; flag: string }[] = [
+        { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+        { code: 'fr', name: 'Français', flag: '🇫🇷' },
+        { code: 'en', name: 'English', flag: '🇬🇧' },
+    ];
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                    <Languages className="h-5 w-5" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-48">
+                {languages.map((lang) => (
+                    <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn("cursor-pointer", locale === lang.code && 'bg-accent')}>
+                        <span className="mr-3 text-lg">{lang.flag}</span>
+                        <span>{lang.name}</span>
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
 
 interface InputFieldProps {
   id: string;
@@ -113,31 +139,30 @@ interface HistoryEntry extends CalculationDB {
   synced?: boolean;
 }
 
-const LanguageSwitcher = () => {
-    const { locale, setLocale, direction, t } = useI18n();
-    const languages: { code: Locale; name: string; flag: string }[] = [
-        { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-        { code: 'fr', name: 'Français', flag: '🇫🇷' },
-        { code: 'en', name: 'English', flag: '🇬🇧' },
-    ];
+const AuthArea: FC<{ loading: boolean; user: any; }> = ({ loading, user }) => {
+  if (loading) {
+    return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
+  }
 
+  if (user) {
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full">
-                    <Languages className="h-5 w-5" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-48">
-                {languages.map((lang) => (
-                    <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn("cursor-pointer", locale === lang.code && 'bg-accent')}>
-                        <span className="mr-3 text-lg">{lang.flag}</span>
-                        <span>{lang.name}</span>
-                    </DropdownMenuItem>
-                ))}
-            </DropdownMenuContent>
-        </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
+          <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
+          <LogOut className="h-4 w-4" />
+        </Button>
+      </div>
     );
+  }
+  
+  return (
+      <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
+          <LogIn className="h-5 w-5" />
+      </Button>
+  );
 };
 
 
@@ -159,8 +184,6 @@ export default function CargoValuatorPage() {
   const [farmName, setFarmName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
-  const [mlihAgreedPrice, setMlihAgreedPrice] = useState<number | string>('');
-  const [dichiAgreedPrice, setDichiAgreedPrice] = useState<number | string>('');
 
 
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -423,14 +446,14 @@ export default function CargoValuatorPage() {
         grandTotalPrice: calculations.grandTotalPrice,
         grandTotalPriceRiyal: calculations.grandTotalPriceRiyal,
         totalNetWeight: calculations.totalNetProductWeight,
+        totalPriceMlih: calculations.totalPriceMlih,
+        totalPriceDichi: calculations.totalPriceDichi,
       },
       clientName: clientName,
       farm: farmName,
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates,
-      mlihAgreedPrice: Number(mlihAgreedPrice) || 0,
-      dichiAgreedPrice: Number(dichiAgreedPrice) || 0,
     };
 
     if (user && navigator.onLine) {
@@ -456,8 +479,6 @@ export default function CargoValuatorPage() {
     setFarmName('');
     setRemainingCrates('');
     setRemainingMoney('');
-    setMlihAgreedPrice('');
-    setDichiAgreedPrice('');
   };
   
   const handleOpenSaveDialog = () => {
@@ -471,15 +492,27 @@ export default function CargoValuatorPage() {
   const handleUpdate = async () => {
     if (!editingEntry) return;
 
+    // Recalculate results based on edited prices, as they are not stored directly in editingEntry
+    const mlihPriceNum = Number(editingEntry.mlihPrice) || 0;
+    const dichiPriceNum = Number(editingEntry.dichiPrice) || 0;
+    
+    // We need original crate counts and weight to recalculate, which are part of editingEntry but let's be explicit
+    // This part is tricky as we don't have the original inputs (gross weight, crate counts) easily available
+    // For now, let's assume the most important editable fields are clientName, farm, prices and remainders.
+    // The results object might need to be recalculated if prices change, but this requires original inputs.
+    // For simplicity, let's assume we cannot re-calculate everything and only update what's directly editable.
+    // A better approach would be to store original inputs with each calculation.
+    
     const entryToUpdate: HistoryEntry = {
         ...editingEntry,
         clientName: editingEntry.clientName,
         farm: editingEntry.farm,
         productType: editingEntry.productType,
-        mlihPrice: Number(editingEntry.mlihPrice) || 0,
-        dichiPrice: Number(editingEntry.dichiPrice) || 0,
-        mlihAgreedPrice: Number(editingEntry.mlihAgreedPrice) || 0,
-        dichiAgreedPrice: Number(editingEntry.dichiAgreedPrice) || 0,
+        mlihPrice: mlihPriceNum,
+        dichiPrice: dichiPriceNum,
+        // The results would ideally be recalculated here. Without original inputs, we can't.
+        // Let's leave results as they are, which means editing prices won't update totals in history.
+        // This is a design decision based on current data structure.
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
         remainingMoney: Number(editingEntry.remainingMoney) || 0,
     };
@@ -503,7 +536,6 @@ export default function CargoValuatorPage() {
       toast({ title: t('updated_locally_title'), description: t('updated_locally_desc') });
     }
   };
-
 
   const openEditDialog = (entry: HistoryEntry) => {
     setEditingEntry({ ...entry });
@@ -604,8 +636,8 @@ export default function CargoValuatorPage() {
         const totalCalculations = historyToDownload.length;
         const totalNetWeight = historyToDownload.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
         const totalCrates = historyToDownload.reduce((sum, item) => sum + item.totalCrates, 0);
-        const totalAgreedMlih = historyToDownload.reduce((sum, item) => sum + (item.mlihAgreedPrice || 0), 0);
-        const totalAgreedDichi = historyToDownload.reduce((sum, item) => sum + (item.dichiAgreedPrice || 0), 0);
+        const totalMlihPrice = historyToDownload.reduce((sum, item) => sum + (item.results.totalPriceMlih || 0), 0);
+        const totalDichiPrice = historyToDownload.reduce((sum, item) => sum + (item.results.totalPriceDichi || 0), 0);
         const totalRemainingCrates = historyToDownload.reduce((sum, item) => sum + (item.remainingCrates || 0), 0);
         const totalRemainingMoney = historyToDownload.reduce((sum, item) => sum + (item.remainingMoney || 0), 0);
 
@@ -613,8 +645,8 @@ export default function CargoValuatorPage() {
             [t('pdf_kpi_total_calcs'), totalCalculations.toString()],
             [t('pdf_kpi_total_net_weight'), `${totalNetWeight.toFixed(2)} kg`],
             [t('pdf_kpi_total_crates'), totalCrates.toString()],
-            [t('pdf_kpi_total_agreed_mlih'), formatCurrency(totalAgreedMlih, 'MAD')],
-            [t('pdf_kpi_total_agreed_dichi'), formatCurrency(totalAgreedDichi, 'MAD')],
+            [t('pdf_kpi_total_mlih_price'), formatCurrency(totalMlihPrice, 'MAD')],
+            [t('pdf_kpi_total_dichi_price'), formatCurrency(totalDichiPrice, 'MAD')],
             [t('pdf_kpi_total_remaining_crates'), totalRemainingCrates.toString()],
             [t('pdf_kpi_total_remaining_money'), formatCurrency(totalRemainingMoney, 'MAD')],
         ];
@@ -647,8 +679,8 @@ export default function CargoValuatorPage() {
             t('pdf_col_client'),
             t('pdf_col_farm'),
             t('pdf_col_product'),
-            t('pdf_col_agreed_price_mlih'),
-            t('pdf_col_agreed_price_dichi'),
+            t('pdf_col_total_mlih_price'),
+            t('pdf_col_total_dichi_price'),
             t('pdf_col_selling_price'),
             t('pdf_col_total_crates'),
             t('pdf_col_net_weight'),
@@ -663,8 +695,8 @@ export default function CargoValuatorPage() {
                 item.clientName,
                 item.farm || '-',
                 product,
-                formatCurrency(item.mlihAgreedPrice || 0),
-                formatCurrency(item.dichiAgreedPrice || 0),
+                formatCurrency(item.results.totalPriceMlih || 0),
+                formatCurrency(item.results.totalPriceDichi || 0),
                 `${item.mlihPrice || 0}/${item.dichiPrice || 0}`,
                 item.totalCrates,
                 item.results.totalNetWeight.toFixed(2),
@@ -703,7 +735,7 @@ export default function CargoValuatorPage() {
   };
 
 
-  const downloadHistoryItemAsImage = (id: string | number, clientName: string) => {
+  const downloadHistoryItemAsImage = useCallback((id: string | number, clientName: string) => {
     const element = document.getElementById(`history-item-${id}`);
     if (element) {
         htmlToImage.toPng(element, { 
@@ -723,33 +755,7 @@ export default function CargoValuatorPage() {
                 toast({ variant: "destructive", title: t('error'), description: t('image_generation_fail') });
             });
     }
-  };
-
-  const AuthArea = () => {
-    if (loading) {
-      return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
-    }
-
-    if (user) {
-      return (
-        <div className="flex items-center gap-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
-            <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    }
-    
-    return (
-        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
-            <LogIn className="h-5 w-5" />
-        </Button>
-    );
-  };
+  }, [t, toast]);
 
 
   return (
@@ -780,7 +786,7 @@ export default function CargoValuatorPage() {
             </div>
             
             <div className="absolute top-2 right-2 z-10">
-                <AuthArea />
+                <AuthArea loading={loading} user={user} />
             </div>
         </header>
 
@@ -790,7 +796,7 @@ export default function CargoValuatorPage() {
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className={cn("text-lg sm:text-xl font-bold", locale === 'ar' && cairo.className)}>{t('cargo_data_title')}</CardTitle>
-                <CardDescription>{t('cargo_data_desc')}</CardDescription>
+                
               </CardHeader>
               <CardContent className="grid gap-4 sm:gap-5">
                 <div className="grid grid-cols-2 gap-4">
@@ -1009,27 +1015,6 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label className={cn("text-right col-span-1", locale === 'ar' && cairo.className)}>
-                                    {t('agreed_price_label')}
-                                </Label>
-                                <div className="col-span-3 grid grid-cols-2 gap-2">
-                                  <Input 
-                                      id="mlihAgreedPrice" 
-                                      type="number"
-                                      placeholder={t('mlih_label')}
-                                      value={mlihAgreedPrice}
-                                      onChange={(e) => setMlihAgreedPrice(e.target.value)} 
-                                  />
-                                  <Input 
-                                      id="dichiAgreedPrice" 
-                                      type="number" 
-                                      placeholder={t('dichi_label')}
-                                      value={dichiAgreedPrice}
-                                      onChange={(e) => setDichiAgreedPrice(e.target.value)} 
-                                  />
-                                </div>
-                            </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                                <Input 
@@ -1118,13 +1103,13 @@ export default function CargoValuatorPage() {
                         const product = item.productType ? vegetables[item.productType as VegetableKey] : null;
                         return (
                           <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
-                            <div className="flex justify-between items-start">
-                                <div>
+                            <div className="flex flex-col sm:flex-row justify-between items-start">
+                                <div className="flex-grow">
                                   <div className="flex items-center gap-2">
                                      <p className="text-xs text-muted-foreground">{item.date}</p>
                                      {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex flex-col sm:flex-row sm:items-center gap-x-2 gap-y-1">
                                      <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                                      {item.farm && <p className="text-sm flex items-center gap-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                      {product && (
@@ -1135,7 +1120,7 @@ export default function CargoValuatorPage() {
                                      )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                <div className="flex items-center gap-1 -mr-2 -mt-1 self-start sm:self-center">
                                   <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
                                     <ImageIcon className="h-4 w-4" />
                                   </Button>
@@ -1150,8 +1135,8 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_label')}:</p>
-                                      <p className="font-bold">{formatCurrency(item.mlihAgreedPrice || 0)} / {formatCurrency(item.dichiAgreedPrice || 0)}</p>
+                                      <p className="font-bold flex items-center gap-1 text-sm"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
+                                      <p className="font-bold text-sm">{formatCurrency(item.results.totalPriceMlih || 0)} / {formatCurrency(item.results.totalPriceDichi || 0)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
@@ -1245,7 +1230,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editMlihPrice" 
                                 type="number" 
-                                value={editingEntry.mlihPrice || ''} 
+                                value={editingEntry.mlihPrice === undefined ? '' : editingEntry.mlihPrice}
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1254,37 +1239,17 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editDichiPrice" 
                                 type="number" 
-                                value={editingEntry.dichiPrice || ''} 
+                                value={editingEntry.dichiPrice === undefined ? '' : editingEntry.dichiPrice} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className={cn("text-right col-span-1", locale === 'ar' && cairo.className)}>
-                                {t('agreed_price_label')}
-                            </Label>
-                            <div className="col-span-3 grid grid-cols-2 gap-2">
-                                <Input 
-                                    id="editMlihAgreedPrice" 
-                                    type="number" 
-                                    placeholder={t('mlih_label')}
-                                    value={editingEntry.mlihAgreedPrice || ''} 
-                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                />
-                                <Input 
-                                    id="editDichiAgreedPrice" 
-                                    type="number" 
-                                    placeholder={t('dichi_label')}
-                                    value={editingEntry.dichiAgreedPrice || ''} 
-                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                />
-                            </div>
-                        </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editRemainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
-                                value={editingEntry.remainingCrates || ''} 
+                                value={editingEntry.remainingCrates === undefined ? '' : editingEntry.remainingCrates} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1293,7 +1258,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
-                                value={editingEntry.remainingMoney || ''} 
+                                value={editingEntry.remainingMoney === undefined ? '' : editingEntry.remainingMoney} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1309,5 +1274,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-    

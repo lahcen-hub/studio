@@ -21,14 +21,14 @@ export interface CalculationDB extends DocumentData {
     grandTotalPrice: number;
     grandTotalPriceRiyal: number;
     totalNetWeight: number;
+    totalPriceMlih: number;
+    totalPriceDichi: number;
   };
   clientName: string;
   farm?: string;
   remainingCrates: number;
   remainingMoney: number;
   totalCrates: number;
-  mlihAgreedPrice: number;
-  dichiAgreedPrice: number;
 }
 
 
@@ -120,5 +120,3 @@ export async function updateCalculation(id: string, data: Partial<Omit<Calculati
         throw new Error("Impossible de mettre à jour sur le serveur.");
     }
 }
-
-    
