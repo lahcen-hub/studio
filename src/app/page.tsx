@@ -124,9 +124,8 @@ const LanguageSwitcher = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-24">
-                    <Languages className="mr-2 h-4 w-4" />
-                    {locale.toUpperCase()}
+                <Button variant="ghost" size="icon" className="rounded-full">
+                    <Languages className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-48">
@@ -295,6 +294,27 @@ export default function CargoValuatorPage() {
       setFullCrateWeight(0);
     }
   }, [selectedVegetable]);
+
+  const handleCalculate = () => {
+    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
+    if (Number(grossWeight) <= 0) {
+      newErrors.grossWeight = true;
+    }
+    if (!selectedVegetable) {
+      newErrors.fullCrateWeight = true;
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setShowResults(true);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      setShowResults(false);
+    }
+  };
   
 
   const calculations = useMemo(() => {
@@ -360,26 +380,6 @@ export default function CargoValuatorPage() {
     };
   }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate]);
 
-  const handleCalculate = () => {
-    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
-    if (Number(grossWeight) <= 0) {
-      newErrors.grossWeight = true;
-    }
-    if (!selectedVegetable) {
-      newErrors.fullCrateWeight = true;
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      setShowResults(true);
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    } else {
-      setShowResults(false);
-    }
-  };
 
   const formatCurrency = (value: number, currency = 'MAD') => {
     if (isNaN(value)) value = 0;
