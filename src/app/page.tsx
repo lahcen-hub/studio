@@ -140,29 +140,29 @@ interface HistoryEntry extends CalculationDB {
 }
 
 const AuthArea: FC<{ loading: boolean; user: any; }> = ({ loading, user }) => {
-  if (loading) {
-    return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
-  }
+    if (loading) {
+        return <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>;
+    }
 
-  if (user) {
+    if (user) {
+        return (
+            <div className="flex items-center gap-2">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
+                    <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
+                    <LogOut className="h-4 w-4" />
+                </Button>
+            </div>
+        );
+    }
+    
     return (
-      <div className="flex items-center gap-2">
-        <Avatar className="h-9 w-9">
-          <AvatarImage src={(user as any).photoURL || undefined} alt={(user as any).displayName || 'Avatar'} />
-          <AvatarFallback>{(user as any).displayName?.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <Button variant="ghost" size="icon" onClick={signOut} className="rounded-full">
-          <LogOut className="h-4 w-4" />
+        <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
+            <LogIn className="h-5 w-5" />
         </Button>
-      </div>
     );
-  }
-  
-  return (
-      <Button variant="default" size="icon" onClick={signInWithGoogle} className="rounded-full bg-primary hover:bg-primary/90">
-          <LogIn className="h-5 w-5" />
-      </Button>
-  );
 };
 
 
@@ -454,6 +454,8 @@ export default function CargoValuatorPage() {
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates,
+      totalPriceMlih: calculations.totalPriceMlih,
+      totalPriceDichi: calculations.totalPriceDichi,
     };
 
     if (user && navigator.onLine) {
@@ -505,8 +507,8 @@ export default function CargoValuatorPage() {
     
     const entryToUpdate: HistoryEntry = {
         ...editingEntry,
-        clientName: editingEntry.clientName,
-        farm: editingEntry.farm,
+        clientName: editingEntry.clientName || '',
+        farm: editingEntry.farm || '',
         productType: editingEntry.productType,
         mlihPrice: mlihPriceNum,
         dichiPrice: dichiPriceNum,
@@ -515,6 +517,8 @@ export default function CargoValuatorPage() {
         // This is a design decision based on current data structure.
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
         remainingMoney: Number(editingEntry.remainingMoney) || 0,
+        totalPriceMlih: editingEntry.totalPriceMlih || 0,
+        totalPriceDichi: editingEntry.totalPriceDichi || 0,
     };
 
     const { id, synced, ...dataToUpdate } = entryToUpdate;
@@ -636,8 +640,8 @@ export default function CargoValuatorPage() {
         const totalCalculations = historyToDownload.length;
         const totalNetWeight = historyToDownload.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
         const totalCrates = historyToDownload.reduce((sum, item) => sum + item.totalCrates, 0);
-        const totalMlihPrice = historyToDownload.reduce((sum, item) => sum + (item.results.totalPriceMlih || 0), 0);
-        const totalDichiPrice = historyToDownload.reduce((sum, item) => sum + (item.results.totalPriceDichi || 0), 0);
+        const totalMlihPrice = historyToDownload.reduce((sum, item) => sum + (item.totalPriceMlih || 0), 0);
+        const totalDichiPrice = historyToDownload.reduce((sum, item) => sum + (item.totalPriceDichi || 0), 0);
         const totalRemainingCrates = historyToDownload.reduce((sum, item) => sum + (item.remainingCrates || 0), 0);
         const totalRemainingMoney = historyToDownload.reduce((sum, item) => sum + (item.remainingMoney || 0), 0);
 
@@ -695,8 +699,8 @@ export default function CargoValuatorPage() {
                 item.clientName,
                 item.farm || '-',
                 product,
-                formatCurrency(item.results.totalPriceMlih || 0),
-                formatCurrency(item.results.totalPriceDichi || 0),
+                formatCurrency(item.totalPriceMlih || 0),
+                formatCurrency(item.totalPriceDichi || 0),
                 `${item.mlihPrice || 0}/${item.dichiPrice || 0}`,
                 item.totalCrates,
                 item.results.totalNetWeight.toFixed(2),
@@ -734,7 +738,6 @@ export default function CargoValuatorPage() {
     }
   };
 
-
   const downloadHistoryItemAsImage = useCallback((id: string | number, clientName: string) => {
     const element = document.getElementById(`history-item-${id}`);
     if (element) {
@@ -760,7 +763,7 @@ export default function CargoValuatorPage() {
 
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-screen-xl mx-auto">
         <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
             <div className="absolute top-2 left-2 z-10">
                 <LanguageSwitcher />
@@ -780,9 +783,7 @@ export default function CargoValuatorPage() {
                         </>
                     )}
                 </h1>
-                <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
-                    {t('app_subtitle')}
-                </p>
+                
             </div>
             
             <div className="absolute top-2 right-2 z-10">
@@ -975,7 +976,7 @@ export default function CargoValuatorPage() {
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow className="bg-primary/10">
-                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('total_price_label')} ({t('currency_dh')})</TableCell>
+                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('total_price_label')}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
                               </TableRow>
@@ -1015,6 +1016,7 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
+                            
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                                <Input 
@@ -1133,31 +1135,31 @@ export default function CargoValuatorPage() {
                                 </div>
                             </div>
                             <Separator className="my-2" />
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
-                                  <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1 text-sm"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
-                                      <p className="font-bold text-sm">{formatCurrency(item.results.totalPriceMlih || 0)} / {formatCurrency(item.results.totalPriceDichi || 0)}</p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-sm mt-2">
+                                  <div className="flex justify-between items-center col-span-full">
+                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('agreed_price_label')}:</p>
+                                      <p className="font-bold">{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
                                   </div>
-                                  <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
+                                  <div className="flex justify-between items-center col-span-full">
+                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')}:</p>
                                       <p className="font-bold">{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
                                   </div>
-                                  <div className="flex justify-between items-center col-span-2">
+                                  <div className="flex justify-between items-center col-span-full">
                                       <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
                                       <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                   </div>
-                                   <div className="flex justify-between items-center col-span-2">
+                                   <div className="flex justify-between items-center col-span-full">
                                       <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
                                       <p className="font-bold">{item.totalCrates}</p>
                                   </div>
-                                  <div className="col-span-2">
+                                  <div className="col-span-full">
                                     <Separator className="my-1" />
                                   </div>
-                                  <div className="flex justify-between items-center">
+                                  <div className="flex justify-between items-center col-span-full sm:col-span-1">
                                       <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
                                       <span className="font-bold">{item.remainingCrates}</span>
                                   </div>
-                                  <div className="flex justify-between items-center">
+                                  <div className="flex justify-between items-center col-span-full sm:col-span-2">
                                       <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
                                   </div>
@@ -1190,7 +1192,7 @@ export default function CargoValuatorPage() {
                             <Label htmlFor="editClientName" className="text-right">{t('client_name_label')}</Label>
                             <Input 
                                 id="editClientName" 
-                                value={editingEntry.clientName} 
+                                value={editingEntry.clientName || ''} 
                                 onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
                                 className="col-span-3" />
                         </div>
@@ -1274,3 +1276,4 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
