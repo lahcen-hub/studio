@@ -1111,17 +1111,15 @@ export default function CargoValuatorPage() {
                                      <p className="text-xs text-muted-foreground">{item.date.split(' ')[0]}</p>
                                      {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
-                                  <div className="flex flex-col">
-                                    <div className="flex flex-row items-center gap-x-2 gap-y-1">
+                                  <div className="flex flex-row items-center flex-wrap gap-x-2 gap-y-1">
                                       <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                                      {item.farm && <p className="text-sm flex items-center gap-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                       {product && (
                                         <p className="text-sm flex items-center gap-1">
                                           <span className="text-base">{product.icon}</span>
                                           <span className="text-xs text-muted-foreground">{product[`name_${locale}` as keyof Vegetable] ?? product.name}</span>
                                         </p>
                                       )}
-                                    </div>
-                                    {item.farm && <p className="text-sm flex items-center gap-1 mt-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                   </div>
                                 </div>
                                 <div className="absolute top-1 right-1 flex items-center gap-0">
@@ -1281,4 +1279,3 @@ export default function CargoValuatorPage() {
 
 
 
-    
