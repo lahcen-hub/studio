@@ -783,7 +783,7 @@ export default function CargoValuatorPage() {
                         </>
                     )}
                 </h1>
-                
+                <p className="mt-1 text-sm text-muted-foreground">{t('app_subtitle')}</p>
             </div>
             
             <div className="absolute top-2 right-2 z-10">
@@ -1136,11 +1136,11 @@ export default function CargoValuatorPage() {
                             </div>
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs mt-2">
-                                  <div className="flex justify-between items-center col-span-full">
+                                  <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('agreed_price_label')}:</p>
                                       <p className="font-bold">{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
                                   </div>
-                                  <div className="flex justify-between items-center col-span-full">
+                                  <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')}:</p>
                                       <p className="font-bold">{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
                                   </div>
