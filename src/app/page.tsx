@@ -994,8 +994,10 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label className={cn("text-right font-bold col-span-1", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className={cn("text-right col-span-1", locale === 'ar' && cairo.className)}>
+                                    {t('agreed_price_label')}
+                                </Label>
                                 <div className="col-span-3 grid grid-cols-2 gap-2">
                                   <Input 
                                       id="mlihAgreedPrice" 
@@ -1133,12 +1135,8 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_mlih_label')}:</p>
-                                      <p className="font-bold">{formatCurrency(item.mlihAgreedPrice || 0)}</p>
-                                  </div>
-                                  <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_dichi_label')}:</p>
-                                      <p className="font-bold">{formatCurrency(item.dichiAgreedPrice || 0)}</p>
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
+                                      <p className="font-bold">{formatCurrency(item.mlihAgreedPrice || 0)} / {formatCurrency(item.dichiAgreedPrice || 0)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
@@ -1246,7 +1244,9 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className={cn("text-right font-bold col-span-1", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
+                            <Label className={cn("text-right col-span-1", locale === 'ar' && cairo.className)}>
+                                {t('agreed_price_label')}
+                            </Label>
                             <div className="col-span-3 grid grid-cols-2 gap-2">
                                 <Input 
                                     id="editMlihAgreedPrice" 
@@ -1294,4 +1294,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
 
