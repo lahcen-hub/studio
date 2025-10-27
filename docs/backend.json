@@ -54,6 +54,10 @@
           "type": "number",
           "description": "Amount of money remaining."
         },
+        "netAmount": {
+          "type": "number",
+          "description": "Net amount for the calculation."
+        },
         "totalCrates": {
           "type": "number",
           "description": "Total number of crates in the calculation."

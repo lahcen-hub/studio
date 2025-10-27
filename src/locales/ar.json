@@ -44,6 +44,7 @@
     "currency_riyal": "ريال",
     "remaining_crates_label": "الصندوق الباقي",
     "remaining_money_label": "المبلغ المتبقي",
+    "net_amount_label": "المبلغ الصافي",
     "cancel_button": "إلغاء",
     "history_title": "السجل",
     "history_desc_online": "حساباتك المحفوظة والمتزامنة في الوقت الفعلي.",
@@ -100,6 +101,7 @@
     "pdf_kpi_total_dichi_price": "إجمالي سعر الديشي:",
     "pdf_kpi_total_remaining_crates": "إجمالي الصناديق المتبقية:",
     "pdf_kpi_total_remaining_money": "إجمالي المبلغ المتبقي:",
+    "pdf_kpi_total_net_amount": "إجمالي المبلغ الصافي:",
     "pdf_history_title": "سجل الحسابات",
     "pdf_col_date": "التاريخ",
     "pdf_col_client": "العميل",
@@ -112,6 +114,7 @@
     "pdf_col_total_crates": "إجمالي الصناديق",
     "pdf_col_remaining_crates": "صناديق متبقية",
     "pdf_col_remaining_money": "مبلغ متبقي",
+    "pdf_col_net_amount": "المبلغ الصافي",
     "image_generation_fail": "تعذر إنشاء الصورة.",
     "error": "خطأ",
     "example_placeholder": "مثال: {{value}}",
@@ -123,3 +126,5 @@
     "all_farms_label": "جميع المزارع",
     "filtering_by_label": "تصفية"
 }
+
+    

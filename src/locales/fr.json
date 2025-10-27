@@ -44,6 +44,7 @@
     "currency_riyal": "Riyal",
     "remaining_crates_label": "Caisses restantes",
     "remaining_money_label": "Reste d'argent",
+    "net_amount_label": "Montant Net",
     "cancel_button": "Annuler",
     "history_title": "Historique",
     "history_desc_online": "Vos calculs enregistrés et synchronisés en temps réel.",
@@ -100,6 +101,7 @@
     "pdf_kpi_total_dichi_price": "Prix Total Dichi:",
     "pdf_kpi_total_remaining_crates": "Total Caisses Restantes:",
     "pdf_kpi_total_remaining_money": "Total Argent Restant:",
+    "pdf_kpi_total_net_amount": "Montant Net Total:",
     "pdf_history_title": "Historique des Calculs",
     "pdf_col_date": "Date",
     "pdf_col_client": "Client",
@@ -112,6 +114,7 @@
     "pdf_col_total_crates": "Caisses Tot.",
     "pdf_col_remaining_crates": "Caisses Rest.",
     "pdf_col_remaining_money": "Argent Rest.",
+    "pdf_col_net_amount": "Montant Net",
     "image_generation_fail": "Impossible de générer l'image.",
     "error": "Erreur",
     "example_placeholder": "ex: {{value}}",
@@ -123,3 +126,5 @@
     "all_farms_label": "Toutes les fermes",
     "filtering_by_label": "Filtre"
 }
+
+    

@@ -44,6 +44,7 @@
     "currency_riyal": "Riyal",
     "remaining_crates_label": "Remaining crates",
     "remaining_money_label": "Remaining money",
+    "net_amount_label": "Net Amount",
     "cancel_button": "Cancel",
     "history_title": "History",
     "history_desc_online": "Your saved calculations, synced in real-time.",
@@ -100,6 +101,7 @@
     "pdf_kpi_total_dichi_price": "Total Dichi Price:",
     "pdf_kpi_total_remaining_crates": "Total Remaining Crates:",
     "pdf_kpi_total_remaining_money": "Total Remaining Money:",
+    "pdf_kpi_total_net_amount": "Total Net Amount:",
     "pdf_history_title": "Calculations History",
     "pdf_col_date": "Date",
     "pdf_col_client": "Client",
@@ -112,6 +114,7 @@
     "pdf_col_total_crates": "Total Crates",
     "pdf_col_remaining_crates": "Rem. Crates",
     "pdf_col_remaining_money": "Rem. Money",
+    "pdf_col_net_amount": "Net Amount",
     "image_generation_fail": "Could not generate the image.",
     "error": "Error",
     "example_placeholder": "ex: {{value}}",
@@ -123,3 +126,5 @@
     "all_farms_label": "All farms",
     "filtering_by_label": "Filtering by"
 }
+
+    

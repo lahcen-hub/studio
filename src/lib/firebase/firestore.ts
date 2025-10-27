@@ -28,6 +28,7 @@ export interface CalculationDB extends DocumentData {
   farm?: string;
   remainingCrates: number;
   remainingMoney: number;
+  netAmount: number;
   totalCrates: number;
 }
 
@@ -120,3 +121,5 @@ export async function updateCalculation(id: string, data: Partial<Omit<Calculati
         throw new Error("Impossible de mettre à jour sur le serveur.");
     }
 }
+
+    

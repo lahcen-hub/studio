@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf, Languages, Tractor, Filter } from 'lucide-react';
+import { Truck, Calculator, Scale, CircleDollarSign, Package, Minus, Plus, Save, History, Trash2, User, Wallet, Warehouse, Pencil, Download, LogIn, LogOut, RefreshCw, Share, Receipt, Image as ImageIcon, Boxes, Leaf, Languages, Tractor, Filter, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -184,6 +184,7 @@ export default function CargoValuatorPage() {
   const [farmName, setFarmName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
+  const [netAmount, setNetAmount] = useState<number | string>('');
 
 
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -453,6 +454,7 @@ export default function CargoValuatorPage() {
       farm: farmName,
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
+      netAmount: Number(netAmount) || 0,
       totalCrates: calculations.totalCrates,
       totalPriceMlih: calculations.totalPriceMlih,
       totalPriceDichi: calculations.totalPriceDichi,
@@ -481,6 +483,7 @@ export default function CargoValuatorPage() {
     setFarmName('');
     setRemainingCrates('');
     setRemainingMoney('');
+    setNetAmount('');
   };
   
   const handleOpenSaveDialog = () => {
@@ -517,6 +520,7 @@ export default function CargoValuatorPage() {
         // This is a design decision based on current data structure.
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
         remainingMoney: Number(editingEntry.remainingMoney) || 0,
+        netAmount: Number(editingEntry.netAmount) || 0,
         totalPriceMlih: editingEntry.totalPriceMlih || 0,
         totalPriceDichi: editingEntry.totalPriceDichi || 0,
     };
@@ -644,6 +648,7 @@ export default function CargoValuatorPage() {
         const totalDichiPrice = historyToDownload.reduce((sum, item) => sum + (item.totalPriceDichi || 0), 0);
         const totalRemainingCrates = historyToDownload.reduce((sum, item) => sum + (item.remainingCrates || 0), 0);
         const totalRemainingMoney = historyToDownload.reduce((sum, item) => sum + (item.remainingMoney || 0), 0);
+        const totalNetAmount = historyToDownload.reduce((sum, item) => sum + (item.netAmount || 0), 0);
 
         const kpiBody = [
             [t('pdf_kpi_total_calcs'), totalCalculations.toString()],
@@ -653,6 +658,7 @@ export default function CargoValuatorPage() {
             [t('pdf_kpi_total_dichi_price'), formatCurrency(totalDichiPrice, 'MAD')],
             [t('pdf_kpi_total_remaining_crates'), totalRemainingCrates.toString()],
             [t('pdf_kpi_total_remaining_money'), formatCurrency(totalRemainingMoney, 'MAD')],
+            [t('pdf_kpi_total_net_amount'), formatCurrency(totalNetAmount, 'MAD')],
         ];
         if (isArabic) {
           kpiBody.forEach(row => row.reverse());
@@ -690,6 +696,7 @@ export default function CargoValuatorPage() {
             t('pdf_col_net_weight'),
             t('pdf_col_remaining_crates'),
             t('pdf_col_remaining_money'),
+            t('pdf_col_net_amount'),
         ]];
 
         const body = historyToDownload.map(item => {
@@ -706,6 +713,7 @@ export default function CargoValuatorPage() {
                 item.results.totalNetWeight.toFixed(2),
                 item.remainingCrates || 0,
                 formatCurrency(item.remainingMoney || 0),
+                formatCurrency(item.netAmount || 0),
             ];
         });
 
@@ -1037,6 +1045,16 @@ export default function CargoValuatorPage() {
                                     className="col-span-3" 
                                 />
                             </div>
+                             <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="netAmount" className="text-right">{t('net_amount_label')}</Label>
+                               <Input 
+                                    id="netAmount" 
+                                    type="number" 
+                                    value={netAmount}
+                                    onChange={(e) => setNetAmount(e.target.value)} 
+                                    className="col-span-3" 
+                                />
+                            </div>
                           </div>
                           <DialogFooter>
                             <DialogClose asChild>
@@ -1111,7 +1129,7 @@ export default function CargoValuatorPage() {
                                      <p className="text-xs text-muted-foreground">{item.date.split(' ')[0]}</p>
                                      {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
-                                  <div className="flex flex-row items-center flex-wrap gap-x-2 gap-y-1">
+                                  <div className="flex flex-row items-center flex-wrap gap-x-4 gap-y-1">
                                       <p className="font-bold text-sm flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                                       {item.farm && <p className="text-sm flex items-center gap-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                       {product && (
@@ -1136,21 +1154,21 @@ export default function CargoValuatorPage() {
                             </div>
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs mt-2">
-                                  <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('agreed_price_label')}:</p>
+                                  <div className="flex justify-between items-center col-span-2 sm:col-span-1">
+                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
                                       <p className="font-bold">{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
                                   </div>
-                                  <div className="flex justify-between items-center col-span-2">
+                                  <div className="flex justify-between items-center col-span-2 sm:col-span-1">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')}:</p>
                                       <p className="font-bold">{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
+                                  </div>
+                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
+                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
+                                      <p className="font-bold">{item.totalCrates}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-full">
                                       <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
                                       <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
-                                  </div>
-                                   <div className="flex justify-between items-center col-span-full">
-                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
-                                      <p className="font-bold">{item.totalCrates}</p>
                                   </div>
                                   <div className="col-span-full">
                                     <Separator className="my-1" />
@@ -1159,9 +1177,13 @@ export default function CargoValuatorPage() {
                                       <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
                                       <span className="font-bold">{item.remainingCrates}</span>
                                   </div>
-                                  <div className="flex justify-between items-center col-span-full sm:col-span-2">
+                                  <div className="flex justify-between items-center col-span-full sm:col-span-1">
                                       <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                  </div>
+                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
+                                      <span className="font-bold flex items-center gap-1"><Coins className="w-3 h-3"/>{t('net_amount_label')}:</span>
+                                      <span className="font-bold">{formatCurrency(item.netAmount)}</span>
                                   </div>
                             </div>
                           </div>
@@ -1264,6 +1286,15 @@ export default function CargoValuatorPage() {
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editNetAmount" className="text-right">{t('net_amount_label')}</Label>                            
+                            <Input 
+                                id="editNetAmount" 
+                                type="number" 
+                                value={editingEntry.netAmount === undefined ? '' : editingEntry.netAmount} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, netAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
                     </div>
                 )}
                 <DialogFooter>
@@ -1279,3 +1310,6 @@ export default function CargoValuatorPage() {
 
 
 
+
+
+    
