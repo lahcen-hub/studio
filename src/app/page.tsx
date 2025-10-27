@@ -797,7 +797,7 @@ export default function CargoValuatorPage() {
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className={cn("text-lg sm:text-xl font-bold", locale === 'ar' && cairo.className)}>{t('cargo_data_title')}</CardTitle>
-                
+                <CardDescription>{t('cargo_data_desc')}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:gap-5">
                 <div className="grid grid-cols-2 gap-4">
@@ -1135,7 +1135,7 @@ export default function CargoValuatorPage() {
                                 </div>
                             </div>
                             <Separator className="my-2" />
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-sm mt-2">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-full">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('agreed_price_label')}:</p>
                                       <p className="font-bold">{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
@@ -1277,3 +1277,6 @@ export default function CargoValuatorPage() {
   );
 }
 
+
+
+    
