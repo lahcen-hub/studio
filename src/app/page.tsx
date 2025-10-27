@@ -1162,31 +1162,31 @@ export default function CargoValuatorPage() {
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2 sm:col-span-1">
-                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
-                                      <p className="font-bold">{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
+                                      <p className="flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
+                                      <p>{formatCurrency(item.totalPriceMlih || 0)} / {formatCurrency(item.totalPriceDichi || 0)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2 sm:col-span-1">
-                                      <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')}:</p>
-                                      <p className="font-bold">{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
+                                      <p className="flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')}:</p>
+                                      <p>{item.mlihPrice || 0} {t('currency_dh')} / {item.dichiPrice || 0} {t('currency_dh')}</p>
                                   </div>
                                    <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <p className="font-bold flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
-                                      <p className="font-bold">{item.totalCrates}</p>
+                                      <p className="flex items-center gap-1"><Package className="w-3 h-3"/>{t('total_crates_label')}:</p>
+                                      <p>{item.totalCrates}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-full">
-                                      <span className="font-bold flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
-                                      <span className="font-bold">{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
+                                      <span className="flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
+                                      <span>{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
                                   </div>
                                   <div className="col-span-full">
                                     <Separator className="my-1" />
                                   </div>
                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <span className="font-bold flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
-                                      <span className="font-bold">{item.remainingCrates}</span>
+                                      <span className="flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
+                                      <span>{item.remainingCrates}</span>
                                   </div>
                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
-                                      <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
+                                      <span className="flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
+                                      <span>{formatCurrency(item.remainingMoney)}</span>
                                   </div>
                             </div>
                           </div>
