@@ -579,7 +579,7 @@ export default function CargoValuatorPage() {
         return;
     }
 
-    const doc = new jsPDF() as jsPDFWithAutoTable;
+    const doc = new jsPDF({ orientation: 'landscape' }) as jsPDFWithAutoTable;
     const isArabic = locale === 'ar';
 
     try {
@@ -606,6 +606,8 @@ export default function CargoValuatorPage() {
         const totalCrates = historyToDownload.reduce((sum, item) => sum + item.totalCrates, 0);
         const totalAgreedMlih = historyToDownload.reduce((sum, item) => sum + (item.mlihAgreedPrice || 0), 0);
         const totalAgreedDichi = historyToDownload.reduce((sum, item) => sum + (item.dichiAgreedPrice || 0), 0);
+        const totalRemainingCrates = historyToDownload.reduce((sum, item) => sum + (item.remainingCrates || 0), 0);
+        const totalRemainingMoney = historyToDownload.reduce((sum, item) => sum + (item.remainingMoney || 0), 0);
 
         const kpiBody = [
             [t('pdf_kpi_total_calcs'), totalCalculations.toString()],
@@ -613,6 +615,8 @@ export default function CargoValuatorPage() {
             [t('pdf_kpi_total_crates'), totalCrates.toString()],
             [t('pdf_kpi_total_agreed_mlih'), formatCurrency(totalAgreedMlih, 'MAD')],
             [t('pdf_kpi_total_agreed_dichi'), formatCurrency(totalAgreedDichi, 'MAD')],
+            [t('pdf_kpi_total_remaining_crates'), totalRemainingCrates.toString()],
+            [t('pdf_kpi_total_remaining_money'), formatCurrency(totalRemainingMoney, 'MAD')],
         ];
         if (isArabic) {
           kpiBody.forEach(row => row.reverse());
@@ -641,10 +645,15 @@ export default function CargoValuatorPage() {
         const head = [[
             t('pdf_col_date'),
             t('pdf_col_client'),
+            t('pdf_col_farm'),
             t('pdf_col_product'),
             t('pdf_col_agreed_price_mlih'),
             t('pdf_col_agreed_price_dichi'),
+            t('pdf_col_selling_price'),
+            t('pdf_col_total_crates'),
             t('pdf_col_net_weight'),
+            t('pdf_col_remaining_crates'),
+            t('pdf_col_remaining_money'),
         ]];
 
         const body = historyToDownload.map(item => {
@@ -652,10 +661,14 @@ export default function CargoValuatorPage() {
             return [
                 item.date.split(' ')[0],
                 item.clientName,
-                product,
+                item.farm || '-',
                 formatCurrency(item.mlihAgreedPrice || 0),
                 formatCurrency(item.dichiAgreedPrice || 0),
-                item.results.totalNetWeight.toFixed(2)
+                `${item.mlihPrice || 0}/${item.dichiPrice || 0}`,
+                item.totalCrates,
+                item.results.totalNetWeight.toFixed(2),
+                item.remainingCrates || 0,
+                formatCurrency(item.remainingMoney || 0),
             ];
         });
 
@@ -671,6 +684,7 @@ export default function CargoValuatorPage() {
             styles: {
                 font: isArabic ? 'Aref Ruqaa' : 'Helvetica',
                 halign: isArabic ? 'right' : 'left',
+                fontSize: 8,
             },
             headStyles: {
                 fontStyle: 'bold',
@@ -749,8 +763,8 @@ export default function CargoValuatorPage() {
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                     {locale === 'ar' ? (
                         <>
-                             <Truck className="w-8 h-8 text-primary" />
                             <span>{t('app_title')}</span>
+                            <Truck className="w-8 h-8 text-primary" />
                         </>
                     ) : (
                         <>
@@ -1297,5 +1311,6 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
 
 
