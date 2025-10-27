@@ -39,7 +39,7 @@
     "login_to_sync": "سجل الدخول للمزامنة مع الخادم.",
     "client_name_label": "اسم العميل",
     "farm_name_label": "مزرعة",
-    "agreed_price_label": "السعر المتفق عليه (مليح/ديشي)",
+    "agreed_price_label": "المبلغ المتفق عليه",
     "currency_mad": "د.م.",
     "currency_riyal": "ريال",
     "remaining_crates_label": "الصندوق الباقي",
@@ -103,8 +103,8 @@
     "pdf_col_client": "العميل",
     "pdf_col_product": "المنتج",
     "pdf_col_net_weight": "الوزن الصافي",
-    "pdf_col_agreed_price_mlih": "السعر المتفق عليه (مليح)",
-    "pdf_col_agreed_price_dichi": "السعر المتفق عليه (ديشي)",
+    "pdf_col_agreed_price_mlih": "المبلغ المتفق عليه (مليح)",
+    "pdf_col_agreed_price_dichi": "المبلغ المتفق عليه (ديشي)",
     "image_generation_fail": "تعذر إنشاء الصورة.",
     "error": "خطأ",
     "example_placeholder": "مثال: {{value}}",
@@ -115,6 +115,6 @@
     "filter_by_farm_label": "تصفية حسب المزرعة",
     "all_farms_label": "جميع المزارع",
     "filtering_by_label": "تصفية",
-    "agreed_price_mlih_label": "السعر المتفق عليه (مليح)",
-    "agreed_price_dichi_label": "السعر المتفق عليه (ديشي)"
+    "agreed_price_mlih_label": "المبلغ المتفق عليه (مليح)",
+    "agreed_price_dichi_label": "المبلغ المتفق عليه (ديشي)"
 }
