@@ -777,9 +777,6 @@ export default function CargoValuatorPage() {
                 <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
                     {t('app_subtitle')}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground px-4">
-                    {t('cargo_data_desc')}
-                </p>
             </div>
             
             <div className="absolute top-2 right-2 z-10">
@@ -1312,3 +1309,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
