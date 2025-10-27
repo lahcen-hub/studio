@@ -662,6 +662,7 @@ export default function CargoValuatorPage() {
                 item.date.split(' ')[0],
                 item.clientName,
                 item.farm || '-',
+                product,
                 formatCurrency(item.mlihAgreedPrice || 0),
                 formatCurrency(item.dichiAgreedPrice || 0),
                 `${item.mlihPrice || 0}/${item.dichiPrice || 0}`,
@@ -754,16 +755,16 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="relative flex items-center justify-center text-center mb-4 md:mb-6 pt-2 pb-2">
+        <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
             <div className="absolute top-2 left-2 z-10">
                 <LanguageSwitcher />
             </div>
         
-            <div className="flex flex-col items-center">
+            <div className="flex-1 flex flex-col items-center text-center">
                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                     {locale === 'ar' ? (
                         <>
-                            <span>{t('app_title')}</span>
+                             <span>{t('app_title')}</span>
                             <Truck className="w-8 h-8 text-primary" />
                         </>
                     ) : (
@@ -1215,7 +1216,7 @@ export default function CargoValuatorPage() {
                             <Label htmlFor="editFarmName" className="text-right">{t('farm_name_label')}</Label>
                             <Input 
                                 id="editFarmName" 
-                                value={editingEntry.farm} 
+                                value={editingEntry.farm || ''} 
                                 onChange={(e) => setEditingEntry({ ...editingEntry, farm: e.target.value })}
                                 className="col-span-3" />
                         </div>
@@ -1247,7 +1248,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editMlihPrice" 
                                 type="number" 
-                                value={editingEntry.mlihPrice} 
+                                value={editingEntry.mlihPrice || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1256,7 +1257,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editDichiPrice" 
                                 type="number" 
-                                value={editingEntry.dichiPrice} 
+                                value={editingEntry.dichiPrice || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1269,14 +1270,14 @@ export default function CargoValuatorPage() {
                                     id="editMlihAgreedPrice" 
                                     type="number" 
                                     placeholder={t('mlih_label')}
-                                    value={editingEntry.mlihAgreedPrice} 
+                                    value={editingEntry.mlihAgreedPrice || ''} 
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 />
                                 <Input 
                                     id="editDichiAgreedPrice" 
                                     type="number" 
                                     placeholder={t('dichi_label')}
-                                    value={editingEntry.dichiAgreedPrice} 
+                                    value={editingEntry.dichiAgreedPrice || ''} 
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 />
                             </div>
@@ -1286,7 +1287,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
-                                value={editingEntry.remainingCrates} 
+                                value={editingEntry.remainingCrates || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingCrates: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1295,7 +1296,7 @@ export default function CargoValuatorPage() {
                             <Input 
                                 id="editRemainingMoney" 
                                 type="number" 
-                                value={editingEntry.remainingMoney} 
+                                value={editingEntry.remainingMoney || ''} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
@@ -1311,6 +1312,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-
-
