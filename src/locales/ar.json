@@ -39,7 +39,7 @@
     "login_to_sync": "سجل الدخول للمزامنة مع الخادم.",
     "client_name_label": "اسم العميل",
     "farm_name_label": "مزرعة",
-    "agreed_amount_label": "المبلغ المتفق عليه",
+    "agreed_price_label": "السعر المتفق عليه (مليح/ديشي)",
     "currency_mad": "د.م.",
     "currency_riyal": "ريال",
     "remaining_crates_label": "الصندوق الباقي",
@@ -118,5 +118,3 @@
     "agreed_price_mlih_label": "السعر المتفق عليه (مليح)",
     "agreed_price_dichi_label": "السعر المتفق عليه (ديشي)"
 }
-
-    

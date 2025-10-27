@@ -740,13 +740,13 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="relative flex items-center justify-center mb-4 md:mb-6 pt-2 pb-2 text-center">
-            <div className="absolute top-2 left-2">
+        <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
+            <div className="absolute top-2 left-2 z-10">
                 <LanguageSwitcher />
             </div>
 
-            <div className="flex-1 flex flex-col items-center">
-                 <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                     {locale === 'ar' ? (
                         <>
                             <span>{t('app_title')}</span>
@@ -764,7 +764,7 @@ export default function CargoValuatorPage() {
                 </p>
             </div>
             
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-2 right-2 z-10">
                 <AuthArea />
             </div>
         </header>
@@ -994,25 +994,24 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="mlihAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_mlih_label')}</Label>
-                                <Input 
-                                    id="mlihAgreedPrice" 
-                                    type="number" 
-                                    value={mlihAgreedPrice}
-                                    onChange={(e) => setMlihAgreedPrice(e.target.value)} 
-                                    className="col-span-3"
-                                />
-                            </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="dichiAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_dichi_label')}</Label>
-                                <Input 
-                                    id="dichiAgreedPrice" 
-                                    type="number" 
-                                    value={dichiAgreedPrice}
-                                    onChange={(e) => setDichiAgreedPrice(e.target.value)} 
-                                    className="col-span-3"
-                                />
+                                <Label className={cn("text-right font-bold col-span-1", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
+                                <div className="col-span-3 grid grid-cols-2 gap-2">
+                                  <Input 
+                                      id="mlihAgreedPrice" 
+                                      type="number"
+                                      placeholder={t('mlih_label')}
+                                      value={mlihAgreedPrice}
+                                      onChange={(e) => setMlihAgreedPrice(e.target.value)} 
+                                  />
+                                  <Input 
+                                      id="dichiAgreedPrice" 
+                                      type="number" 
+                                      placeholder={t('dichi_label')}
+                                      value={dichiAgreedPrice}
+                                      onChange={(e) => setDichiAgreedPrice(e.target.value)} 
+                                  />
+                                </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
@@ -1247,22 +1246,23 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editMlihAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_mlih_label')}</Label>
-                            <Input 
-                                id="editMlihAgreedPrice" 
-                                type="number" 
-                                value={editingEntry.mlihAgreedPrice} 
-                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editDichiAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_dichi_label')}</Label>
-                            <Input 
-                                id="editDichiAgreedPrice" 
-                                type="number" 
-                                value={editingEntry.dichiAgreedPrice} 
-                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                className="col-span-3" />
+                            <Label className={cn("text-right font-bold col-span-1", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
+                            <div className="col-span-3 grid grid-cols-2 gap-2">
+                                <Input 
+                                    id="editMlihAgreedPrice" 
+                                    type="number" 
+                                    placeholder={t('mlih_label')}
+                                    value={editingEntry.mlihAgreedPrice} 
+                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                />
+                                <Input 
+                                    id="editDichiAgreedPrice" 
+                                    type="number" 
+                                    placeholder={t('dichi_label')}
+                                    value={editingEntry.dichiAgreedPrice} 
+                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                />
+                            </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editRemainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
@@ -1295,4 +1295,3 @@ export default function CargoValuatorPage() {
   );
 }
 
-    

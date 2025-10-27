@@ -39,7 +39,7 @@
     "login_to_sync": "Connectez-vous pour synchroniser avec le serveur.",
     "client_name_label": "Nom du client",
     "farm_name_label": "Ferme",
-    "agreed_amount_label": "Montant convenu",
+    "agreed_price_label": "Prix convenu (Mlih/Dichi)",
     "currency_mad": "MAD",
     "currency_riyal": "Riyal",
     "remaining_crates_label": "Caisses restantes",
@@ -118,5 +118,3 @@
     "agreed_price_mlih_label": "Prix convenu Mlih",
     "agreed_price_dichi_label": "Prix convenu Dichi"
 }
-
-    
