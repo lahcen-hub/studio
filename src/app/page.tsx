@@ -1153,7 +1153,7 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_label')}:</p>
                                       <p className="font-bold">{formatCurrency(item.mlihAgreedPrice || 0)} / {formatCurrency(item.dichiAgreedPrice || 0)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
