@@ -1024,9 +1024,18 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                            
+                             <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="netAmount" className="text-right">{t('net_amount_label')}</Label>
+                               <Input 
+                                    id="netAmount" 
+                                    type="number" 
+                                    value={netAmount}
+                                    onChange={(e) => setNetAmount(e.target.value)} 
+                                    className="col-span-3" 
+                                />
+                            </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
+                              <Label htmlFor="remainingCrates" className={cn("text-right", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                                <Input 
                                     id="remainingCrates" 
                                     type="number" 
@@ -1042,16 +1051,6 @@ export default function CargoValuatorPage() {
                                     type="number" 
                                     value={remainingMoney}
                                     onChange={(e) => setRemainingMoney(e.target.value)} 
-                                    className="col-span-3" 
-                                />
-                            </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="netAmount" className="text-right">{t('net_amount_label')}</Label>
-                               <Input 
-                                    id="netAmount" 
-                                    type="number" 
-                                    value={netAmount}
-                                    onChange={(e) => setNetAmount(e.target.value)} 
                                     className="col-span-3" 
                                 />
                             </div>
@@ -1229,6 +1228,15 @@ export default function CargoValuatorPage() {
                                 onChange={(e) => setEditingEntry({ ...editingEntry, farm: e.target.value })}
                                 className="col-span-3" />
                         </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editNetAmount" className="text-right">{t('net_amount_label')}</Label>                            
+                            <Input 
+                                id="editNetAmount" 
+                                type="number" 
+                                value={editingEntry.netAmount === undefined ? '' : editingEntry.netAmount} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, netAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label className="text-right">{t('product_type_label')}</Label>
                           <div className="col-span-3">
@@ -1272,7 +1280,7 @@ export default function CargoValuatorPage() {
                         </div>
 
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editRemainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
+                            <Label htmlFor="editRemainingCrates" className={cn("text-right", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
                             <Input 
                                 id="editRemainingCrates" 
                                 type="number" 
@@ -1287,15 +1295,6 @@ export default function CargoValuatorPage() {
                                 type="number" 
                                 value={editingEntry.remainingMoney === undefined ? '' : editingEntry.remainingMoney} 
                                 onChange={(e) => setEditingEntry(prev => prev ? { ...prev, remainingMoney: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                className="col-span-3" />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editNetAmount" className="text-right">{t('net_amount_label')}</Label>                            
-                            <Input 
-                                id="editNetAmount" 
-                                type="number" 
-                                value={editingEntry.netAmount === undefined ? '' : editingEntry.netAmount} 
-                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, netAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                     </div>
