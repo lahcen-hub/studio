@@ -124,16 +124,16 @@ const LanguageSwitcher = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                    <Languages className="h-[1.2rem] w-[1.2rem]" />
-                    <span className="sr-only">{t('change_language_button')}</span>
+                <Button variant="outline" className="w-24">
+                    <Languages className="mr-2 h-4 w-4" />
+                    {locale.toUpperCase()}
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'}>
+            <DropdownMenuContent align={direction === 'rtl' ? 'start' : 'end'} className="w-48">
                 {languages.map((lang) => (
-                    <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn(locale === lang.code && 'bg-accent')}>
-                        <span className="mr-2">{lang.flag}</span>
-                        {lang.name}
+                    <DropdownMenuItem key={lang.code} onClick={() => setLocale(lang.code)} className={cn("cursor-pointer", locale === lang.code && 'bg-accent')}>
+                        <span className="mr-3 text-lg">{lang.flag}</span>
+                        <span>{lang.name}</span>
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>
@@ -360,6 +360,27 @@ export default function CargoValuatorPage() {
     };
   }, [distributeVirtualCrates, fullCrateWeight, calculations.averageNetWeightPerCrate]);
 
+  const handleCalculate = () => {
+    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
+    if (Number(grossWeight) <= 0) {
+      newErrors.grossWeight = true;
+    }
+    if (!selectedVegetable) {
+      newErrors.fullCrateWeight = true;
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      setShowResults(true);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      setShowResults(false);
+    }
+  };
+
   const formatCurrency = (value: number, currency = 'MAD') => {
     if (isNaN(value)) value = 0;
     let localeString = locale === 'ar' ? 'ar-SA' : 'fr-MA';
@@ -507,31 +528,6 @@ export default function CargoValuatorPage() {
       }
     } else {
       toast({ title: t('deleted_locally_title'), description: t('deleted_locally_desc') });
-    }
-  };
-  
-  const handleCalculate = () => {
-    const grossWeightNum = Number(grossWeight) || 0;
-    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
-
-    if (grossWeightNum <= 0) {
-      newErrors.grossWeight = true;
-    }
-    if (!selectedVegetable) {
-      newErrors.fullCrateWeight = true;
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      setShowResults(true);
-      setTimeout(() => {
-        if (window.innerWidth < 768 && resultsRef.current) {
-            resultsRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
-    } else {
-      setShowResults(false);
     }
   };
   
@@ -733,11 +729,11 @@ export default function CargoValuatorPage() {
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
         <header className="flex items-center justify-between mb-4 md:mb-6">
-          <div className="flex-1 flex justify-start">
+          <div className="flex items-center justify-start w-1/3">
               <AuthArea />
           </div>
 
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center justify-center w-1/3">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                   <Truck className="w-8 h-8 text-primary" />
                   <span>{t('app_title')}</span>
@@ -747,7 +743,7 @@ export default function CargoValuatorPage() {
               </p>
           </div>
 
-          <div className="flex-1 flex justify-end">
+          <div className="flex items-center justify-end w-1/3">
               <LanguageSwitcher />
           </div>
         </header>
