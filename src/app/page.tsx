@@ -124,7 +124,7 @@ const LanguageSwitcher = () => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
+                <Button variant="outline" size="icon" className="rounded-full">
                     <Languages className="h-5 w-5" />
                 </Button>
             </DropdownMenuTrigger>
@@ -179,6 +179,25 @@ export default function CargoValuatorPage() {
   const sortHistory = useCallback((historyToSort: HistoryEntry[]) => {
     return historyToSort.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, []);
+
+  const handleCalculate = () => {
+    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
+    if (Number(grossWeight) <= 0) {
+      newErrors.grossWeight = true;
+    }
+    if (!selectedVegetable) {
+      newErrors.fullCrateWeight = true;
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      setShowResults(true);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } else {
+      setShowResults(false);
+    }
+  };
 
   // Fetch data from Firestore in real-time or load from localStorage
   useEffect(() => {
@@ -294,27 +313,6 @@ export default function CargoValuatorPage() {
       setFullCrateWeight(0);
     }
   }, [selectedVegetable]);
-
-  const handleCalculate = () => {
-    const newErrors: { grossWeight?: boolean; fullCrateWeight?: boolean } = {};
-    if (Number(grossWeight) <= 0) {
-      newErrors.grossWeight = true;
-    }
-    if (!selectedVegetable) {
-      newErrors.fullCrateWeight = true;
-    }
-
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      setShowResults(true);
-      setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    } else {
-      setShowResults(false);
-    }
-  };
   
 
   const calculations = useMemo(() => {
@@ -728,22 +726,24 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="relative flex flex-col items-center justify-center mb-4 md:mb-6 pt-2 pb-2">
+        <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
             <div className="absolute top-2 left-2">
                 <LanguageSwitcher />
             </div>
 
+            <div className="flex-1 flex flex-col items-center">
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
+                    <Truck className="w-8 h-8 text-primary" />
+                    <span>{t('app_title')}</span>
+                </h1>
+                <p className={cn("mt-1 text-sm text-muted-foreground text-center", locale === 'ar' && cairo.className)}>
+                    {t('app_subtitle')}
+                </p>
+            </div>
+            
             <div className="absolute top-2 right-2">
                 <AuthArea />
             </div>
-
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
-                <Truck className="w-8 h-8 text-primary" />
-                <span>{t('app_title')}</span>
-            </h1>
-            <p className={cn("mt-2 text-sm text-muted-foreground text-center", locale === 'ar' && cairo.className)}>
-                {t('app_subtitle')}
-            </p>
         </header>
 
 
@@ -1240,3 +1240,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
