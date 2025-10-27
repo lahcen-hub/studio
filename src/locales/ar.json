@@ -96,17 +96,15 @@
     "pdf_kpi_total_calcs": "العدد الإجمالي للحسابات:",
     "pdf_kpi_total_net_weight": "الوزن الصافي الإجمالي المنقول:",
     "pdf_kpi_total_crates": "العدد الإجمالي للصناديق:",
-    "pdf_kpi_total_agreed_mad": "المبلغ الإجمالي المتفق عليه (د.م.):",
-    "pdf_kpi_total_agreed_riyal": "المبلغ الإجمالي المتفق عليه (ريال):",
+    "pdf_kpi_total_agreed_mlih": "المبلغ الإجمالي المتفق عليه (مليح):",
+    "pdf_kpi_total_agreed_dichi": "المبلغ الإجمالي المتفق عليه (ديشي):",
     "pdf_history_title": "سجل الحسابات",
     "pdf_col_date": "التاريخ",
     "pdf_col_client": "العميل",
     "pdf_col_product": "المنتج",
-    "pdf_col_selling_price": "سعر البيع",
     "pdf_col_net_weight": "الوزن الصافي",
-    "pdf_col_agreed_amount": "المبلغ المتفق عليه",
-    "pdf_col_remaining_crates": "الصناديق المتبقية",
-    "pdf_col_remaining_money": "المبلغ المتبقي",
+    "pdf_col_agreed_price_mlih": "السعر المتفق عليه (مليح)",
+    "pdf_col_agreed_price_dichi": "السعر المتفق عليه (ديشي)",
     "image_generation_fail": "تعذر إنشاء الصورة.",
     "error": "خطأ",
     "example_placeholder": "مثال: {{value}}",
@@ -116,5 +114,9 @@
     "pdf_generation_fail": "تعذر إنشاء ملف PDF.",
     "filter_by_farm_label": "تصفية حسب المزرعة",
     "all_farms_label": "جميع المزارع",
-    "filtering_by_label": "تصفية"
+    "filtering_by_label": "تصفية",
+    "agreed_price_mlih_label": "السعر المتفق عليه (مليح)",
+    "agreed_price_dichi_label": "السعر المتفق عليه (ديشي)"
 }
+
+    

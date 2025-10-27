@@ -96,17 +96,15 @@
     "pdf_kpi_total_calcs": "Nombre total de calculs:",
     "pdf_kpi_total_net_weight": "Poids net total transporté:",
     "pdf_kpi_total_crates": "Nombre total de caisses:",
-    "pdf_kpi_total_agreed_mad": "Montant total convenu (MAD):",
-    "pdf_kpi_total_agreed_riyal": "Montant total convenu (Riyal):",
+    "pdf_kpi_total_agreed_mlih": "Total convenu Mlih (MAD):",
+    "pdf_kpi_total_agreed_dichi": "Total convenu Dichi (MAD):",
     "pdf_history_title": "Historique des Calculs",
     "pdf_col_date": "Date",
     "pdf_col_client": "Client",
     "pdf_col_product": "Produit",
-    "pdf_col_selling_price": "Prix de vente",
     "pdf_col_net_weight": "Poids Net",
-    "pdf_col_agreed_amount": "Montant convenu",
-    "pdf_col_remaining_crates": "Caisses restantes",
-    "pdf_col_remaining_money": "Argent restant",
+    "pdf_col_agreed_price_mlih": "Prix Convenu Mlih",
+    "pdf_col_agreed_price_dichi": "Prix Convenu Dichi",
     "image_generation_fail": "Impossible de générer l'image.",
     "error": "Erreur",
     "example_placeholder": "ex: {{value}}",
@@ -116,5 +114,9 @@
     "pdf_generation_fail": "Impossible de générer le PDF.",
     "filter_by_farm_label": "Filtrer par ferme",
     "all_farms_label": "Toutes les fermes",
-    "filtering_by_label": "Filtre"
+    "filtering_by_label": "Filtre",
+    "agreed_price_mlih_label": "Prix convenu Mlih",
+    "agreed_price_dichi_label": "Prix convenu Dichi"
 }
+
+    

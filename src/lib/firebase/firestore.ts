@@ -27,8 +27,8 @@ export interface CalculationDB extends DocumentData {
   remainingCrates: number;
   remainingMoney: number;
   totalCrates: number;
-  agreedAmount: number;
-  agreedAmountCurrency: 'MAD' | 'Riyal';
+  mlihAgreedPrice: number;
+  dichiAgreedPrice: number;
 }
 
 
@@ -120,3 +120,5 @@ export async function updateCalculation(id: string, data: Partial<Omit<Calculati
         throw new Error("Impossible de mettre à jour sur le serveur.");
     }
 }
+
+    

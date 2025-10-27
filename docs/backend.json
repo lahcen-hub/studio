@@ -56,13 +56,13 @@
           "type": "number",
           "description": "Total number of crates in the calculation."
         },
-        "agreedAmount": {
+        "mlihAgreedPrice": {
           "type": "number",
-          "description": "The amount agreed upon with the client."
+          "description": "The agreed upon price for mlih."
         },
-        "agreedAmountCurrency": {
-          "type": "string",
-          "enum": ["MAD", "Riyal"]
+        "dichiAgreedPrice": {
+          "type": "number",
+          "description": "The agreed upon price for dichi."
         },
         "createdAt": {
           "type": "string",
@@ -79,7 +79,9 @@
         "results",
         "clientName",
         "totalCrates",
-        "createdAt"
+        "createdAt",
+        "mlihAgreedPrice",
+        "dichiAgreedPrice"
       ]
     }
   },
@@ -93,3 +95,5 @@
     }
   }
 }
+
+    

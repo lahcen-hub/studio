@@ -96,17 +96,15 @@
     "pdf_kpi_total_calcs": "Total number of calculations:",
     "pdf_kpi_total_net_weight": "Total net weight transported:",
     "pdf_kpi_total_crates": "Total number of crates:",
-    "pdf_kpi_total_agreed_mad": "Total agreed amount (MAD):",
-    "pdf_kpi_total_agreed_riyal": "Total agreed amount (Riyal):",
+    "pdf_kpi_total_agreed_mlih": "Total Agreed Mlih (MAD):",
+    "pdf_kpi_total_agreed_dichi": "Total Agreed Dichi (MAD):",
     "pdf_history_title": "Calculations History",
     "pdf_col_date": "Date",
     "pdf_col_client": "Client",
     "pdf_col_product": "Product",
-    "pdf_col_selling_price": "Selling Price",
     "pdf_col_net_weight": "Net Weight",
-    "pdf_col_agreed_amount": "Agreed Amount",
-    "pdf_col_remaining_crates": "Remaining Crates",
-    "pdf_col_remaining_money": "Remaining Money",
+    "pdf_col_agreed_price_mlih": "Agreed Price Mlih",
+    "pdf_col_agreed_price_dichi": "Agreed Price Dichi",
     "image_generation_fail": "Could not generate the image.",
     "error": "Error",
     "example_placeholder": "ex: {{value}}",
@@ -116,5 +114,9 @@
     "pdf_generation_fail": "Could not generate PDF.",
     "filter_by_farm_label": "Filter by farm",
     "all_farms_label": "All farms",
-    "filtering_by_label": "Filtering by"
+    "filtering_by_label": "Filtering by",
+    "agreed_price_mlih_label": "Agreed Price Mlih",
+    "agreed_price_dichi_label": "Agreed Price Dichi"
 }
+
+    

@@ -159,8 +159,9 @@ export default function CargoValuatorPage() {
   const [farmName, setFarmName] = useState('');
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
-  const [agreedAmount, setAgreedAmount] = useState<number | string>('');
-  const [agreedAmountCurrency, setAgreedAmountCurrency] = useState<'MAD' | 'Riyal'>('MAD');
+  const [mlihAgreedPrice, setMlihAgreedPrice] = useState<number | string>('');
+  const [dichiAgreedPrice, setDichiAgreedPrice] = useState<number | string>('');
+
 
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -428,8 +429,8 @@ export default function CargoValuatorPage() {
       remainingCrates: Number(remainingCrates) || 0,
       remainingMoney: Number(remainingMoney) || 0,
       totalCrates: calculations.totalCrates,
-      agreedAmount: Number(agreedAmount) || 0,
-      agreedAmountCurrency: agreedAmountCurrency,
+      mlihAgreedPrice: Number(mlihAgreedPrice) || 0,
+      dichiAgreedPrice: Number(dichiAgreedPrice) || 0,
     };
 
     if (user && navigator.onLine) {
@@ -455,8 +456,8 @@ export default function CargoValuatorPage() {
     setFarmName('');
     setRemainingCrates('');
     setRemainingMoney('');
-    setAgreedAmount('');
-    setAgreedAmountCurrency('MAD');
+    setMlihAgreedPrice('');
+    setDichiAgreedPrice('');
   };
   
   const handleOpenSaveDialog = () => {
@@ -477,8 +478,8 @@ export default function CargoValuatorPage() {
         productType: editingEntry.productType,
         mlihPrice: Number(editingEntry.mlihPrice) || 0,
         dichiPrice: Number(editingEntry.dichiPrice) || 0,
-        agreedAmount: Number(editingEntry.agreedAmount) || 0,
-        agreedAmountCurrency: editingEntry.agreedAmountCurrency,
+        mlihAgreedPrice: Number(editingEntry.mlihAgreedPrice) || 0,
+        dichiAgreedPrice: Number(editingEntry.dichiAgreedPrice) || 0,
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
         remainingMoney: Number(editingEntry.remainingMoney) || 0,
     };
@@ -558,8 +559,22 @@ export default function CargoValuatorPage() {
     autoTable: (options: UserOptions) => jsPDFWithAutoTable;
   }
 
+  const farmNames = useMemo(() => {
+    const names = new Set(history.map(item => item.farm).filter(Boolean));
+    return Array.from(names);
+  }, [history]);
+
+  const filteredHistory = useMemo(() => {
+    if (!farmFilter) {
+      return history;
+    }
+    return history.filter(item => item.farm === farmFilter);
+  }, [history, farmFilter]);
+
   const downloadHistory = async () => {
-    if (history.length === 0) {
+    const historyToDownload = filteredHistory;
+
+    if (historyToDownload.length === 0) {
         toast({ variant: 'destructive', title: t('history_empty') });
         return;
     }
@@ -569,39 +584,35 @@ export default function CargoValuatorPage() {
 
     try {
         if (isArabic) {
-            // Fetch font, convert to base64
             const fontUrl = 'https://fonts.gstatic.com/s/arefruqaa/v26/W_h3E2_66G8J-kI9v-u_8w_SJw.ttf';
             const response = await fetch(fontUrl);
             if (!response.ok) throw new Error('Font fetch failed');
             const fontBuffer = await response.arrayBuffer();
             const fontBase64 = btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(fontBuffer))));
 
-            // Add font to jsPDF
             doc.addFileToVFS('ArefRuqaa-Regular.ttf', fontBase64);
             doc.addFont('ArefRuqaa-Regular.ttf', 'Aref Ruqaa', 'normal');
             doc.setFont('Aref Ruqaa');
         }
         
-        // --- HEADER ---
         doc.setFontSize(20);
         doc.setTextColor(40);
-        const title = t('pdf_report_title');
+        const title = farmFilter ? `${t('pdf_report_title')} - ${farmFilter}` : t('pdf_report_title');
         const titleX = isArabic ? (doc.internal.pageSize.getWidth() - doc.getTextWidth(title) - 14) : 14;
         doc.text(title, titleX, 15);
         
-        // --- KPIs ---
-        const totalCalculations = history.length;
-        const totalNetWeight = history.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
-        const totalCrates = history.reduce((sum, item) => sum + item.totalCrates, 0);
-        const totalAgreedMAD = history.reduce((sum, item) => item.agreedAmountCurrency === 'MAD' ? sum + item.agreedAmount : sum, 0);
-        const totalAgreedRiyal = history.reduce((sum, item) => item.agreedAmountCurrency === 'Riyal' ? sum + item.agreedAmount : sum, 0);
+        const totalCalculations = historyToDownload.length;
+        const totalNetWeight = historyToDownload.reduce((sum, item) => sum + item.results.totalNetWeight, 0);
+        const totalCrates = historyToDownload.reduce((sum, item) => sum + item.totalCrates, 0);
+        const totalAgreedMlih = historyToDownload.reduce((sum, item) => sum + (item.mlihAgreedPrice || 0), 0);
+        const totalAgreedDichi = historyToDownload.reduce((sum, item) => sum + (item.dichiAgreedPrice || 0), 0);
 
         const kpiBody = [
             [t('pdf_kpi_total_calcs'), totalCalculations.toString()],
             [t('pdf_kpi_total_net_weight'), `${totalNetWeight.toFixed(2)} kg`],
             [t('pdf_kpi_total_crates'), totalCrates.toString()],
-            [t('pdf_kpi_total_agreed_mad'), formatCurrency(totalAgreedMAD, 'MAD')],
-            [t('pdf_kpi_total_agreed_riyal'), formatCurrency(totalAgreedRiyal, 'Riyal')],
+            [t('pdf_kpi_total_agreed_mlih'), formatCurrency(totalAgreedMlih, 'MAD')],
+            [t('pdf_kpi_total_agreed_dichi'), formatCurrency(totalAgreedDichi, 'MAD')],
         ];
         if (isArabic) {
           kpiBody.forEach(row => row.reverse());
@@ -621,7 +632,6 @@ export default function CargoValuatorPage() {
             },
         });
 
-        // --- HISTORY TABLE ---
         const finalY = doc.autoTable.previous.finalY;
         doc.setFontSize(14);
         const historyTitle = t('pdf_history_title');
@@ -632,24 +642,23 @@ export default function CargoValuatorPage() {
             t('pdf_col_date'),
             t('pdf_col_client'),
             t('pdf_col_product'),
-            t('pdf_col_selling_price'),
+            t('pdf_col_agreed_price_mlih'),
+            t('pdf_col_agreed_price_dichi'),
             t('pdf_col_net_weight'),
-            t('pdf_col_agreed_amount')
         ]];
 
-        const body = history.map(item => {
+        const body = historyToDownload.map(item => {
             const product = item.productType ? (vegetables[item.productType as VegetableKey]?.[`name_${locale}` as keyof Vegetable] ?? vegetables[item.productType as VegetableKey]?.name) : 'N/A';
             return [
                 item.date.split(' ')[0],
                 item.clientName,
                 product,
-                `${item.mlihPrice}/${item.dichiPrice}`,
-                item.results.totalNetWeight.toFixed(2),
-                formatCurrency(item.agreedAmount, item.agreedAmountCurrency)
+                formatCurrency(item.mlihAgreedPrice || 0),
+                formatCurrency(item.dichiAgreedPrice || 0),
+                item.results.totalNetWeight.toFixed(2)
             ];
         });
 
-        // Reverse for RTL display in PDF
         if (isArabic) {
             head[0].reverse();
             body.forEach(row => row.reverse());
@@ -665,12 +674,12 @@ export default function CargoValuatorPage() {
             },
             headStyles: {
                 fontStyle: 'bold',
-                fillColor: [3, 169, 115] // A shade of green
+                fillColor: [3, 169, 115]
             },
         });
 
         const formattedDate = new Date().toISOString().slice(0, 10);
-        doc.save(`rapport_cargo_${formattedDate}.pdf`);
+        doc.save(`rapport_cargo_${farmFilter || 'tout'}_${formattedDate}.pdf`);
 
     } catch (error) {
         console.error('Oops, something went wrong with PDF generation!', error);
@@ -700,19 +709,6 @@ export default function CargoValuatorPage() {
             });
     }
   };
-
-  const farmNames = useMemo(() => {
-    const names = new Set(history.map(item => item.farm).filter(Boolean));
-    return Array.from(names);
-  }, [history]);
-
-  const filteredHistory = useMemo(() => {
-    if (!farmFilter) {
-      return history;
-    }
-    return history.filter(item => item.farm === farmFilter);
-  }, [history, farmFilter]);
-
 
   const AuthArea = () => {
     if (loading) {
@@ -744,17 +740,17 @@ export default function CargoValuatorPage() {
   return (
     <main className="min-h-screen bg-background p-2 sm:p-4 md:p-6" dir={direction}>
       <div className="max-w-7xl mx-auto">
-        <header className="relative flex items-center justify-between mb-4 md:mb-6 pt-2 pb-2">
+        <header className="relative flex items-center justify-center mb-4 md:mb-6 pt-2 pb-2 text-center">
             <div className="absolute top-2 left-2">
                 <LanguageSwitcher />
             </div>
 
-            <div className="flex-1 flex flex-col items-center text-center px-12">
+            <div className="flex-1 flex flex-col items-center">
                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-headline flex items-center gap-3">
                     {locale === 'ar' ? (
                         <>
-                             <span>{t('app_title')}</span>
-                             <Truck className="w-8 h-8 text-primary" />
+                            <span>{t('app_title')}</span>
+                            <Truck className="w-8 h-8 text-primary" />
                         </>
                     ) : (
                         <>
@@ -763,7 +759,7 @@ export default function CargoValuatorPage() {
                         </>
                     )}
                 </h1>
-                <p className={cn("mt-1 text-sm text-muted-foreground text-center", locale === 'ar' && cairo.className)}>
+                <p className={cn("mt-1 text-sm text-muted-foreground", locale === 'ar' && cairo.className)}>
                     {t('app_subtitle')}
                 </p>
             </div>
@@ -999,25 +995,24 @@ export default function CargoValuatorPage() {
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
                              <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="agreedAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_amount_label')}</Label>
-                                <div className="col-span-3 grid grid-cols-3 gap-2">
-                                    <Input 
-                                        id="agreedAmount" 
-                                        type="number" 
-                                        value={agreedAmount}
-                                        onChange={(e) => setAgreedAmount(e.target.value)} 
-                                        className="col-span-2"
-                                    />
-                                    <Select value={agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setAgreedAmountCurrency(value)}>
-                                        <SelectTrigger className="col-span-1">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="MAD">{t('currency_mad')}</SelectItem>
-                                            <SelectItem value="Riyal">{t('currency_riyal')}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <Label htmlFor="mlihAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_mlih_label')}</Label>
+                                <Input 
+                                    id="mlihAgreedPrice" 
+                                    type="number" 
+                                    value={mlihAgreedPrice}
+                                    onChange={(e) => setMlihAgreedPrice(e.target.value)} 
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="dichiAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_dichi_label')}</Label>
+                                <Input 
+                                    id="dichiAgreedPrice" 
+                                    type="number" 
+                                    value={dichiAgreedPrice}
+                                    onChange={(e) => setDichiAgreedPrice(e.target.value)} 
+                                    className="col-span-3"
+                                />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="remainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
@@ -1139,8 +1134,12 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2">
-                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_amount_label')}:</p>
-                                      <p className="font-bold">{formatCurrency(item.agreedAmount, item.agreedAmountCurrency)}</p>
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_mlih_label')}:</p>
+                                      <p className="font-bold">{formatCurrency(item.mlihAgreedPrice || 0)}</p>
+                                  </div>
+                                  <div className="flex justify-between items-center col-span-2">
+                                      <p className="font-bold flex items-center gap-1"><Receipt className="w-3 h-3"/>{t('agreed_price_dichi_label')}:</p>
+                                      <p className="font-bold">{formatCurrency(item.dichiAgreedPrice || 0)}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-2">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('selling_price_label')} ({t('mlih_label')}/{t('dichi_label')}):</p>
@@ -1248,24 +1247,22 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editAgreedAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_amount_label')}</Label>
-                             <div className="col-span-3 grid grid-cols-3 gap-2">
-                                <Input 
-                                    id="editAgreedAmount" 
-                                    type="number" 
-                                    value={editingEntry.agreedAmount} 
-                                    onChange={(e) => setEditingEntry(prev => prev ? { ...prev, agreedAmount: e.target.value === '' ? '' : Number(e.target.value) } : null)}
-                                    className="col-span-2" />
-                                <Select value={editingEntry.agreedAmountCurrency} onValueChange={(value: 'MAD' | 'Riyal') => setEditingEntry(prev => prev ? { ...prev, agreedAmountCurrency: value } : null)}>
-                                    <SelectTrigger className="col-span-1">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="MAD">{t('currency_mad')}</SelectItem>
-                                        <SelectItem value="Riyal">{t('currency_riyal')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            <Label htmlFor="editMlihAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_mlih_label')}</Label>
+                            <Input 
+                                id="editMlihAgreedPrice" 
+                                type="number" 
+                                value={editingEntry.mlihAgreedPrice} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, mlihAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editDichiAgreedPrice" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_dichi_label')}</Label>
+                            <Input 
+                                id="editDichiAgreedPrice" 
+                                type="number" 
+                                value={editingEntry.dichiAgreedPrice} 
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, dichiAgreedPrice: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="editRemainingCrates" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('remaining_crates_label')}</Label>
@@ -1297,3 +1294,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
