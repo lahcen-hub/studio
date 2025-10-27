@@ -1153,6 +1153,13 @@ export default function CargoValuatorPage() {
                                 </div>
                             </div>
                             <Separator className="my-2" />
+                            <div className="flex justify-between items-center col-span-full text-base py-1">
+                                <span className="font-bold flex items-center gap-1"><Coins className="w-4 h-4"/>{t('net_amount_label')}:</span>
+                                <span className="font-bold">{formatCurrency(item.netAmount)}</span>
+                            </div>
+                             <div className="col-span-full">
+                                <Separator className="my-1" />
+                            </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs mt-2">
                                   <div className="flex justify-between items-center col-span-2 sm:col-span-1">
                                       <p className="font-bold flex items-center gap-1"><CircleDollarSign className="w-3 h-3"/>{t('total_price_label')}:</p>
@@ -1180,10 +1187,6 @@ export default function CargoValuatorPage() {
                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
                                       <span className="font-bold flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
                                       <span className="font-bold">{formatCurrency(item.remainingMoney)}</span>
-                                  </div>
-                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <span className="font-bold flex items-center gap-1"><Coins className="w-3 h-3"/>{t('net_amount_label')}:</span>
-                                      <span className="font-bold">{formatCurrency(item.netAmount)}</span>
                                   </div>
                             </div>
                           </div>
