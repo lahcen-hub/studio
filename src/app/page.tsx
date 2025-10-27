@@ -1104,11 +1104,11 @@ export default function CargoValuatorPage() {
                       {filteredHistory.map((item) => {
                         const product = item.productType ? vegetables[item.productType as VegetableKey] : null;
                         return (
-                          <div key={item.id} id={`history-item-${item.id}`} className="p-3 bg-secondary/50 rounded-lg">
+                          <div key={item.id} id={`history-item-${item.id}`} className="relative p-4 bg-secondary/50 rounded-lg">
                             <div className="flex flex-col sm:flex-row justify-between items-start">
-                                <div className="flex-grow">
+                                <div className="flex-grow pr-12">
                                   <div className="flex items-center gap-2">
-                                     <p className="text-xs text-muted-foreground">{item.date}</p>
+                                     <p className="text-xs text-muted-foreground">{item.date.split(' ')[0]}</p>
                                      {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
                                   <div className="flex flex-col sm:flex-row sm:items-center gap-x-2 gap-y-1">
@@ -1122,14 +1122,14 @@ export default function CargoValuatorPage() {
                                      )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 -mr-2 -mt-1 self-start sm:self-center">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
+                                <div className="absolute top-1 right-1 flex items-center gap-0">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadHistoryItemAsImage(item.id, item.clientName)}>
                                     <ImageIcon className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9" onClick={() => openEditDialog(item)}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(item)}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 text-destructive" onClick={() => handleDelete(item.id)}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(item.id)}>
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
                                 </div>
