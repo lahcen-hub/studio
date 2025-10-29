@@ -1024,9 +1024,9 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="clientName" className="text-right">{t('client_name_label')}</Label>
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label className={cn("col-span-4", direction === 'rtl' && 'text-right')}>{t('agreed_price_label')}</Label>
-                                <div className="col-span-4 grid grid-cols-2 gap-2">
+                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="totalPriceMlih" className="text-right">{t('agreed_price_label')}</Label>
+                                <div className="col-span-3 grid grid-cols-2 gap-2">
                                      <Input id="totalPriceMlih" type="number" placeholder={t('mlih_label')} value={totalPriceMlih} onChange={(e) => setTotalPriceMlih(e.target.value)} />
                                      <Input id="totalPriceDichi" type="number" placeholder={t('dichi_label')} value={totalPriceDichi} onChange={(e) => setTotalPriceDichi(e.target.value)} />
                                 </div>
@@ -1184,19 +1184,19 @@ export default function CargoValuatorPage() {
                                       <p>{item.totalCrates}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-full">
-                                      <span className="flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</span>
-                                      <span>{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</span>
+                                      <p className="flex items-center gap-1"><Scale className="w-3 h-3"/>{t('total_net_weight_label')} (kg):</p>
+                                      <p>{(item.results.totalNetWeight?.toFixed(2) || 'N/A') + ' kg'}</p>
                                   </div>
                                   <div className="col-span-full">
                                     <Separator className="my-1" />
                                   </div>
                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <span className="flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</span>
-                                      <span>{item.remainingCrates}</span>
+                                      <p className="flex items-center gap-1"><Warehouse className="w-3 h-3"/>{t('remaining_crates_label')}:</p>
+                                      <p>{item.remainingCrates}</p>
                                   </div>
                                   <div className="flex justify-between items-center col-span-full sm:col-span-1">
-                                      <span className="flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</span>
-                                      <span>{formatCurrency(item.remainingMoney)}</span>
+                                      <p className="flex items-center gap-1"><Wallet className="w-3 h-3"/>{t('remaining_money_label')}:</p>
+                                      <p>{formatCurrency(item.remainingMoney)}</p>
                                   </div>
                             </div>
                           </div>
@@ -1232,8 +1232,8 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label className={cn("col-span-4", direction === 'rtl' && 'text-right')}>{t('agreed_price_label')}</Label>
-                            <div className="col-span-4 grid grid-cols-2 gap-2">
+                            <Label htmlFor="editTotalPriceMlih" className="text-right">{t('agreed_price_label')}</Label>
+                            <div className="col-span-3 grid grid-cols-2 gap-2">
                                 <Input
                                     id="editTotalPriceMlih"
                                     type="number"
@@ -1339,3 +1339,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
