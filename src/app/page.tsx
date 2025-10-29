@@ -1141,7 +1141,7 @@ export default function CargoValuatorPage() {
                                      {!item.synced && <RefreshCw className="w-3 h-3 text-amber-600 animate-spin" title={t('unsynced_label')}/>}
                                   </div>
                                   <div className="flex flex-row items-center flex-wrap gap-x-4 gap-y-1">
-                                      <p className="flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
+                                      <p className="font-bold flex items-center gap-1"><User className="w-3 h-3"/>{item.clientName}</p>
                                       {item.farm && <p className="text-sm flex items-center gap-1"><Tractor className="w-3 h-3"/>{item.farm}</p>}
                                       {product && (
                                         <p className="text-sm flex items-center gap-1">
