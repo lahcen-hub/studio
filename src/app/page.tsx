@@ -1163,7 +1163,7 @@ export default function CargoValuatorPage() {
                                 </div>
                             </div>
                             <Separator className="my-2" />
-                            <div className="flex justify-between items-center col-span-full text-base py-1">
+                            <div className="flex justify-between items-center col-span-full text-base font-bold py-1">
                                 <p className="flex items-center gap-1"><Coins className="w-4 h-4"/>{t('net_amount_label')}:</p>
                                 <p>{formatCurrency(item.netAmount)}</p>
                             </div>
@@ -1249,7 +1249,7 @@ export default function CargoValuatorPage() {
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="editTotalPriceMlih" className="text-right">{t('agreed_price_label')}</Label>
+                            <Label className="text-right">{t('agreed_price_label')}</Label>
                             <div className="col-span-3 grid grid-cols-2 gap-2">
                                 <Input
                                     id="editTotalPriceMlih"
@@ -1338,3 +1338,5 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
+
+    
