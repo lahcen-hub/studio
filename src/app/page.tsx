@@ -413,9 +413,10 @@ export default function CargoValuatorPage() {
     if (isNaN(value)) value = 0;
     let localeString = locale === 'ar' ? 'ar-SA' : 'fr-MA';
 
-    // Options to force Latin numerals
     const commonOptions: Intl.NumberFormatOptions = {
-      numberingSystem: 'latn'
+        numberingSystem: 'latn',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     };
 
     if (currency === 'Riyal') {
@@ -988,7 +989,7 @@ export default function CargoValuatorPage() {
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow className="bg-primary/10">
-                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('agreed_price_label')}</TableCell>
+                                  <TableCell className={cn("font-semibold flex items-center gap-2 text-xs sm:text-sm", locale === 'ar' && cairo.className)}><CircleDollarSign className="w-4 h-4 text-primary"/>{t('agreed_price_label')}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
                               </TableRow>
@@ -1028,7 +1029,7 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="farmName" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
+                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="netAmount" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('net_amount_label')}</Label>
                                <Input 
                                     id="netAmount" 
@@ -1039,7 +1040,7 @@ export default function CargoValuatorPage() {
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="totalPriceMlih" className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
+                                <Label className={cn("text-right font-bold", locale === 'ar' && cairo.className)}>{t('agreed_price_label')}</Label>
                                 <div className="col-span-3 grid grid-cols-2 gap-2">
                                      <Input id="totalPriceMlih" type="number" placeholder={t('mlih_label')} value={totalPriceMlih} onChange={(e) => setTotalPriceMlih(e.target.value)} />
                                      <Input id="totalPriceDichi" type="number" placeholder={t('dichi_label')} value={totalPriceDichi} onChange={(e) => setTotalPriceDichi(e.target.value)} />
