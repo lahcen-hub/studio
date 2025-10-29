@@ -364,8 +364,8 @@ export default function CargoValuatorPage() {
     const virtualCratesMlih = fullCrateWeightNum > 0 ? netWeightMlih / fullCrateWeightNum : 0;
     const virtualCratesDichi = fullCrateWeightNum > 0 ? netWeightDichi / fullCrateWeightNum : 0;
 
-    const totalPriceMlih = virtualCratesMlih * mlihPriceNum;
-    const totalPriceDichi = virtualCratesDichi * dichiPriceNum;
+    const totalPriceMlih = Math.floor(virtualCratesMlih) * mlihPriceNum;
+    const totalPriceDichi = Math.floor(virtualCratesDichi) * dichiPriceNum;
 
     const grandTotalPrice = totalPriceMlih + totalPriceDichi;
     const grandTotalPriceRiyal = grandTotalPrice * 20;
@@ -988,7 +988,7 @@ export default function CargoValuatorPage() {
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{calculations.virtualCratesDichi.toFixed(2)}</TableCell>
                               </TableRow>
                               <TableRow className="bg-primary/10">
-                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('total_price_label')}</TableCell>
+                                  <TableCell className="font-semibold flex items-center gap-2 text-xs sm:text-sm"><CircleDollarSign className="w-4 h-4 text-primary"/>{t('agreed_price_label')}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceMlih)}</TableCell>
                                   <TableCell className="text-center font-bold text-xs sm:text-sm">{formatCurrency(calculations.totalPriceDichi)}</TableCell>
                               </TableRow>
@@ -1340,4 +1340,5 @@ export default function CargoValuatorPage() {
 }
 
 
+    
     
