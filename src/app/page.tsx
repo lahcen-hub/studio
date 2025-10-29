@@ -1120,9 +1120,6 @@ export default function CargoValuatorPage() {
                     <Button variant="outline" size="icon" onClick={downloadHistory} className="rounded-full">
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="destructive" size="icon" onClick={clearHistory} className="rounded-full">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 )}
               </CardHeader>
