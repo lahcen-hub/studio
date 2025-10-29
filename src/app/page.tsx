@@ -1024,21 +1024,18 @@ export default function CargoValuatorPage() {
                               <Label htmlFor="clientName" className="text-right">{t('client_name_label')}</Label>
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
-                            <div className="grid grid-cols-2 items-end gap-4">
-                                <div>
-                                    <Label htmlFor="totalPriceMlih" className="text-right text-sm">{t('total_price_mlih_label')}</Label>
-                                    <Input id="totalPriceMlih" type="number" value={totalPriceMlih} onChange={(e) => setTotalPriceMlih(e.target.value)} />
-                                </div>
-                                <div>
-                                    <Label htmlFor="totalPriceDichi" className="text-right text-sm">{t('total_price_dichi_label')}</Label>
-                                    <Input id="totalPriceDichi" type="number" value={totalPriceDichi} onChange={(e) => setTotalPriceDichi(e.target.value)} />
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label className={cn("col-span-4", direction === 'rtl' && 'text-right')}>{t('agreed_price_label')}</Label>
+                                <div className="col-span-4 grid grid-cols-2 gap-2">
+                                     <Input id="totalPriceMlih" type="number" placeholder={t('mlih_label')} value={totalPriceMlih} onChange={(e) => setTotalPriceMlih(e.target.value)} />
+                                     <Input id="totalPriceDichi" type="number" placeholder={t('dichi_label')} value={totalPriceDichi} onChange={(e) => setTotalPriceDichi(e.target.value)} />
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
-                             <div className="grid grid-cols-4 items-center gap-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="netAmount" className="text-right">{t('net_amount_label')}</Label>
                                <Input 
                                     id="netAmount" 
@@ -1168,7 +1165,7 @@ export default function CargoValuatorPage() {
                             <Separator className="my-2" />
                             <div className="flex justify-between items-center col-span-full text-base py-1">
                                 <p className="flex items-center gap-1"><Coins className="w-4 h-4"/>{t('net_amount_label')}:</p>
-                                <p>{formatCurrency(item.netAmount)}</p>
+                                <p className="font-bold">{formatCurrency(item.netAmount)}</p>
                             </div>
                              <div className="col-span-full">
                                 <Separator className="my-1" />
@@ -1234,21 +1231,20 @@ export default function CargoValuatorPage() {
                                 onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
                                 className="col-span-3" />
                         </div>
-                        <div className="grid grid-cols-2 items-end gap-4">
-                            <div>
-                                <Label htmlFor="editTotalPriceMlih" className="text-right text-sm">{t('total_price_mlih_label')}</Label>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className={cn("col-span-4", direction === 'rtl' && 'text-right')}>{t('agreed_price_label')}</Label>
+                            <div className="col-span-4 grid grid-cols-2 gap-2">
                                 <Input
                                     id="editTotalPriceMlih"
                                     type="number"
+                                    placeholder={t('mlih_label')}
                                     value={editingEntry.totalPriceMlih === undefined ? '' : editingEntry.totalPriceMlih}
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, totalPriceMlih: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     />
-                            </div>
-                            <div>
-                               <Label htmlFor="editTotalPriceDichi" className="text-right text-sm">{t('total_price_dichi_label')}</Label>
                                 <Input
                                     id="editTotalPriceDichi"
                                     type="number"
+                                     placeholder={t('dichi_label')}
                                     value={editingEntry.totalPriceDichi === undefined ? '' : editingEntry.totalPriceDichi}
                                     onChange={(e) => setEditingEntry(prev => prev ? { ...prev, totalPriceDichi: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                     />
@@ -1343,10 +1339,3 @@ export default function CargoValuatorPage() {
     </main>
   );
 }
-
-
-
-
-
-    
-    

@@ -30,7 +30,7 @@
     "mlih_label": "Mlih",
     "dichi_label": "Dichi",
     "net_weight_label": "Poids net",
-    "total_price_label": "Prix Total (Mlih/Dichi)",
+    "total_price_label": "Montant convenu (Mlih/Dichi)",
     "total_price_mlih_label": "Prix Total Mlih",
     "total_price_dichi_label": "Prix Total Dichi",
     "grand_total_price_label": "Prix Total Général",

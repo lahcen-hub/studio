@@ -30,7 +30,7 @@
     "mlih_label": "Mlih",
     "dichi_label": "Dichi",
     "net_weight_label": "Net weight",
-    "total_price_label": "Total Price (Mlih/Dichi)",
+    "total_price_label": "Agreed Price (Mlih/Dichi)",
     "total_price_mlih_label": "Total Price Mlih",
     "total_price_dichi_label": "Total Price Dichi",
     "grand_total_price_label": "Grand Total Price",
