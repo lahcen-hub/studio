@@ -31,6 +31,8 @@
     "dichi_label": "الديشي",
     "net_weight_label": "الوزن الصافي",
     "total_price_label": "السعر الإجمالي (مليح/ديشي)",
+    "total_price_mlih_label": "السعر الإجمالي مليح",
+    "total_price_dichi_label": "السعر الإجمالي ديشي",
     "grand_total_price_label": "السعر الإجمالي العام",
     "total_price_riyal_label": "السعر الإجمالي (ريال)",
     "save_button": "حفظ",
@@ -126,5 +128,3 @@
     "all_farms_label": "جميع المزارع",
     "filtering_by_label": "تصفية"
 }
-
-    

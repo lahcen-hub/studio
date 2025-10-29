@@ -185,6 +185,8 @@ export default function CargoValuatorPage() {
   const [remainingCrates, setRemainingCrates] = useState<number | string>('');
   const [remainingMoney, setRemainingMoney] = useState<number | string>('');
   const [netAmount, setNetAmount] = useState<number | string>('');
+  const [totalPriceMlih, setTotalPriceMlih] = useState<number | string>('');
+  const [totalPriceDichi, setTotalPriceDichi] = useState<number | string>('');
 
 
   const [isSaveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -456,8 +458,8 @@ export default function CargoValuatorPage() {
       remainingMoney: Number(remainingMoney) || 0,
       netAmount: Number(netAmount) || 0,
       totalCrates: calculations.totalCrates,
-      totalPriceMlih: calculations.totalPriceMlih,
-      totalPriceDichi: calculations.totalPriceDichi,
+      totalPriceMlih: Number(totalPriceMlih) || 0,
+      totalPriceDichi: Number(totalPriceDichi) || 0,
     };
 
     if (user && navigator.onLine) {
@@ -481,9 +483,11 @@ export default function CargoValuatorPage() {
     
     setClientName('');
     setFarmName('');
+    setNetAmount('');
+    setTotalPriceMlih('');
+    setTotalPriceDichi('');
     setRemainingCrates('');
     setRemainingMoney('');
-    setNetAmount('');
   };
   
   const handleOpenSaveDialog = () => {
@@ -521,8 +525,8 @@ export default function CargoValuatorPage() {
         remainingCrates: Number(editingEntry.remainingCrates) || 0,
         remainingMoney: Number(editingEntry.remainingMoney) || 0,
         netAmount: Number(editingEntry.netAmount) || 0,
-        totalPriceMlih: editingEntry.totalPriceMlih || 0,
-        totalPriceDichi: editingEntry.totalPriceDichi || 0,
+        totalPriceMlih: Number(editingEntry.totalPriceMlih) || 0,
+        totalPriceDichi: Number(editingEntry.totalPriceDichi) || 0,
     };
 
     const { id, synced, ...dataToUpdate } = entryToUpdate;
@@ -1021,6 +1025,14 @@ export default function CargoValuatorPage() {
                               <Input id="clientName" value={clientName} onChange={(e) => setClientName(e.target.value)} className="col-span-3" />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="totalPriceMlih" className="text-right">{t('total_price_mlih_label')}</Label>
+                                <Input id="totalPriceMlih" type="number" value={totalPriceMlih} onChange={(e) => setTotalPriceMlih(e.target.value)} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="totalPriceDichi" className="text-right">{t('total_price_dichi_label')}</Label>
+                                <Input id="totalPriceDichi" type="number" value={totalPriceDichi} onChange={(e) => setTotalPriceDichi(e.target.value)} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
                               <Label htmlFor="farmName" className="text-right">{t('farm_name_label')}</Label>
                               <Input id="farmName" value={farmName} onChange={(e) => setFarmName(e.target.value)} className="col-span-3" />
                             </div>
@@ -1218,6 +1230,24 @@ export default function CargoValuatorPage() {
                                 id="editClientName" 
                                 value={editingEntry.clientName || ''} 
                                 onChange={(e) => setEditingEntry({ ...editingEntry, clientName: e.target.value })}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editTotalPriceMlih" className="text-right">{t('total_price_mlih_label')}</Label>
+                            <Input
+                                id="editTotalPriceMlih"
+                                type="number"
+                                value={editingEntry.totalPriceMlih === undefined ? '' : editingEntry.totalPriceMlih}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, totalPriceMlih: e.target.value === '' ? '' : Number(e.target.value) } : null)}
+                                className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="editTotalPriceDichi" className="text-right">{t('total_price_dichi_label')}</Label>
+                            <Input
+                                id="editTotalPriceDichi"
+                                type="number"
+                                value={editingEntry.totalPriceDichi === undefined ? '' : editingEntry.totalPriceDichi}
+                                onChange={(e) => setEditingEntry(prev => prev ? { ...prev, totalPriceDichi: e.target.value === '' ? '' : Number(e.target.value) } : null)}
                                 className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">

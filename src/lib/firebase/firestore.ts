@@ -30,6 +30,8 @@ export interface CalculationDB extends DocumentData {
   remainingMoney: number;
   netAmount: number;
   totalCrates: number;
+  totalPriceMlih: number;
+  totalPriceDichi: number;
 }
 
 
